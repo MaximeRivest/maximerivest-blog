@@ -1,0 +1,21 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "Maxime Rivest"
+  description: "Personal blog"
+  site-url: "https://maximerivest.com"
+  navbar:
+    right:
+      - href: https://twitter.com/maximerivest
+        text: Twitter
+  page-navigation: true
+  repo-url: https://github.com/maximerivest/blog
+  repo-actions: [edit]
+
+format:
+  html:
+    theme: flatly
+    css: styles.css
+    toc: true
