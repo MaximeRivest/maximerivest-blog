@@ -16,10 +16,12 @@ website:
 
 format:
   html:
-    theme: cosmo
-    css: styles.css
-    include-after-body: theme-toggle.js
+    theme:
+      light: [cosmo, styles-light.scss]
+      dark: [darkly, styles-dark.scss]
     toc: true
     smooth-scroll: true
     link-external-icon: false
     link-external-newwindow: false
+    code-fold: false
+    code-tools: false
