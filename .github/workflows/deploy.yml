@@ -1,25 +1,40 @@
-name: Deploy Quarto site
+name: Build & Deploy Quarto site
 
 on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
-  build-deploy:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
       - uses: quarto-dev/quarto-actions/setup@v2
-      - uses: actions/configure-pages@v3
-      - run: quarto render
-      - uses: actions/upload-pages-artifact@v1
+        with:
+          version: "1.5.41"
+      - name: Render site
+        run: quarto render
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
-      - uses: actions/deploy-pages@v1
-        with:
-          branch: gh-pages
-          token: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
