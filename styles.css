@@ -1,44 +1,61 @@
-/* Terminal-inspired dark theme with Zed/Sublime aesthetic */
+/* Modern zen theme with dark mode toggle */
 :root {
   /* Light mode colors */
-  --light-bg: #fafaf9;
-  --light-text: #2c2c2c;
-  --light-accent: #6b7280;
-  --light-link: #4a5568;
-  --light-hover: #2d3748;
-  --light-border: #e5e5e4;
-  --light-code-bg: #f5f5f4;
+  --light-bg: #ffffff;
+  --light-bg-secondary: #fafafa;
+  --light-text: #1a1a1a;
+  --light-accent: #666666;
+  --light-link: #0066cc;
+  --light-hover: #0052a3;
+  --light-border: #e5e5e5;
+  --light-code-bg: #f6f8fa;
+  --light-code-border: #e1e4e8;
   
-  /* Dark mode colors - Terminal/Zed inspired */
-  --dark-bg: #1e1e1e;
-  --dark-bg-secondary: #252526;
-  --dark-text: #d4d4d4;
-  --dark-accent: #808080;
-  --dark-link: #569cd6;
-  --dark-hover: #7aa3f3;
-  --dark-border: #2d2d30;
-  --dark-code-bg: #252526;
+  /* Dark mode colors - Modern terminal */
+  --dark-bg: #0d1117;
+  --dark-bg-secondary: #161b22;
+  --dark-text: #c9d1d9;
+  --dark-accent: #8b949e;
+  --dark-link: #58a6ff;
+  --dark-hover: #79c0ff;
+  --dark-border: #30363d;
+  --dark-code-bg: #161b22;
+  --dark-code-border: #30363d;
   
-  /* Layout */
-  --max-width: 900px;
-  --content-width: 750px;
+  /* Layout - Much wider */
+  --max-width: 1200px;
+  --content-width: 900px;
 }
 
 /* Default to light mode */
-:root {
+[data-theme="light"] {
   --bg: var(--light-bg);
-  --bg-secondary: var(--light-bg);
+  --bg-secondary: var(--light-bg-secondary);
   --text: var(--light-text);
   --accent: var(--light-accent);
   --link: var(--light-link);
   --hover: var(--light-hover);
   --border: var(--light-border);
   --code-bg: var(--light-code-bg);
+  --code-border: var(--light-code-border);
 }
 
 /* Dark mode */
+[data-theme="dark"] {
+  --bg: var(--dark-bg);
+  --bg-secondary: var(--dark-bg-secondary);
+  --text: var(--dark-text);
+  --accent: var(--dark-accent);
+  --link: var(--dark-link);
+  --hover: var(--dark-hover);
+  --border: var(--dark-border);
+  --code-bg: var(--dark-code-bg);
+  --code-border: var(--dark-code-border);
+}
+
+/* Auto theme based on system preference */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
     --bg: var(--dark-bg);
     --bg-secondary: var(--dark-bg-secondary);
     --text: var(--dark-text);
@@ -47,6 +64,7 @@
     --hover: var(--dark-hover);
     --border: var(--dark-border);
     --code-bg: var(--dark-code-bg);
+    --code-border: var(--dark-code-border);
   }
 }
 
@@ -63,7 +81,7 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Consolas', 'Courier New', monospace;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   color: var(--text);
   background-color: var(--bg);
   margin: 0;
@@ -71,29 +89,75 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Main container */
+/* Dark mode toggle */
+.theme-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+  color: var(--text);
+}
+
+.theme-toggle .sun {
+  display: none;
+}
+
+[data-theme="dark"] .theme-toggle .moon {
+  display: none;
+}
+
+[data-theme="dark"] .theme-toggle .sun {
+  display: block;
+}
+
+/* Main container - Wider */
 .quarto-container {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 2rem 2rem;
+  padding: 2rem;
 }
 
-/* Content container - wider for better readability */
-.content, main, article {
+/* Content container - Much wider */
+.content, 
+main, 
+article,
+#quarto-content,
+#quarto-document-content,
+.page-columns,
+.column-body,
+.column-page {
   max-width: var(--content-width) !important;
-  margin: 0 auto;
-  width: 100%;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 100% !important;
 }
 
-/* Override Quarto's narrow content */
-#quarto-content {
-  max-width: var(--max-width) !important;
-  margin: 0 auto;
-}
-
-#quarto-document-content {
+/* Override all Quarto column classes */
+[class*="column-"] {
   max-width: var(--content-width) !important;
-  margin: 0 auto;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 
 /* Typography */
@@ -107,22 +171,23 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  font-size: 2rem;
+  font-size: 2.2rem;
   margin-top: 3rem;
 }
 
 h2 {
-  font-size: 1.5rem;
+  font-size: 1.7rem;
   margin-top: 2.5rem;
 }
 
 h3 {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
 }
 
 p {
   margin: 0 0 1.5rem;
-  font-size: 1rem;
+  font-size: 1.05rem;
+  line-height: 1.7;
 }
 
 /* Links */
@@ -139,7 +204,7 @@ a:hover {
 
 /* Navigation */
 .navbar {
-  background: var(--bg-secondary) !important;
+  background: var(--bg) !important;
   border: none !important;
   box-shadow: none !important;
   padding: 1.5rem 0;
@@ -154,24 +219,108 @@ a:hover {
 }
 
 .navbar-brand {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   font-weight: 500;
   letter-spacing: -0.02em;
   color: var(--text) !important;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 
 .navbar-nav .nav-link {
   color: var(--accent) !important;
-  font-size: 0.95rem;
+  font-size: 1rem;
   padding: 0.5rem 1rem;
   transition: all 0.2s ease;
-  font-family: inherit;
 }
 
 .navbar-nav .nav-link:hover {
   color: var(--hover) !important;
 }
+
+/* Modern code blocks */
+pre {
+  background-color: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  overflow-x: auto;
+  margin: 2rem 0;
+  font-size: 0.95rem;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Consolas', monospace;
+  position: relative;
+}
+
+/* Code block header bar */
+pre::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--code-border);
+  border-radius: 8px 8px 0 0;
+}
+
+/* Code block dots */
+pre::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ff5f56;
+  box-shadow: 20px 0 0 #ffbd2e, 40px 0 0 #27c93f;
+}
+
+/* Adjust code content for header */
+pre code {
+  display: block;
+  margin-top: 1rem;
+  background: none;
+  padding: 0;
+  color: var(--text);
+}
+
+code {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Consolas', monospace;
+  background-color: var(--code-bg);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: var(--text);
+  border: 1px solid var(--code-border);
+}
+
+/* Syntax highlighting */
+[data-theme="dark"] .hljs-keyword,
+[data-theme="dark"] .token.keyword { color: #ff7b72; }
+[data-theme="dark"] .hljs-string,
+[data-theme="dark"] .token.string { color: #a5d6ff; }
+[data-theme="dark"] .hljs-number,
+[data-theme="dark"] .token.number { color: #79c0ff; }
+[data-theme="dark"] .hljs-comment,
+[data-theme="dark"] .token.comment { color: #8b949e; }
+[data-theme="dark"] .hljs-function,
+[data-theme="dark"] .token.function { color: #d2a8ff; }
+[data-theme="dark"] .hljs-class,
+[data-theme="dark"] .token.class-name { color: #ffa657; }
+
+/* Light mode syntax */
+.hljs-keyword,
+.token.keyword { color: #d73a49; }
+.hljs-string,
+.token.string { color: #032f62; }
+.hljs-number,
+.token.number { color: #005cc5; }
+.hljs-comment,
+.token.comment { color: #6a737d; }
+.hljs-function,
+.token.function { color: #6f42c1; }
+.hljs-class,
+.token.class-name { color: #e36209; }
 
 /* Post listing */
 .quarto-listing {
@@ -189,14 +338,13 @@ a:hover {
 
 .quarto-post .metadata {
   color: var(--accent);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   margin-bottom: 0.5rem;
-  font-family: inherit;
 }
 
 .quarto-post h2 {
   margin: 0.5rem 0;
-  font-size: 1.3rem;
+  font-size: 1.5rem;
 }
 
 .quarto-post h2 a {
@@ -208,45 +356,9 @@ a:hover {
   color: var(--hover);
 }
 
-/* Code blocks - Terminal style */
-pre {
-  background-color: var(--code-bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 1.2rem;
-  overflow-x: auto;
-  margin: 1.5rem 0;
-  font-size: 0.9rem;
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Consolas', monospace;
-}
-
-code {
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Consolas', monospace;
-  background-color: var(--code-bg);
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  font-size: 0.9em;
-  color: var(--text);
-}
-
-pre code {
-  background: none;
-  padding: 0;
-}
-
-/* Syntax highlighting for dark mode */
-@media (prefers-color-scheme: dark) {
-  .hljs-keyword { color: #569cd6; }
-  .hljs-string { color: #ce9178; }
-  .hljs-number { color: #b5cea8; }
-  .hljs-comment { color: #6a9955; }
-  .hljs-function { color: #dcdcaa; }
-  .hljs-class { color: #4ec9b0; }
-}
-
 /* Blockquotes */
 blockquote {
-  border-left: 3px solid var(--accent);
+  border-left: 3px solid var(--link);
   padding-left: 1.5rem;
   margin: 2rem 0;
   font-style: italic;
@@ -258,25 +370,31 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin: 2rem 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 th, td {
-  padding: 0.75rem;
+  padding: 0.75rem 1rem;
   text-align: left;
   border-bottom: 1px solid var(--border);
 }
 
 th {
   font-weight: 600;
-  color: var(--text);
   background-color: var(--bg-secondary);
+}
+
+tr:last-child td {
+  border-bottom: none;
 }
 
 /* Images */
 img {
   max-width: 100%;
   height: auto;
-  border-radius: 6px;
+  border-radius: 8px;
   margin: 2rem 0;
 }
 
@@ -284,13 +402,13 @@ img {
 .toc-content {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 1rem;
+  border-radius: 8px;
+  padding: 1.5rem;
 }
 
 .toc-content a {
   color: var(--accent);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   text-decoration: none;
 }
 
@@ -306,29 +424,29 @@ img {
   border-top: 1px solid var(--border);
   color: var(--accent);
   font-size: 0.9rem;
-  background-color: var(--bg-secondary);
+  background-color: var(--bg);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  html {
-    font-size: 15px;
+  :root {
+    --content-width: 100%;
   }
   
-  h1 {
-    font-size: 1.75rem;
-  }
-  
-  h2 {
-    font-size: 1.35rem;
+  .theme-toggle {
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 40px;
+    height: 40px;
   }
   
   .quarto-container {
     padding: 1.5rem 1rem;
   }
   
-  .navbar-container {
-    padding: 0 1rem;
+  pre {
+    padding: 1rem;
+    font-size: 0.85rem;
   }
 }
 
@@ -338,7 +456,10 @@ img {
     scroll-behavior: smooth;
   }
   
-  .quarto-post {
+  .quarto-post,
+  pre,
+  blockquote,
+  table {
     animation: fadeIn 0.6s ease-out;
   }
 }
@@ -357,16 +478,16 @@ img {
 /* Selection */
 ::selection {
   background-color: var(--link);
-  color: var(--bg);
+  color: white;
 }
 
-/* Focus styles for accessibility */
+/* Focus styles */
 *:focus {
   outline: 2px solid var(--link);
   outline-offset: 2px;
 }
 
-/* Remove default Quarto theme shadows and borders */
+/* Remove Quarto defaults */
 .quarto-title-banner,
 .title-block-banner {
   box-shadow: none !important;
@@ -374,55 +495,14 @@ img {
   background-color: var(--bg) !important;
 }
 
-.quarto-title {
-  padding-top: 0 !important;
-}
-
-/* Clean post headers */
-.quarto-title-meta {
-  margin-top: 1rem;
-  color: var(--accent);
-  font-size: 0.95rem;
-  font-family: inherit;
-}
-
-/* Page layout fixes */
-.page-columns {
-  max-width: var(--max-width) !important;
-}
-
-.page-columns .content {
-  max-width: var(--content-width) !important;
-}
-
-/* Override Bootstrap container */
+/* Container overrides */
 .container-fluid {
   max-width: var(--max-width) !important;
   padding: 0 2rem;
 }
 
-/* Ensure main content takes full width */
-main.content {
-  width: 100%;
-  max-width: var(--content-width) !important;
-  margin: 0 auto;
-}
-
-/* Fix for narrow content columns */
-.column-page,
-.column-page-inset,
-.column-page-inset-left,
-.column-page-inset-right,
-.column-screen,
-.column-screen-inset,
-.column-screen-inset-left,
-.column-screen-inset-right,
-.column-body,
-.column-body-outset,
-.column-body-outset-left,
-.column-body-outset-right {
-  max-width: var(--content-width) !important;
-  width: 100% !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
+/* Ensure output blocks also get styled */
+.cell-output pre {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
 }
