@@ -1,0 +1,11 @@
+---
+title: "Welcome"
+date: 2023-09-14
+---
+
+This is a sample post created with Quarto. You can edit or remove it.
+
+```{r}
+#| echo: false
+plot(1:10, 1:10)
+```
