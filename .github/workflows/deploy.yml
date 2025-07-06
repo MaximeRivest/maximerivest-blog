@@ -13,15 +13,32 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # 1. Check out repo
       - uses: actions/checkout@v4
+
+      # 2. (Optional) Install Python & any deps
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        if: hashFiles('requirements.txt') != ''
+        run: pip install -r requirements.txt
+
+      # 3. Install Quarto CLI
       - uses: quarto-dev/quarto-actions/setup@v2
         with:
-          version: "1.5.41"
+          version: "1.5.41"       # or "latest"
+
+      # 4. Render the site
       - name: Render site
-        run: quarto render
+        run: quarto render        # outputs to _site/
+
+      # 5. Upload artifact for GitHub Pages
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: _site             # folder to publish
 
   deploy:
     needs: build
@@ -32,4 +49,3 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-
