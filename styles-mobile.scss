@@ -1,0 +1,505 @@
+/*-- scss:rules --*/
+
+// Comprehensive Mobile Enhancements for Quarto Blog
+// Works with both light and dark themes
+
+// Tablet and below (991px)
+@media (max-width: 991px) {
+  // Global layout adjustments
+  body {
+    font-size: 17px;
+    overflow-x: hidden;
+  }
+  
+  // Main content container
+  .content, 
+  main,
+  .quarto-container {
+    padding: 1rem;
+    max-width: 100%;
+  }
+  
+  // Navigation mobile optimization
+  .navbar {
+    padding: 0.75rem 1rem;
+    
+    .navbar-brand {
+      font-size: 1.1rem;
+    }
+    
+    .navbar-toggler {
+      padding: 0.25rem 0.5rem;
+      font-size: 1rem;
+    }
+    
+    .navbar-nav {
+      margin-top: 1rem;
+      
+      .nav-link {
+        padding: 0.5rem 1rem;
+        margin: 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+  
+  // Typography scaling
+  h1, .title {
+    font-size: 1.75rem !important;
+    line-height: 1.3;
+    margin-bottom: 1rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem !important;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  h3 {
+    font-size: 1.25rem !important;
+    margin-top: 1.5rem;
+  }
+  
+  h4 {
+    font-size: 1.1rem !important;
+  }
+  
+  p {
+    font-size: 1rem;
+    line-height: 1.65;
+    margin-bottom: 1rem;
+  }
+  
+  // Sidebar/TOC mobile treatment
+  .sidebar,
+  .toc-active #quarto-margin-sidebar,
+  #quarto-sidebar,
+  #quarto-margin-sidebar {
+    position: relative !important;
+    width: 100% !important;
+    margin: 0 0 2rem 0 !important;
+    padding: 1rem !important;
+    background: var(--bs-gray-100);
+    border-radius: 8px;
+    max-height: none !important;
+  }
+  
+  .quarto-dark .sidebar,
+  .quarto-dark #quarto-sidebar,
+  .quarto-dark #quarto-margin-sidebar {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  // TOC specific
+  #TOC, 
+  nav[role="doc-toc"],
+  .toc,
+  #quarto-document-toc {
+    position: relative !important;
+    top: auto !important;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: var(--bs-gray-100);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    max-height: none !important;
+    
+    &::before {
+      content: "📑 Table of Contents";
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+    }
+    
+    ul {
+      margin: 0;
+      padding-left: 0;
+    }
+    
+    li {
+      margin: 0.5rem 0;
+    }
+    
+    a {
+      padding: 0.4rem 0.75rem;
+      display: block;
+      border-radius: 4px;
+      
+      &:hover, &.active {
+        background: rgba(var(--bs-primary-rgb), 0.1);
+      }
+    }
+  }
+  
+  .quarto-dark #TOC,
+  .quarto-dark nav[role="doc-toc"],
+  .quarto-dark .toc {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  // Code blocks mobile optimization
+  pre {
+    font-size: 0.8rem !important;
+    padding: 1rem !important;
+    margin: 1rem -0.5rem !important;
+    border-radius: 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100vw;
+    
+    code {
+      font-size: 0.8rem !important;
+    }
+  }
+  
+  // Inline code
+  code:not(pre code) {
+    font-size: 0.85em;
+    padding: 0.15em 0.3em;
+  }
+  
+  // Images mobile optimization
+  img {
+    max-width: 100%;
+    height: auto;
+    margin: 1.5rem -0.5rem;
+    width: calc(100% + 1rem);
+    border-radius: 4px;
+  }
+  
+  figure {
+    margin: 1.5rem -0.5rem;
+    
+    img {
+      margin: 0;
+      width: 100%;
+    }
+  }
+  
+  // Tables mobile optimization
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    font-size: 0.875rem;
+    margin: 1.5rem -0.5rem;
+    width: calc(100% + 1rem);
+  }
+  
+  // Callouts/Alerts mobile
+  .callout,
+  .alert {
+    margin: 1.5rem -0.5rem;
+    padding: 1rem;
+    font-size: 0.95rem;
+    border-radius: 4px;
+    
+    .callout-title {
+      font-size: 1rem;
+    }
+  }
+  
+  // Blockquotes mobile
+  blockquote {
+    margin: 1.5rem 0;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+  }
+  
+  // Lists mobile
+  ul, ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+    
+    li {
+      margin-bottom: 0.5rem;
+    }
+  }
+  
+  // Quarto specific elements
+  .quarto-title-meta {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .quarto-title-banner {
+    padding: 2rem 1rem;
+    
+    .quarto-title {
+      .title {
+        font-size: 2rem;
+      }
+    }
+  }
+  
+  // Post/article metadata
+  .quarto-post,
+  article.post {
+    .metadata,
+    .post-metadata,
+    .quarto-post-meta {
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+  }
+  
+  // Listing pages mobile
+  .quarto-listing {
+    padding: 0;
+    
+    .list-item,
+    .quarto-post {
+      padding: 1rem;
+      margin-bottom: 1rem;
+      
+      .thumbnail img {
+        height: 150px;
+      }
+      
+      .body {
+        .title {
+          font-size: 1.25rem;
+        }
+        
+        .description {
+          font-size: 0.95rem;
+        }
+      }
+    }
+  }
+  
+  // Footer mobile
+  .footer,
+  footer {
+    padding: 2rem 1rem;
+    text-align: center;
+    
+    .footer-contents {
+      flex-direction: column;
+      gap: 1rem;
+    }
+  }
+  
+  // Search mobile
+  .aa-Autocomplete {
+    .aa-Form {
+      .aa-InputWrapper {
+        input {
+          font-size: 16px !important; // Prevents zoom on iOS
+        }
+      }
+    }
+  }
+  
+  // Margin notes as inline
+  .margin-caption,
+  aside {
+    position: relative !important;
+    width: 100% !important;
+    margin: 1rem 0 !important;
+    padding: 1rem !important;
+    background: var(--bs-gray-100);
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+  
+  .quarto-dark .margin-caption,
+  .quarto-dark aside {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+// Small phones (575px and below)
+@media (max-width: 575px) {
+  // Even more compact typography
+  body {
+    font-size: 16px;
+  }
+  
+  h1, .title {
+    font-size: 1.5rem !important;
+  }
+  
+  h2 {
+    font-size: 1.35rem !important;
+  }
+  
+  h3 {
+    font-size: 1.2rem !important;
+  }
+  
+  // Minimal padding
+  .content,
+  main,
+  .quarto-container {
+    padding: 0.75rem;
+  }
+  
+  // Full-width code blocks
+  pre {
+    margin: 1rem -0.75rem !important;
+    border-radius: 0;
+    font-size: 0.75rem !important;
+  }
+  
+  // Full-width images
+  img,
+  figure {
+    margin: 1rem -0.75rem;
+    width: calc(100% + 1.5rem);
+    max-width: none;
+    border-radius: 0;
+  }
+  
+  // Full-width callouts
+  .callout,
+  .alert {
+    margin: 1rem -0.75rem;
+    border-radius: 0;
+  }
+  
+  // Compact TOC
+  #TOC,
+  nav[role="doc-toc"],
+  .toc {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+    
+    &::before {
+      font-size: 0.95rem;
+    }
+  }
+  
+  // Navbar adjustments
+  .navbar {
+    padding: 0.5rem 0.75rem;
+    
+    .navbar-brand {
+      font-size: 1rem;
+    }
+  }
+  
+  // Tables
+  table {
+    font-size: 0.8rem;
+  }
+  
+  // Listing items more compact
+  .quarto-listing {
+    .list-item,
+    .quarto-post {
+      padding: 0.75rem;
+      
+      .thumbnail img {
+        height: 120px;
+      }
+      
+      .body .title {
+        font-size: 1.1rem;
+      }
+    }
+  }
+}
+
+// Touch device optimizations
+@media (hover: none) and (pointer: coarse) {
+  // Larger tap targets
+  a, button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.5rem;
+  }
+  
+  // Better button styling
+  .btn {
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+  }
+  
+  // Code copy button
+  .code-copy-button {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.875rem !important;
+    opacity: 1 !important;
+  }
+  
+  // Remove hover effects
+  a:hover {
+    text-decoration: none;
+  }
+  
+  // TOC links
+  #TOC a,
+  nav[role="doc-toc"] a {
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+// Landscape mobile adjustments
+@media (max-width: 991px) and (orientation: landscape) {
+  // Reduce vertical spacing
+  h1, .title {
+    margin-bottom: 0.5rem;
+  }
+  
+  h2 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  p {
+    margin-bottom: 0.75rem;
+  }
+  
+  // Compact TOC
+  #TOC,
+  nav[role="doc-toc"] {
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+  
+  // Smaller images
+  img {
+    max-height: 60vh;
+  }
+}
+
+// High DPI screens
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  // Crisp borders
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+// Accessibility: Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// Dark mode specific mobile adjustments
+@media (max-width: 991px) {
+  .quarto-dark {
+    // Ensure readable contrast on mobile
+    body {
+      background: #1a1a1a;
+    }
+    
+    pre {
+      background: #0d0d0d;
+    }
+    
+    .callout,
+    .alert {
+      background: rgba(255, 255, 255, 0.05);
+    }
+  }
+}
