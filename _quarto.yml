@@ -8,20 +8,35 @@ website:
   site-url: "https://maximerivest.com"
   navbar:
     right:
-      - href: https://twitter.com/maximerivest
-        text: Twitter
+      - href: https://x.com/maximerivest
+        text: X
   page-navigation: true
   repo-url: https://github.com/maximerivest/blog
   repo-actions: [edit]
+
+resources:
+  - assets
 
 format:
   html:
     theme:
       light: [cosmo, styles-light.scss]
       dark: [darkly, styles-dark.scss]
+    css: styles-enhancements.scss
+    include-after-body:
+      - text: |
+          <script src="/assets/js/custom.js" defer></script>
     toc: true
+    toc-depth: 3
+    toc-location: right
     smooth-scroll: true
     link-external-icon: false
     link-external-newwindow: false
     code-fold: false
-    code-tools: false
+    code-tools: true
+    code-copy: true
+    anchor-sections: true
+    number-sections: false
+    highlight-style:
+      light: github
+      dark: monokai

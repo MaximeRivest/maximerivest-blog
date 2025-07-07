@@ -1,3 +1,15 @@
+# Core Jupyter dependencies
 jupyter
+jupyter-cache
+nbclient
+nbformat
+
+# Plotting and data
 matplotlib
 numpy
+pandas
+
+# DSPy tutorial dependencies
+dspy-ai
+attachments
+datar

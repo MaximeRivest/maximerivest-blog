@@ -1,413 +1,487 @@
-/*-- scss:functions --*/
-@function px-to-rem($px) {
-  @return ($px / 16) * 1rem;
-}
-
 /*-- scss:defaults --*/
-// Zen-inspired dark theme colors - warm grays for reduced eye strain
-$primary: #60a5fa !default;           // Soft blue
-$secondary: #34d399 !default;         // Muted green
-$body-bg: #111111 !default;           // Near black
-$body-bg-secondary: #1a1a1a !default; // Slightly lighter
-$body-color: #e5e5e5 !default;        // Off-white
-$text-secondary: #a3a3a3 !default;    // Muted gray
-$link-color: #60a5fa !default;        // Matching primary
-$link-hover-color: #93bbfc !default;  // Lighter blue
-$border-color: #262626 !default;      // Subtle border
-$code-bg: #1a1a1a !default;           // Slightly elevated
-$code-border: #262626 !default;       // Matching border
 
-// Typography - same as light for consistency
-$font-family-sans-serif: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !default;
-$font-family-monospace: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, monospace !default;
+// Zen-inspired dark theme with stunning, professional aesthetics
+// Designed for late-night coding sessions and reduced eye strain
+
+// Color System - DDS Blue dark theme palette
+$primary: #0C85CC !default;              // DDS Blue for primary actions
+$secondary: #1DBFE0 !default;            // Cyan for secondary elements
+$accent: #FF8D01 !default;               // Orange accent for highlights
+$success: #1DD301 !default;              // Bright green
+$info: #1DBFE0 !default;                 // Cyan blue
+$warning: #FFCF01 !default;              // Golden yellow
+$danger: #FB0113 !default;               // Bright red
+
+// Base colors
+$body-bg: #141414 !default;              // DDS Blue background
+$body-color: #E2E8F0 !default;           // Light gray text
+$text-muted: #94A3B8 !default;           // Muted blue-gray
+$border-color: #343e45 !default;         // DDS Blue borders
+
+// Link colors
+$link-color: $primary !default;
+$link-decoration: none !default;
+$link-hover-color: lighten($primary, 10%) !default;
+
+// Typography
+$font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !default;
+$font-family-monospace: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace !default;
 $font-size-root: 18px !default;
 $line-height-base: 1.7 !default;
-$letter-spacing-base: 0.01em !default;
+$letter-spacing-base: -0.011em !default;
 
-// Typography scale - same proportions
+// Headings
+$headings-font-family: $font-family-sans-serif !default;
+$headings-font-weight: 700 !default;
+$headings-line-height: 1.3 !default;
+$headings-color: #F1F5F9 !default;
 $h1-font-size: 2.5rem !default;
 $h2-font-size: 2rem !default;
 $h3-font-size: 1.5rem !default;
 $h4-font-size: 1.25rem !default;
-$font-size-sm: 0.875rem !default;
+$h5-font-size: 1.125rem !default;
 
-// Spacing - same as light
+// Spacing system
 $spacer: 1rem !default;
 $content-padding: 2rem !default;
-$content-max-width: 65ch !default;
-$container-max-width: 1200px !default;
+$section-spacing: 4rem !default;
 
-// Components - adjusted for dark theme
-$border-radius: 6px !default;
-$border-radius-lg: 8px !default;
-$box-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3) !default;
-$box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4) !default;
-$box-shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !default;
+// Components
+$border-radius: 0.5rem !default;
+$border-radius-sm: 0.375rem !default;
+$border-radius-lg: 0.75rem !default;
+$box-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3) !default;
+$box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !default;
+$box-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4) !default;
 
 // Code blocks
-$code-font-size: 0.9em !default;
-$code-padding: 0.2em 0.4em !default;
-$code-block-padding: 1.5rem !default;
+$code-bg: #1E293B !default;
+$code-color: #0C85CC !default;
+$code-block-bg: #141414 !default;
+$code-block-border: 1px solid #104D70 !default;
+$code-block-bg-alpha: -0.8 !default;
 
-/*-- scss:mixins --*/
-@mixin focus-style {
-  outline: 2px solid $primary;
-  outline-offset: 3px;
-  transition: outline-offset 0.2s ease;
-}
+// Navigation
+$navbar-bg: rgba(15, 15, 16, 0.95) !default;
+$navbar-blur: 10px !default;
 
-@mixin content-spacing {
-  > * + * {
-    margin-top: $spacer;
-  }
-  
-  > h2 {
-    margin-top: calc(#{$spacer} * 3);
-    margin-bottom: calc(#{$spacer} * 1.5);
-  }
-  
-  > h3 {
-    margin-top: calc(#{$spacer} * 2.5);
-    margin-bottom: $spacer;
-  }
-}
+// Tables
+$table-border-color: $border-color !default;
+$table-hover-bg: rgba($primary, 0.08) !default;
+
+// TOC
+$toc-font-size: 0.875rem !default;
+$toc-color: $text-muted !default;
+$toc-active-color: $primary !default;
+$toc-active-border: $primary !default;
 
 /*-- scss:rules --*/
-// Smooth transitions
-* {
-  transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+
+// Import fonts
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+// Smooth scrolling
+html {
+  scroll-behavior: smooth;
 }
 
-// Base reset
+// Base body styles with subtle gradient
 body {
   font-family: $font-family-sans-serif;
   font-size: $font-size-root;
   line-height: $line-height-base;
-  letter-spacing: $letter-spacing-base;
   color: $body-color;
   background-color: $body-bg;
+  background-image: 
+    radial-gradient(ellipse at top left, rgba($primary, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba($accent, 0.05) 0%, transparent 50%);
+  background-attachment: fixed;
+  letter-spacing: $letter-spacing-base;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
 }
 
-// Content container - zen width
-#quarto-content {
-  max-width: $container-max-width;
+// Content container with optimal reading width
+.content {
+  max-width: 48rem;
   margin: 0 auto;
   padding: $content-padding;
 }
 
-#quarto-document-content {
-  max-width: $content-max-width;
-  margin: 0 auto;
-}
-
-// Typography - peaceful hierarchy
+// Beautiful typography hierarchy
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
-  line-height: 1.3;
+  font-family: $headings-font-family;
+  font-weight: $headings-font-weight;
+  line-height: $headings-line-height;
+  color: $headings-color;
+  margin-top: $section-spacing;
+  margin-bottom: $spacer * 1.5;
   letter-spacing: -0.02em;
-  color: $body-color;
   
-  // Anchor links
-  .anchor {
-    opacity: 0;
-    margin-left: 0.5rem;
-    transition: opacity 0.2s ease;
-  }
-  
-  &:hover .anchor {
-    opacity: 0.5;
+  // First heading doesn't need top margin
+  &:first-child {
+    margin-top: 0;
   }
 }
 
-h1 {
-  font-size: $h1-font-size;
-  margin: 3rem 0 2rem;
-}
-
-h2 {
-  font-size: $h2-font-size;
-  margin: 3rem 0 1.5rem;
-  padding-top: 2rem;
-  border-top: 1px solid rgba($border-color, 0.5);
-}
-
-h3 {
-  font-size: $h3-font-size;
-  margin: 2.5rem 0 1rem;
-}
-
-p {
-  margin-bottom: 1.5rem;
-}
-
-// Links - subtle and peaceful
+// Smooth link transitions with glow effect
 a {
   color: $link-color;
-  text-decoration: none;
+  text-decoration: $link-decoration;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: $link-color;
-    transform: scaleX(0);
-    transition: transform 0.3s ease;
+  &:hover {
+    color: $link-hover-color;
+    text-shadow: 0 0 8px rgba($primary, 0.5);
   }
   
-  &:hover::after {
-    transform: scaleX(1);
-  }
-  
-  &:focus {
-    @include focus-style;
+  // Beautiful underline animation for content links
+  .content & {
+    text-decoration: none;
+    background-image: linear-gradient(to right, $link-color 0%, $link-color 100%);
+    background-position: 0 100%;
+    background-size: 0 2px;
+    background-repeat: no-repeat;
+    transition: background-size 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:hover {
+      background-size: 100% 2px;
+    }
   }
 }
 
-// Code - clean and readable
-code {
-  font-family: $font-family-monospace;
-  font-size: $code-font-size;
-  padding: $code-padding;
-  background: $code-bg;
-  border: 1px solid $code-border;
-  border-radius: $border-radius;
-  color: #fbbf24;  // Warm yellow for inline code
-}
-
-pre {
-  margin: 2rem 0;
-  padding: $code-block-padding;
-  background: $code-bg;
-  border: 1px solid $code-border;
-  border-radius: $border-radius-lg;
-  overflow-x: auto;
+// Paragraphs with optimal spacing
+p {
+  margin-bottom: $spacer * 1.5;
   
-  code {
-    padding: 0;
-    background: none;
-    border: none;
-    font-size: 0.9rem;
-    line-height: 1.6;
-    color: $body-color;  // Normal text color for blocks
+  &:last-child {
+    margin-bottom: 0;
   }
 }
 
-// Syntax highlighting - dark zen colors
-.hljs-keyword { color: #c084fc; }     // Soft purple
-.hljs-string { color: #86efac; }      // Soft green
-.hljs-number { color: #fca5a5; }      // Soft red
-.hljs-comment { color: #6b7280; font-style: italic; }
-.hljs-function { color: #60a5fa; }    // Soft blue
-.hljs-class { color: #fbbf24; }       // Warm yellow
-.hljs-variable { color: #67e8f9; }    // Soft cyan
-
-// Images - peaceful presentation
-img {
-  max-width: 100%;
-  height: auto;
-  border-radius: $border-radius-lg;
-  margin: 2rem 0;
-  display: block;
-  box-shadow: $box-shadow-lg;
-  opacity: 0.9;  // Slightly reduce brightness
-}
-
-figure {
-  margin: 2rem 0;
+// Lists with comfortable spacing
+ul, ol {
+  margin-bottom: $spacer * 1.5;
+  padding-left: $spacer * 2;
   
-  figcaption {
-    text-align: center;
-    font-size: $font-size-sm;
-    color: $text-secondary;
-    margin-top: 0.75rem;
-    font-style: italic;
+  li {
+    margin-bottom: $spacer * 0.5;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
 }
 
-// Tables - clean data presentation
-table {
-  width: 100%;
-  margin: 2rem 0;
-  border-collapse: collapse;
-  font-size: 0.95rem;
-  
-  th, td {
-    padding: 0.75rem 1rem;
-    text-align: left;
-    border-bottom: 1px solid $border-color;
-  }
-  
-  th {
-    font-weight: 600;
-    background: $body-bg-secondary;
-    font-size: $font-size-sm;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: $text-secondary;
-  }
-  
-  tr:last-child td {
-    border-bottom: none;
-  }
-  
-  tr:hover {
-    background: rgba($body-bg-secondary, 0.5);
-  }
-}
-
-// Blockquotes - thoughtful emphasis
+// Elegant blockquotes with glow
 blockquote {
-  margin: 2rem 0;
-  padding-left: 2rem;
+  margin: $spacer * 2 0;
+  padding: $spacer $spacer * 1.5;
   border-left: 4px solid $primary;
-  color: $text-secondary;
+  background: linear-gradient(to right, rgba($primary, 0.1), transparent);
   font-style: italic;
+  box-shadow: inset 0 0 20px rgba($primary, 0.1);
   
   p:last-child {
     margin-bottom: 0;
   }
 }
 
-// Lists - clean hierarchy
-ul, ol {
-  margin-bottom: 1.5rem;
-  padding-left: 2rem;
+// Beautiful code blocks with syntax highlighting
+pre {
+  margin: $spacer * 2 0;
+  padding: $spacer * 1.5;
+  background: $code-block-bg;
+  border: $code-block-border;
+  border-radius: $border-radius;
+  overflow-x: auto;
+  box-shadow: $box-shadow;
   
-  li {
-    margin-bottom: 0.5rem;
-    line-height: $line-height-base;
+  code {
+    font-family: $font-family-monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: $code-color;
+    background: transparent;
+    padding: 0;
   }
 }
 
-// Navigation - minimal presence
+// Inline code with subtle background
+code:not(pre code) {
+  font-family: $font-family-monospace;
+  font-size: 0.875em;
+  padding: 0.125em 0.375em;
+  background: $code-bg;
+  border-radius: $border-radius-sm;
+  color: $code-color;
+  border: 1px solid rgba($primary, 0.2);
+}
+
+// Navigation with glass morphism effect
 .navbar {
-  background: $body-bg !important;
+  background: $navbar-bg;
+  backdrop-filter: blur($navbar-blur);
+  -webkit-backdrop-filter: blur($navbar-blur);
   border-bottom: 1px solid $border-color;
-  padding: 1.5rem 0;
-  margin-bottom: 3rem;
+  padding: $spacer 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   
-  .navbar-brand {
+  .navbar-title {
     font-weight: 600;
-    font-size: 1.25rem;
-    color: $body-color !important;
+    font-size: 1.125rem;
     letter-spacing: -0.02em;
+    color: $headings-color;
   }
   
-  .navbar-nav .nav-link {
-    color: $text-secondary !important;
-    font-size: 0.95rem;
-    margin-left: 2rem;
-    position: relative;
-    
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: -5px;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: $primary;
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
-    }
-    
-    &:hover {
-      color: $body-color !important;
+  .navbar-nav {
+    .nav-link {
+      color: $body-color;
+      font-weight: 500;
+      margin-left: $spacer * 1.5;
+      transition: all 0.2s ease;
+      position: relative;
       
       &::after {
-        transform: scaleX(1);
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(to right, $primary, $accent);
+        transition: width 0.3s ease;
+      }
+      
+      &:hover {
+        color: $primary;
+        
+        &::after {
+          width: 100%;
+        }
+      }
+      
+      // X (Twitter) icon styling with glow
+      i.bi-twitter, i.bi-x {
+        font-size: 1.1rem;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          transform: translateY(-2px);
+          filter: drop-shadow(0 4px 8px rgba($accent, 0.5));
+          color: $accent;
+        }
       }
     }
   }
 }
 
-// Table of contents - unobtrusive guide
-.sidebar nav[role="doc-toc"] {
+// Table of contents with smooth animations
+.toc {
+  font-size: $toc-font-size;
+  
   ul {
     list-style: none;
     padding-left: 0;
     
     li {
-      margin-bottom: 0.5rem;
+      margin-bottom: $spacer * 0.5;
       
       a {
-        color: $text-secondary;
-        font-size: 0.9rem;
+        color: $toc-color;
+        text-decoration: none;
+        padding: $spacer * 0.25 0;
         display: block;
-        padding: 0.25rem 0;
-        border-left: 2px solid transparent;
-        padding-left: 1rem;
+        border-left: 3px solid transparent;
+        padding-left: $spacer;
+        transition: all 0.2s ease;
         
         &:hover {
           color: $body-color;
-          border-left-color: $primary;
+          border-left-color: rgba($primary, 0.5);
+          padding-left: $spacer * 1.25;
+          background: linear-gradient(to right, rgba($primary, 0.05), transparent);
         }
         
         &.active {
-          color: $primary;
-          font-weight: 500;
-          border-left-color: $primary;
+          color: $toc-active-color;
+          font-weight: 600;
+          border-left-color: $toc-active-border;
+          background: linear-gradient(to right, rgba($primary, 0.1), transparent);
         }
       }
     }
+  }
+}
+
+// Beautiful tables with subtle effects
+table {
+  width: 100%;
+  margin: $spacer * 2 0;
+  border-collapse: collapse;
+  
+  thead {
+    border-bottom: 2px solid $primary;
     
-    ul {
-      margin-top: 0.5rem;
-      margin-left: 1rem;
+    th {
+      font-weight: 600;
+      text-align: left;
+      padding: $spacer;
+      color: $headings-color;
+      background: rgba($primary, 0.05);
+    }
+  }
+  
+  tbody {
+    tr {
+      border-bottom: 1px solid $table-border-color;
+      transition: background-color 0.2s ease;
+      
+      &:hover {
+        background-color: $table-hover-bg;
+      }
+      
+      td {
+        padding: $spacer;
+      }
     }
   }
 }
 
-// Post metadata - subtle context
-.quarto-title-meta {
-  margin: 1rem 0 2rem;
-  color: $text-secondary;
-  font-size: $font-size-sm;
+// Images with elegant shadows and glow
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: $border-radius;
+  margin: $spacer * 2 0;
+  display: block;
+  box-shadow: $box-shadow-lg;
+  transition: all 0.3s ease;
   
-  .quarto-title-meta-contents {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.5rem;
+  &:hover {
+    transform: scale(1.02);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8);
   }
 }
 
-// Footer - minimal presence
-.quarto-footer {
-  margin-top: 4rem;
-  padding: 2rem 0;
+// Figure captions
+figcaption {
+  text-align: center;
+  font-size: 0.875rem;
+  color: $text-muted;
+  margin-top: $spacer;
+  font-style: italic;
+}
+
+// Horizontal rules as content breaks
+hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, $border-color, transparent);
+  margin: $section-spacing 0;
+  position: relative;
+  
+  &::after {
+    content: '✦';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: $body-bg;
+    padding: 0 $spacer;
+    color: $text-muted;
+    font-size: 1.25rem;
+    text-shadow: 0 0 10px rgba($primary, 0.3);
+  }
+}
+
+// Post metadata styling
+.post-metadata {
+  font-size: 0.875rem;
+  color: $text-muted;
+  margin-bottom: $spacer * 2;
+  
+  .date {
+    font-weight: 500;
+  }
+  
+  .categories {
+    display: inline-flex;
+    gap: $spacer * 0.5;
+    margin-left: $spacer;
+    
+    .category {
+      background: rgba($primary, 0.2);
+      color: $primary;
+      padding: $spacer * 0.25 $spacer * 0.75;
+      border-radius: $border-radius-sm;
+      font-weight: 500;
+      border: 1px solid rgba($primary, 0.3);
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: rgba($primary, 0.3);
+        box-shadow: 0 0 10px rgba($primary, 0.5);
+      }
+    }
+  }
+}
+
+// Selection colors
+::selection {
+  background: rgba($primary, 0.3);
+  color: $headings-color;
+}
+
+::-moz-selection {
+  background: rgba($primary, 0.3);
+  color: $headings-color;
+}
+
+// Scrollbar styling
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: $body-bg;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba($primary, 0.3);
+  border-radius: 6px;
+  border: 3px solid $body-bg;
+  
+  &:hover {
+    background: rgba($primary, 0.5);
+  }
+}
+
+// Footer styling
+.footer {
+  margin-top: $section-spacing * 2;
+  padding: $spacer * 2 0;
   border-top: 1px solid $border-color;
-  color: $text-secondary;
-  font-size: $font-size-sm;
+  text-align: center;
+  color: $text-muted;
+  font-size: 0.875rem;
 }
 
-// Content flow
-.content {
-  @include content-spacing;
-}
-
-// Output blocks - special handling for dark mode
-.cell-output {
-  pre {
-    background: lighten($code-bg, 3%);
-    border-color: lighten($code-border, 5%);
-  }
-}
-
-// Responsive design
+// Responsive adjustments
 @media (max-width: 768px) {
   body {
     font-size: 16px;
   }
   
-  #quarto-content {
-    padding: 1rem;
+  .content {
+    padding: $spacer;
   }
   
   h1 { font-size: 2rem; }
@@ -415,26 +489,36 @@ ul, ol {
   h3 { font-size: 1.25rem; }
   
   pre {
-    padding: 1rem;
-    font-size: 0.85rem;
+    padding: $spacer;
+    margin: $spacer 0;
+  }
+  
+  .navbar {
+    .navbar-nav .nav-link {
+      margin-left: $spacer;
+    }
   }
 }
 
-// Print styles
-@media print {
-  body {
-    font-size: 12pt;
-    line-height: 1.5;
-    background: white;
-    color: black;
+// Dark mode specific adjustments for Quarto components
+.quarto-dark {
+  // Adjust Quarto's default dark mode colors to match DDS Blue
+  --quarto-hl-fu-color: #{$primary};      // Functions - DDS Blue
+  --quarto-hl-dt-color: #{$info};         // Data types - Cyan
+  --quarto-hl-st-color: #{$success};      // Strings - Green
+  --quarto-hl-co-color: #CCCCCC;          // Comments - Gray
+  --quarto-hl-kw-color: #{$accent};       // Keywords - Orange
+  --quarto-hl-dv-color: #{$warning};      // Values - Yellow
+  --quarto-hl-op-color: #{$danger};       // Operators - Red
+  
+  // Code highlighting adjustments
+  .sourceCode {
+    background-color: $code-block-bg !important;
+    color: $primary !important;
   }
   
-  .navbar, .sidebar, .quarto-footer {
-    display: none;
-  }
-  
-  a {
-    color: black;
-    text-decoration: underline;
+  // Match DDS Blue terminal styling
+  pre code {
+    color: $primary;
   }
 }

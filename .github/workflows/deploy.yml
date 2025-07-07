@@ -24,18 +24,39 @@ jobs:
 
       - name: Install Python dependencies
         if: hashFiles('requirements.txt') != ''
-        run: pip install -r requirements.txt
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: Verify Python environment
+        run: |
+          python -c "import jupyter_cache; print('jupyter-cache installed successfully')"
+          python -c "import dspy; print('dspy installed successfully')"
 
       # 3. Install Quarto CLI
       - uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: "1.5.41"       # or "latest"
 
-      # 4. Render the site
+      # 4. Cache Quarto's freeze directory
+      - name: Cache Quarto freeze
+        uses: actions/cache@v4
+        with:
+          path: _freeze
+          key: ${{ runner.os }}-quarto-freeze-${{ hashFiles('**/posts/*.qmd') }}
+          restore-keys: |
+            ${{ runner.os }}-quarto-freeze-
+
+      # 5. Render the site
       - name: Render site
         run: quarto render        # outputs to _site/
+        env:
+          QUARTO_PYTHON: python
+          # Add any API keys needed for DSPy (if required)
+          # ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
-      # 5. Upload artifact for GitHub Pages
+      # 6. Upload artifact for GitHub Pages
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site             # folder to publish

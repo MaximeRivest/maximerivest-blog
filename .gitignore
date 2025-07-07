@@ -5,3 +5,14 @@ _site/
 .Rdata
 .Rproj.user/
 .DS_Store
+
+/.quarto/
+.jupyter_cache/
+# Note: _freeze/ is intentionally NOT ignored
+# We want to commit frozen execution results for reproducible builds
+
+# Ignore installer files
+*.deb
+*.rpm
+*.dmg
+*.exe

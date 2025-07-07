@@ -1,6 +1,8 @@
 ---
 title: "Test Notebook"
 date: 2024-06-23
+execute:
+  cache: true
 ---
 
 A simple Quarto post with Python code.

@@ -1,0 +1,27 @@
+---
+title: "The anatomy of a prompt"
+date: 2025-07-06
+---
+
+My criteria for a good AI programing interface:
+
+## Pointing to models should be at most a url, and a model name
+I must be able to change model, provider, inference engine as easily as I would say it to a competent Applied AI engineer: "Use 'meta-llama/Llama-3.1-8B' on groq" or "Use Claude Sonnet 3.6 on Bedrock" or "Use 'meta-llama/Llama-3.1-8B' with vllm".
+
+Things everything should always work without exception when I can url and provider except for cases where modalities are not supported. If it's not a vision capable model it will obviously not take in images.
+
+##
+
+Prompt was a particularly correct term chosen to describe the action of writing llm input to make a response happen. I wonder who said it first and what else was 'tried'.
+
+Prompting
+
+Definition: "the act of trying to make someone say something"
+
+Example: Kids of that age really shouldn't need prompting to say thank you for things.
+
+Prompt
+
+Definition: "to make something happen"
+
+Example: The bishop's speech has prompted an angry response from both political parties.
