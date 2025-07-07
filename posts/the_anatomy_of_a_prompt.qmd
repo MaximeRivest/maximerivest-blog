@@ -25,3 +25,27 @@ Prompt
 Definition: "to make something happen"
 
 Example: The bishop's speech has prompted an angry response from both political parties.
+
+
+
+---
+long version
+
+I am on a 'mission' to find the simplest AI programmatic interface there is as part of that I would want to be to a single one (so I also want it to gradually become deep and rich). Powerful for advance used, simple nice defaults for beginners.
+
+This is where am at for now:
+
+1) I Julia has the absolute simplest.
+
+ai"Hello my name is Maxime"
+
+# it remembers
+ai!"What is my name"
+
+# it does not
+ai"What is my name"
+
+*this leverage julia ! convention. so it's very Julia-n.
+** not sure how far it goes pass this, I have not been serious in Julia for genai.
+
+2) Claudette has the

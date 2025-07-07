@@ -20,8 +20,8 @@ resources:
 format:
   html:
     theme:
-      light: [cosmo, styles-light.scss, styles-mobile.scss]
-      dark: [darkly, styles-dark.scss, styles-mobile.scss]
+      light: [cosmo, styles-light.scss, styles-mobile.scss, styles-code-copy-fix.scss, styles-zen-buttons.scss]
+      dark: [darkly, styles-dark.scss, styles-mobile.scss, styles-code-copy-fix.scss, styles-zen-buttons.scss]
     include-after-body:
       - text: |
           <script src="/assets/js/custom.js" defer></script>

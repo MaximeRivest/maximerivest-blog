@@ -1,0 +1,230 @@
+/*-- scss:rules --*/
+
+// Zen-style button refinements - removing tacky gradients
+.btn, 
+button,
+.btn-primary,
+.btn-secondary,
+input[type="submit"],
+input[type="button"] {
+  // Remove gradients and use solid, subtle colors
+  background: transparent !important;
+  background-image: none !important;
+  color: var(--bs-primary) !important;
+  border: 1px solid var(--bs-primary) !important;
+  font-weight: 500 !important;
+  padding: 0.5rem 1.25rem !important;
+  border-radius: 0.375rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  display: inline-block !important;
+  
+  &:hover {
+    background: var(--bs-primary) !important;
+    color: white !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  &:active {
+    transform: translateY(0) !important;
+    box-shadow: none !important;
+  }
+  
+  &:focus {
+    outline: 2px solid var(--bs-primary) !important;
+    outline-offset: 2px !important;
+    box-shadow: none !important;
+  }
+}
+
+// Primary button variant - solid but subtle
+.btn-primary {
+  background: var(--bs-primary) !important;
+  color: white !important;
+  border-color: var(--bs-primary) !important;
+  
+  &:hover {
+    background: var(--bs-primary) !important;
+    border-color: var(--bs-primary) !important;
+    filter: brightness(1.1) !important;
+  }
+}
+
+// Secondary button variant - outlined
+.btn-secondary {
+  background: transparent !important;
+  color: var(--bs-gray-700) !important;
+  border-color: var(--bs-gray-400) !important;
+  
+  &:hover {
+    background: var(--bs-gray-100) !important;
+    color: var(--bs-gray-900) !important;
+    border-color: var(--bs-gray-500) !important;
+  }
+}
+
+// Outline button style
+.btn-outline,
+.btn-outline-primary {
+  background: transparent !important;
+  color: var(--bs-primary) !important;
+  border: 1px solid var(--bs-primary) !important;
+  
+  &:hover {
+    background: var(--bs-primary) !important;
+    color: white !important;
+  }
+}
+
+// Remove gradients from specific components
+.social-share a {
+  background: transparent !important;
+  border: 1px solid var(--bs-gray-300) !important;
+  color: var(--bs-gray-600) !important;
+  
+  &:hover {
+    background: transparent !important;
+    border-color: currentColor !important;
+    transform: translateY(-2px) !important;
+  }
+  
+  &.twitter:hover {
+    color: #1DA1F2 !important;
+    border-color: #1DA1F2 !important;
+  }
+  
+  &.linkedin:hover {
+    color: #0077B5 !important;
+    border-color: #0077B5 !important;
+  }
+  
+  &.email:hover {
+    color: #EA4335 !important;
+    border-color: #EA4335 !important;
+  }
+}
+
+// Reading progress bar - make it subtle
+.reading-progress {
+  height: 2px !important;
+  background: var(--bs-gray-200) !important;
+  
+  .progress-bar {
+    background: var(--bs-primary) !important;
+    background-image: none !important;
+  }
+}
+
+// Category tags - remove gradients
+.quarto-category,
+.category-tag {
+  background: transparent !important;
+  background-image: none !important;
+  border: 1px solid var(--bs-primary) !important;
+  color: var(--bs-primary) !important;
+  
+  &:hover {
+    background: var(--bs-primary) !important;
+    color: white !important;
+    transform: scale(1.02) !important;
+    box-shadow: none !important;
+  }
+}
+
+// Pagination - zen style
+.pagination {
+  .page-link {
+    background: transparent !important;
+    background-image: none !important;
+    color: var(--bs-gray-700) !important;
+    border: 1px solid var(--bs-gray-300) !important;
+    
+    &:hover {
+      background: var(--bs-gray-100) !important;
+      color: var(--bs-gray-900) !important;
+      border-color: var(--bs-gray-400) !important;
+      transform: none !important;
+    }
+  }
+  
+  .page-item.active .page-link {
+    background: var(--bs-primary) !important;
+    color: white !important;
+    border-color: var(--bs-primary) !important;
+  }
+}
+
+// Dark mode adjustments
+.quarto-dark {
+  .btn,
+  button {
+    color: var(--bs-gray-300) !important;
+    border-color: var(--bs-gray-600) !important;
+    
+    &:hover {
+      background: var(--bs-gray-700) !important;
+      color: white !important;
+      border-color: var(--bs-gray-500) !important;
+    }
+  }
+  
+  .btn-primary {
+    background: var(--bs-primary) !important;
+    color: white !important;
+    border-color: var(--bs-primary) !important;
+  }
+  
+  .btn-secondary {
+    background: transparent !important;
+    color: var(--bs-gray-400) !important;
+    border-color: var(--bs-gray-600) !important;
+    
+    &:hover {
+      background: var(--bs-gray-800) !important;
+      color: var(--bs-gray-200) !important;
+      border-color: var(--bs-gray-500) !important;
+    }
+  }
+  
+  .social-share a {
+    border-color: var(--bs-gray-700) !important;
+    color: var(--bs-gray-400) !important;
+  }
+  
+  .reading-progress {
+    background: var(--bs-gray-800) !important;
+  }
+  
+  .quarto-category,
+  .category-tag {
+    border-color: var(--bs-gray-600) !important;
+    color: var(--bs-gray-400) !important;
+    
+    &:hover {
+      background: var(--bs-gray-700) !important;
+      color: white !important;
+      border-color: var(--bs-gray-500) !important;
+    }
+  }
+  
+  .pagination .page-link {
+    background: transparent !important;
+    color: var(--bs-gray-400) !important;
+    border-color: var(--bs-gray-700) !important;
+    
+    &:hover {
+      background: var(--bs-gray-800) !important;
+      color: var(--bs-gray-200) !important;
+      border-color: var(--bs-gray-600) !important;
+    }
+  }
+}
+
+// Remove any remaining gradients
+*[class*="gradient"],
+*[style*="gradient"] {
+  background-image: none !important;
+}

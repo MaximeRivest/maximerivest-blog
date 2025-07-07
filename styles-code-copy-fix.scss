@@ -1,0 +1,120 @@
+/*-- scss:rules --*/
+
+// Fix for code copy button positioning and styling
+// Override Quarto's default styles with higher specificity
+div.sourceCode .code-copy-button,
+pre .code-copy-button,
+.code-copy-button {
+  // Positioning - stays fixed to the code block container
+  position: absolute !important;
+  top: 0.5rem !important;
+  right: 0.5rem !important;
+  z-index: 10 !important;
+  
+  // Visual styling - subtle and professional
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0.25rem !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  color: var(--bs-gray-600) !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
+  
+  // Remove all transforms and blue colors
+  transform: none !important;
+  
+  &:hover {
+    // Subtle hover state - no blue, no movement
+    background: rgba(0, 0, 0, 0.08) !important;
+    color: var(--bs-gray-700) !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+    transform: none !important;
+  }
+  
+  &:active {
+    // Slight scale on click for feedback
+    transform: scale(0.95) !important;
+  }
+  
+  &.code-copy-button-checked {
+    // Success state after copying
+    background: rgba(var(--bs-success-rgb), 0.9) !important;
+    color: white !important;
+    border-color: var(--bs-success) !important;
+    
+    &::after {
+      content: ' ✓' !important;
+    }
+    
+    &:hover {
+      background: rgba(var(--bs-success-rgb), 1) !important;
+      color: white !important;
+      border-color: var(--bs-success) !important;
+    }
+  }
+}
+
+// Ensure parent containers have proper positioning
+div.sourceCode {
+  position: relative !important;
+  
+  // Handle overflow scrolling without affecting button
+  pre {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+}
+
+pre:has(.code-copy-button) {
+  position: relative !important;
+}
+
+// Dark mode adjustments
+.quarto-dark {
+  div.sourceCode .code-copy-button,
+  pre .code-copy-button,
+  .code-copy-button {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: var(--bs-gray-500) !important;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: var(--bs-gray-400) !important;
+      border-color: rgba(255, 255, 255, 0.15) !important;
+    }
+    
+    &.code-copy-button-checked {
+      background: rgba(var(--bs-success-rgb), 0.9) !important;
+      color: white !important;
+      border-color: var(--bs-success) !important;
+      
+      &:hover {
+        background: rgba(var(--bs-success-rgb), 1) !important;
+      }
+    }
+  }
+}
+
+// Mobile adjustments - always visible on mobile
+@media (max-width: 991px) {
+  div.sourceCode .code-copy-button,
+  pre .code-copy-button,
+  .code-copy-button {
+    opacity: 1 !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.85rem !important;
+    // Ensure it's always visible on mobile
+    display: block !important;
+  }
+}
+
+// Remove any default Quarto hover effects
+.code-tools-button {
+  &:hover {
+    background: transparent !important;
+    color: inherit !important;
+  }
+}
