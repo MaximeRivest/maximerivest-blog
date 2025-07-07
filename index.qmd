@@ -94,6 +94,9 @@ extract_metadata <- function(post_path) {
 posts_metadata <- lapply(posts, extract_metadata)
 posts_metadata <- posts_metadata[!sapply(posts_metadata, is.null)]
 
+# Filter out posts with [wip] in the title
+posts_metadata <- posts_metadata[!sapply(posts_metadata, function(x) grepl("\\[wip\\]", x$title, ignore.case = TRUE))]
+
 # Sort by date (most recent first)
 if(length(posts_metadata) > 0) {
   dates <- sapply(posts_metadata, function(x) x$date)

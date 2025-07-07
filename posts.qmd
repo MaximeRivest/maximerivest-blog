@@ -1,0 +1,138 @@
+---
+title: "All Posts"
+listing:
+  contents: posts
+  sort: "date desc"
+  type: default
+  categories: true
+  feed: true
+  filter-ui: false
+page-layout: full
+title-block-banner: false
+---
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Hide posts with [wip] in the title
+  setTimeout(function() {
+    const posts = document.querySelectorAll('.quarto-post');
+    posts.forEach(function(post) {
+      const titleElement = post.querySelector('.title a, h2 a, h3 a');
+      if (titleElement && titleElement.textContent.toLowerCase().includes('[wip]')) {
+        post.style.display = 'none';
+      }
+    });
+  }, 100); // Small delay to ensure content is loaded
+});
+</script>
+
+<style>
+/* Custom styling for posts listing page */
+.quarto-listing {
+  margin-top: 2rem;
+}
+
+.quarto-listing-default {
+  display: grid;
+  gap: 2rem;
+}
+
+.quarto-post {
+  background: white;
+  border: 1px solid var(--bs-gray-200);
+  border-radius: 8px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.quarto-post:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: var(--bs-primary);
+}
+
+.quarto-post .metadata {
+  font-size: 0.875rem;
+  color: var(--bs-gray-600);
+  margin-bottom: 0.5rem;
+}
+
+.quarto-post .title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.quarto-post .title a {
+  color: var(--bs-gray-900);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.quarto-post .title a:hover {
+  color: var(--bs-primary);
+}
+
+.quarto-post .description {
+  color: var(--bs-gray-700);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.quarto-post .categories {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.quarto-post .category {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(12, 133, 204, 0.1);
+  color: var(--bs-primary);
+  border-radius: 2rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.quarto-post .category:hover {
+  background: var(--bs-primary);
+  color: white;
+}
+
+/* Dark mode adjustments */
+.quarto-dark .quarto-post {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.quarto-dark .quarto-post:hover {
+  border-color: var(--bs-primary);
+}
+
+.quarto-dark .quarto-post .title a {
+  color: var(--bs-gray-100);
+}
+
+.quarto-dark .quarto-post .description {
+  color: var(--bs-gray-300);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .quarto-listing-default {
+    gap: 1rem;
+  }
+  
+  .quarto-post {
+    padding: 1.5rem;
+  }
+  
+  .quarto-post .title {
+    font-size: 1.25rem;
+  }
+}
+</style>
