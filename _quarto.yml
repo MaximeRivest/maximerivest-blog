@@ -17,6 +17,9 @@ website:
 
 resources:
   - assets
+  - posts/*.jpg
+  - posts/*.jpeg
+  - posts/*.png
 
 format:
   html:
