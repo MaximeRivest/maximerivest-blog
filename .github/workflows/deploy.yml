@@ -16,7 +16,12 @@ jobs:
       # 1. Check out repo
       - uses: actions/checkout@v4
 
-      # 2. (Optional) Install Python & any deps
+      # 2. Install R (needed for index.qmd)
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.3.2'
+          
+      # 3. Install Python & any deps
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -33,12 +38,12 @@ jobs:
           python -c "import jupyter_cache; print('jupyter-cache installed successfully')"
           python -c "import dspy; print('dspy installed successfully')"
 
-      # 3. Install Quarto CLI
+      # 4. Install Quarto CLI
       - uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: "1.5.41"       # or "latest"
 
-      # 4. Cache Quarto's freeze directory
+      # 5. Cache Quarto's freeze directory
       - name: Cache Quarto freeze
         uses: actions/cache@v4
         with:
@@ -47,7 +52,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-quarto-freeze-
 
-      # 5. Render the site
+      # 6. Render the site
       - name: Render site
         run: quarto render        # outputs to _site/
         env:
@@ -56,7 +61,7 @@ jobs:
           # ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           # OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
-      # 6. Upload artifact for GitHub Pages
+      # 7. Upload artifact for GitHub Pages
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site             # folder to publish
