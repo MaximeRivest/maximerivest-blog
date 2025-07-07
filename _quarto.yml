@@ -22,7 +22,6 @@ format:
     theme:
       light: [cosmo, styles-light.scss]
       dark: [darkly, styles-dark.scss]
-    css: styles-enhancements.scss
     include-after-body:
       - text: |
           <script src="/assets/js/custom.js" defer></script>
