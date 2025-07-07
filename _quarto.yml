@@ -13,6 +13,7 @@ website:
   page-navigation: true
   repo-url: https://github.com/maximerivest/blog
   repo-actions: [edit]
+  google-analytics: "G-532FMB8ETS" # your Measurement ID
 
 resources:
   - assets
