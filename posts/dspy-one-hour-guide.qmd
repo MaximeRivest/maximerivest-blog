@@ -1,6 +1,6 @@
 ---
 title: "A Simple Introduction to DSPy"
-date: 2025-01-05
+date: 2025-06-03
 author: Maxime Rivest
 description: ""
 draft: false
@@ -17,12 +17,11 @@ execute:
 
 ![](dspy-banner.jpeg)
 
+DSPy is simple and powerful. It is the best way to build LLM software right now. Despite that, lots of people keep putting off learning it. I know I did—for a whole year! I was excited about DSPy, but I thought I would need a substantial time investment before I could "get it." That’s not the case! It took me one hour. If you know Python, in an hour you’ll either have built several LLM programs, or you’ll have built one, benchmarked it, and optimized it!
 
-DSPy is simple and powerful. It is the best way to build LLM software right now. Despite that, lots of people keep putting off learning it. I know I did—for a whole year! I was excited about DSPy, but I thought I would need a substantial time investment before I could "get it." That's not the case! It took me one hour. If you know Python, in an hour you'll either have built several LLM programs, or you'll have built one, benchmarked it, and optimized it!
+In this article, we’ll go through the entire cycle: building a program, creating a gold set (synthetically, with AI—and yes, it’s actually useful, not just contrived!), and evaluating the results.
 
-In this article, we'll go through the entire cycle: building a program, creating a gold set (synthetically, with AI—and yes, it's actually useful, not just contrived!), and evaluating the results.
-
-For this article, our task will be to build a program that can count the mentions of "Artificial Intelligence," "AI," or any other ways of referring to AI.
+For this article, our task will be to build a program that can count the mentions of “Artificial Intelligence,” “AI,” or any other ways of referring to AI.
 
 ## Overview
 
@@ -70,8 +69,8 @@ dspy_module = dspy.Predict(count_ai_occurrences)
 ```
 
 This signature will be turned into the following prompt by DSPy:
-
-```python
+---
+```json
 [
   {
     "role": "system",
@@ -108,6 +107,8 @@ then end with [[ ## completed ## ]].
   }
 ]
 ```
+
+---
 
 Ok, so our program is defined! That's it.
 
@@ -147,6 +148,8 @@ df = tibble(paragraphs = [p.text for p in a[:10]])
 The resulting tibble dataframe contains only one column (`paragraphs`) with the text from Wikipedia.
 :::
 
+![](dfimage1.jpg)
+
 ## Step 3: Applying the AI to our paragraphs
 
 Now we are starting to use large language models. Below, we apply our function to every row in our dataframe. In other words, we loop through each paragraph and send it to the LLM. The LLM returns the number of times it thinks "AI" was mentioned in the paragraph. The result from the LLM is extracted as a float. We store this in a new column of our dataframe, which we name `flash_response`.
@@ -173,6 +176,8 @@ That's it. Let's break down those two lines. First, DSPy recommends using either
 Using a SOTA model to create gold sets is a practical approach when you don't have manually labeled data but trust that advanced models will perform well enough for your use case.
 :::
 
+![](dfimage2.png)
+
 ## Evaluation
 
 Next, we need a metric! In this case, we'll keep it simple—we'll require an exact match. Let's add a column for exact_match (true/false).
@@ -180,6 +185,7 @@ Next, we need a metric! In this case, we'll keep it simple—we'll require an ex
 ```python
 df_with_goldset_col = mutate(df_with_goldset_col, exact_match = f.resp_sonnet == f.flash_response)
 ```
+![](dfimage3.png)
 
 Let's quickly calculate our current precision. Here, we are purely in dataframe manipulation mode with Datar. Using the `>>` operator, we can pass the dataframe you see above (as it comes out of mutate) to the summarise function, which sums all the True values (1s) and divides by the number of rows.
 
@@ -258,6 +264,8 @@ final_performance = (df_with_goldset_col >>
     )
 ```
 
+![](dfimage4.png)
+
 ## Results
 
 ::: {.callout-important}
@@ -267,7 +275,7 @@ Flash-lite improved by **20%**. Not bad!
 
 Here is the optimized prompt:
 
-```python
+```json
 [
   {
     "role": "system",

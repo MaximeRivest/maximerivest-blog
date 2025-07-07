@@ -1,5 +1,5 @@
 ---
-title: "The anatomy of a prompt"
+title: "The anatomy of a prompt [wip]"
 date: 2025-07-06
 ---
 
