@@ -21,6 +21,11 @@ jobs:
         with:
           r-version: '4.3.2'
           
+      - name: Install R packages
+        run: |
+          install.packages(c('knitr', 'rmarkdown'), repos='https://cloud.r-project.org/')
+        shell: Rscript {0}
+          
       # 3. Install Python & any deps
       - uses: actions/setup-python@v5
         with:
