@@ -25,8 +25,8 @@ resources:
 format:
   html:
     theme:
-      light: [cosmo, styles-light.scss, styles-mobile.scss, styles-code-enhanced.scss, styles-zen-buttons.scss, styles-hamburger-fix.scss, styles-navbar-spacing.scss, styles-search-modal.scss]
-      dark: [darkly, styles-dark.scss, styles-mobile.scss, styles-code-enhanced.scss, styles-zen-buttons.scss, styles-hamburger-fix.scss, styles-navbar-spacing.scss, styles-search-modal.scss]
+      light: [cosmo, styles-light.scss, styles-mobile.scss, styles-code-enhanced.scss, styles-zen-buttons.scss, styles-hamburger-fix.scss, styles-navbar-spacing.scss]
+      dark: [darkly, styles-dark.scss, styles-mobile.scss, styles-code-enhanced.scss, styles-zen-buttons.scss, styles-hamburger-fix.scss, styles-navbar-spacing.scss]
     include-after-body:
       - text: |
           <script src="/assets/js/custom.js" defer></script>
