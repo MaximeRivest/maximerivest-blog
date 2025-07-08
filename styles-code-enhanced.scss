@@ -1,0 +1,153 @@
+/*-- scss:rules --*/
+
+// Enhanced code block styling for the entire blog
+
+// Code block container styling - subtle and clean
+div.sourceCode {
+  position: relative !important;
+  margin: 1.5rem 0 !important;
+  border-radius: 0.5rem !important;
+  background: rgba(0, 0, 0, 0.02) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  overflow: visible !important;
+  
+  pre {
+    margin: 0 !important;
+    padding: 1.25rem !important;
+    border: none !important;
+    background: transparent !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    
+    code {
+      background: transparent !important;
+      padding: 0 !important;
+      border: none !important;
+      font-size: 0.875rem !important;
+      line-height: 1.6 !important;
+    }
+  }
+}
+
+// Copy button - absolutely positioned and fixed
+.code-copy-button {
+  position: absolute !important;
+  top: 0.75rem !important;
+  right: 0.75rem !important;
+  z-index: 100 !important;
+  
+  // Subtle styling
+  padding: 0.375rem 0.75rem !important;
+  border-radius: 0.375rem !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: var(--bs-gray-600) !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  
+  // No transform or movement
+  transform: none !important;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 1) !important;
+    color: var(--bs-gray-800) !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08) !important;
+    transform: none !important;
+  }
+  
+  &:active {
+    transform: scale(0.95) !important;
+  }
+  
+  &.code-copy-button-checked {
+    background: rgba(40, 167, 69, 0.9) !important;
+    color: white !important;
+    border-color: rgba(40, 167, 69, 1) !important;
+    
+    &::after {
+      content: ' ✓' !important;
+    }
+  }
+}
+
+// Ensure copy button stays in place during scroll
+pre:has(.code-copy-button) {
+  position: relative !important;
+}
+
+// Dark mode adjustments
+.quarto-dark {
+  div.sourceCode {
+    background: rgba(255, 255, 255, 0.02) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+  }
+  
+  .code-copy-button {
+    background: rgba(0, 0, 0, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: var(--bs-gray-400) !important;
+    
+    &:hover {
+      background: rgba(0, 0, 0, 0.8) !important;
+      color: var(--bs-gray-200) !important;
+      border-color: rgba(255, 255, 255, 0.12) !important;
+    }
+    
+    &.code-copy-button-checked {
+      background: rgba(40, 167, 69, 0.9) !important;
+      color: white !important;
+      border-color: rgba(40, 167, 69, 1) !important;
+    }
+  }
+}
+
+// Inline code styling
+code:not(pre code) {
+  padding: 0.125rem 0.375rem !important;
+  border-radius: 0.25rem !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  font-size: 0.875em !important;
+  color: var(--bs-code-color) !important;
+}
+
+.quarto-dark code:not(pre code) {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+// Remove any box shadows from code blocks
+pre,
+div.sourceCode,
+.sourceCode pre {
+  box-shadow: none !important;
+}
+
+// Mobile adjustments
+@media (max-width: 991px) {
+  div.sourceCode {
+    margin: 1rem 0 !important;
+    
+    pre {
+      padding: 1rem !important;
+      
+      code {
+        font-size: 0.8125rem !important;
+      }
+    }
+  }
+  
+  .code-copy-button {
+    opacity: 1 !important;
+    display: block !important;
+    top: 0.5rem !important;
+    right: 0.5rem !important;
+    padding: 0.375rem 0.625rem !important;
+    font-size: 0.7rem !important;
+  }
+}

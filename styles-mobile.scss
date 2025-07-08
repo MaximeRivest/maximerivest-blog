@@ -7,16 +7,21 @@
 @media (max-width: 991px) {
   // Global layout adjustments
   body {
-    font-size: 17px;
+    font-size: 16px;
     overflow-x: hidden;
   }
   
-  // Main content container
+  // Main content container - reduced padding
   .content, 
   main,
   .quarto-container {
-    padding: 1rem;
+    padding: 0.75rem;
     max-width: 100%;
+  }
+  
+  // Article content specific margins
+  article {
+    padding: 0 0.5rem;
   }
   
   // Navigation mobile optimization
@@ -281,6 +286,63 @@
       flex-direction: column;
       gap: 1rem;
     }
+  }
+}
+
+// Phone specific (max-width: 575px) 
+@media (max-width: 575px) {
+  body {
+    font-size: 15px;
+  }
+  
+  // Even tighter margins on phones
+  .content, 
+  main,
+  .quarto-container {
+    padding: 0.5rem;
+  }
+  
+  article {
+    padding: 0 0.25rem;
+  }
+  
+  // Smaller headings on phones
+  h1, .title {
+    font-size: 1.5rem !important;
+  }
+  
+  h2 {
+    font-size: 1.25rem !important;
+  }
+  
+  h3 {
+    font-size: 1.125rem !important;
+  }
+  
+  // Paragraphs and content
+  p {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+  
+  // Code blocks on phones
+  div.sourceCode {
+    margin: 1rem -0.25rem !important;
+    
+    pre {
+      padding: 0.75rem !important;
+      
+      code {
+        font-size: 0.75rem !important;
+      }
+    }
+  }
+  
+  // Lists
+  ul, ol {
+    padding-left: 1.25rem;
+    font-size: 0.9375rem;
   }
   
   // Search mobile

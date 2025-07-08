@@ -5,10 +5,13 @@
 div.sourceCode .code-copy-button,
 pre .code-copy-button,
 .code-copy-button {
-  // Positioning - stays fixed to the code block container
-  position: absolute !important;
+  // Fixed positioning relative to the viewport when inside scrollable container
+  position: sticky !important;
+  float: right !important;
   top: 0.5rem !important;
   right: 0.5rem !important;
+  margin-left: auto !important;
+  margin-top: -2.5rem !important;
   z-index: 10 !important;
   
   // Visual styling - subtle and professional

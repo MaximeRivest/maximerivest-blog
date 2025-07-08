@@ -159,7 +159,7 @@ df = tibble(paragraphs = [p.text for p in a[:10]])
 The resulting tibble dataframe contains only one column (`paragraphs`) with the text from Wikipedia.
 :::
 
-![](images/dfimage1.jpg)
+![a tibble](images/dfimage1.jpg)
 
 ## Step 3: Applying the AI to our paragraphs
 
