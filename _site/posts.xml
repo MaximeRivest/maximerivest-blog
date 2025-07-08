@@ -1,0 +1,1931 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss  xmlns:atom="http://www.w3.org/2005/Atom" 
+      xmlns:media="http://search.yahoo.com/mrss/" 
+      xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+      xmlns:dc="http://purl.org/dc/elements/1.1/" 
+      version="2.0">
+<channel>
+<title>Maxime Rivest</title>
+<link>https://maximerivest.com/posts.html</link>
+<atom:link href="https://maximerivest.com/posts.xml" rel="self" type="application/rss+xml"/>
+<description>Personal blog</description>
+<generator>quarto-1.5.57</generator>
+<lastBuildDate>Sun, 06 Jul 2025 04:00:00 GMT</lastBuildDate>
+<item>
+  <title>The anatomy of a prompt [wip]</title>
+  <link>https://maximerivest.com/posts/the_anatomy_of_a_prompt.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>My criteria for a good AI programing interface:</p>
+<section id="pointing-to-models-should-be-at-most-a-url-and-a-model-name" class="level2">
+<h2 class="anchored" data-anchor-id="pointing-to-models-should-be-at-most-a-url-and-a-model-name">Pointing to models should be at most a url, and a model name</h2>
+<p>I must be able to change model, provider, inference engine as easily as I would say it to a competent Applied AI engineer: “Use ‘meta-llama/Llama-3.1-8B’ on groq” or “Use Claude Sonnet 3.6 on Bedrock” or “Use ‘meta-llama/Llama-3.1-8B’ with vllm”.</p>
+<p>Things everything should always work without exception when I can url and provider except for cases where modalities are not supported. If it’s not a vision capable model it will obviously not take in images.</p>
+</section>
+<section id="section" class="level2">
+<h2 class="anchored" data-anchor-id="section"></h2>
+<p>Prompt was a particularly correct term chosen to describe the action of writing llm input to make a response happen. I wonder who said it first and what else was ‘tried’.</p>
+<p>Prompting</p>
+<p>Definition: “the act of trying to make someone say something”</p>
+<p>Example: Kids of that age really shouldn’t need prompting to say thank you for things.</p>
+<p>Prompt</p>
+<p>Definition: “to make something happen”</p>
+<p>Example: The bishop’s speech has prompted an angry response from both political parties.</p>
+
+
+<!-- -->
+
+</section>
+
+ ]]></description>
+  <guid>https://maximerivest.com/posts/the_anatomy_of_a_prompt.html</guid>
+  <pubDate>Sun, 06 Jul 2025 04:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>A Simple Introduction to DSPy</title>
+  <dc:creator>Maxime Rivest</dc:creator>
+  <link>https://maximerivest.com/posts/dspy-one-hour-guide.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p><img src="https://maximerivest.com/posts/dspy-banner.jpeg" class="img-fluid"></p>
+<p>DSPy is simple and powerful. It is the best way to build LLM software right now. Despite that, lots of people keep putting off learning it. I know I did—for a whole year! I was excited about DSPy, but I thought I would need a substantial time investment before I could “get it.” That’s not the case! It took me one hour. If you know Python, in an hour you’ll either have built several LLM programs, or you’ll have built one, benchmarked it, and optimized it!</p>
+<p>In this article, we’ll go through the entire cycle: building a program, creating a gold set (synthetically, with AI—and yes, it’s actually useful, not just contrived!), and evaluating the results.</p>
+<p>For this article, our task will be to build a program that can count the mentions of “Artificial Intelligence,” “AI,” or any other ways of referring to AI.</p>
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p>We’ll:</p>
+<ol type="1">
+<li>Define a DSPy signature for counting AI mentions</li>
+<li>Fetch data from Wikipedia</li>
+<li>Create a training dataset using a stronger model (Claude Sonnet 4)</li>
+<li>Optimize a weaker model (Gemini Flash-lite 2.0) to match the stronger model’s performance</li>
+</ol>
+<div id="fig-yt" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-yt-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-video ratio ratio-16x9"><iframe data-external="1" src="https://www.youtube.com/embed/fXjCleTYUm8?si=qA6mF6tccVDkOeez" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-yt-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: A video version of this tutorial, even more beginner friendly.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="step-1-define-the-ai-task-signature" class="level2">
+<h2 class="anchored" data-anchor-id="step-1-define-the-ai-task-signature">Step 1: Define the AI Task Signature</h2>
+<p>In DSPy, we define the task using a Signature class instead of writing prompts manually. DSPy provides two ways for you to specify your program. This is the shortest method. In this case, it has four parts:</p>
+<ul>
+<li><strong>dspy.Predict</strong>: This could have been <code>dspy.ChainOfThought</code>; it lets you specify the “strategy” the LLM should use. Predict is the vanilla option—no special strategy is mentioned in the prompt that DSPy sends to the LLM.</li>
+<li><strong>Input (“paragraph”)</strong>: This tells the LLM that it will receive a “paragraph” as input.</li>
+<li><strong>Output (“ai_occurrences_count”)</strong>: This tells the LLM that it will have to output the “AI occurrences count.”</li>
+<li><strong>Output Type (“float”)</strong>: This specifies that the output should be a float—nothing else.</li>
+</ul>
+<div id="830a9c91" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> dspy</span></code></pre></div>
+</div>
+<div id="80ffdbd1" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1">ai_counter <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dspy.Predict(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"paragraph -&gt; ai_occurrences_count: float"</span>)</span></code></pre></div>
+</div>
+<p>You can specify more. To fully define your program, you would use the class syntax (see the chunk below). In this case, you can add general instructions and descriptions to the fields (inputs and/or outputs).</p>
+<div id="980af8d0" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> dspy</span>
+<span id="cb3-2"></span>
+<span id="cb3-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Setup the llm</span></span>
+<span id="cb3-4">dspy.configure(lm<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>dspy.LM(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'gemini/gemini-2.0-flash-lite'</span>, temperature <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1.0</span>, max_tokens <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6000</span>))</span>
+<span id="cb3-5"></span>
+<span id="cb3-6"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># This define the signature of the AI function. The replaces prompts.</span></span>
+<span id="cb3-7"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">class</span> count_ai_occurrences(dspy.Signature):</span>
+<span id="cb3-8">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""Count the number times the word 'Artificial Intelligence'</span></span>
+<span id="cb3-9"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    or 'AI' or any other reference to AI or AI-related terms appears in the paragraph"""</span></span>
+<span id="cb3-10">    paragraph: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dspy.InputField(desc <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"The paragraph to count the AI mentions in"</span>)</span>
+<span id="cb3-11">    ai_occurrences_count: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dspy.OutputField(desc <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"The number of times the word 'Artificial Intelligence' or 'AI' appears in the paragraph"</span>)</span>
+<span id="cb3-12"></span>
+<span id="cb3-13">dspy_module <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dspy.Predict(count_ai_occurrences)</span></code></pre></div>
+</div>
+<p>This signature will be turned into the following prompt by DSPy:</p>
+<hr>
+<div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb4-1"><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb4-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb4-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"role"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"system"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"content"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"""Your input fields are:</span></span>
+<span id="cb4-5"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  1. `paragraph` (str): The paragraph to count the AI mentions in</span></span>
+<span id="cb4-6"></span>
+<span id="cb4-7"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">Your output fields are:</span></span>
+<span id="cb4-8"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  1. `ai_occurrences_count` (int): Number of times 'Artificial Intelligence'</span></span>
+<span id="cb4-9"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">     or 'AI' appears in the paragraph</span></span>
+<span id="cb4-10"></span>
+<span id="cb4-11"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">Format all interactions like this, filling in the values:</span></span>
+<span id="cb4-12"></span>
+<span id="cb4-13"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">[[ ## paragraph ## ]]</span></span>
+<span id="cb4-14"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">{paragraph}</span></span>
+<span id="cb4-15"></span>
+<span id="cb4-16"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">[[ ## ai_occurrences_count ## ]]</span></span>
+<span id="cb4-17"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">{ai_occurrences_count}   # must be a single int value</span></span>
+<span id="cb4-18"></span>
+<span id="cb4-19"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">[[ ## completed ## ]]</span></span>
+<span id="cb4-20"></span>
+<span id="cb4-21"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">Objective:</span></span>
+<span id="cb4-22"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  Count the number times the word 'Artificial Intelligence'</span></span>
+<span id="cb4-23"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    or 'AI' or any other reference to AI or AI-related terms appears in the paragraph."""</span></span>
+<span id="cb4-24">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-25">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb4-26">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"role"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"user"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-27">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"content"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"""[[ ## paragraph ## ]]</span></span>
+<span id="cb4-28"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">This is a paragraph mentioning AI once.</span></span>
+<span id="cb4-29"></span>
+<span id="cb4-30"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">Respond with the corresponding output fields, starting with</span></span>
+<span id="cb4-31"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">[[ ## ai_occurrences_count ## ]] (must be a valid Python int),</span></span>
+<span id="cb4-32"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">then end with [[ ## completed ## ]].</span></span>
+<span id="cb4-33"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"""</span></span>
+<span id="cb4-34">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb4-35"><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span></code></pre></div>
+<hr>
+<p>Ok, so our program is defined! That’s it.</p>
+<p>There’s one small thing I like to do—it’s entirely optional. I do it because I want to use my DSPy program more like a regular function. So, before I go ahead, I wrap it in a function:</p>
+<div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> count_ai_occurrences_f(paragraph):</span>
+<span id="cb5-2">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> dspy_module(paragraph<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>paragraph).ai_occurrences_count</span></code></pre></div>
+<p>The DSPy module requires keyword arguments and returns output as an object. Instead of repeatedly specifying my keyword arguments and the single output I want, I bake that in here. This also has the added benefit that my function now composes well with my data analytics tools, which expect not to provide a keyword argument or extract a value from an output object.</p>
+</section>
+<section id="step-2-fetch-data" class="level2">
+<h2 class="anchored" data-anchor-id="step-2-fetch-data">Step 2: Fetch Data</h2>
+<p>This section has nothing to do with LLMs. We are simply fetching content from the Wikipedia AI page and storing it in a dataframe. We use the Attachments library to easily fetch and split paragraphs from Wikipedia.</p>
+<div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> attachments <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> Attachments</span>
+<span id="cb6-2"></span>
+<span id="cb6-3">attachments_dsl <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"[images: false][select: p,title,h1,h2,h3,h4,h5,h6][split: paragraphs]"</span></span>
+<span id="cb6-4">a <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> Attachments(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://en.wikipedia.org/wiki/Artificial_intelligence"</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> attachments_dsl)</span></code></pre></div>
+<p>We then use Datar as our data manipulation tool. I come from R and I love dplyr. Datar is an effort to provide a similar data manipulation experience here in Python.</p>
+<div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> datar <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> f</span>
+<span id="cb7-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> datar.base <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> b</span>
+<span id="cb7-3"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> datar.tibble <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> tibble</span>
+<span id="cb7-4"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> datar.dplyr <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> mutate, summarise, n</span>
+<span id="cb7-5"></span>
+<span id="cb7-6">df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> tibble(paragraphs <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [p.text <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> p <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> a[:<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>]])</span></code></pre></div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Dataframe Structure
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The resulting tibble dataframe contains only one column (<code>paragraphs</code>) with the text from Wikipedia.</p>
+</div>
+</div>
+<p><img src="https://maximerivest.com/posts/dfimage1.jpg" class="img-fluid"></p>
+</section>
+<section id="step-3-applying-the-ai-to-our-paragraphs" class="level2">
+<h2 class="anchored" data-anchor-id="step-3-applying-the-ai-to-our-paragraphs">Step 3: Applying the AI to our paragraphs</h2>
+<p>Now we are starting to use large language models. Below, we apply our function to every row in our dataframe. In other words, we loop through each paragraph and send it to the LLM. The LLM returns the number of times it thinks “AI” was mentioned in the paragraph. The result from the LLM is extracted as a float. We store this in a new column of our dataframe, which we name <code>flash_response</code>.</p>
+<div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1">df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> mutate(df, flash_response <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> f.paragraphs.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">apply</span>(count_ai_occurrences_f))</span></code></pre></div>
+<p>This column is now our baseline. This shows how Flash-lite performs with the base prompt from DSPy. Now, we want to optimize that prompt! For this, we need a gold set.</p>
+<p>I like to create gold sets with state-of-the-art (SOTA) models and then optimize the prompt to approximate the responses I would get from a SOTA model, but using a much smaller, faster, and cheaper model. In other words, we’ll provide a sample of our paragraphs to Sonnet 4 and then automatically “find a way” to prompt Flash-lite into responding like Sonnet would. This is extremely useful when you don’t know the answer yourself but know that SOTA models do—or at least they get it “right enough” for you to gain valuable insights.</p>
+<p>Ok, so now we want to add a column with Sonnet’s answers.</p>
+<div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span> dspy.context(lm<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>dspy.LM(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'anthropic/claude-sonnet-4-20250514'</span>)):</span>
+<span id="cb9-2">    df_with_goldset_col <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> mutate(df, resp_sonnet <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> f.paragraphs.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">apply</span>(count_ai_occurrences_f))</span></code></pre></div>
+<p>That’s it. Let’s break down those two lines. First, DSPy recommends using either <code>dspy.context</code> or <code>dspy.configure</code> to set the LLM. Both ways are fine and both are thread-safe. On the second line, we take our current dataframe, which now has two columns (<code>paragraphs</code> and <code>flash_response</code>), and loop through every value in paragraphs, passing each one to our AI program. We then save all of that in a new column called <code>resp_sonnet</code>, and the entire dataframe is stored as <code>df_with_goldset_col</code>.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Gold Set Strategy
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Using a SOTA model to create gold sets is a practical approach when you don’t have manually labeled data but trust that advanced models will perform well enough for your use case.</p>
+</div>
+</div>
+<p><img src="https://maximerivest.com/posts/dfimage2.png" class="img-fluid"></p>
+</section>
+<section id="evaluation" class="level2">
+<h2 class="anchored" data-anchor-id="evaluation">Evaluation</h2>
+<p>Next, we need a metric! In this case, we’ll keep it simple—we’ll require an exact match. Let’s add a column for exact_match (true/false).</p>
+<div class="sourceCode" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1">df_with_goldset_col <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> mutate(df_with_goldset_col, exact_match <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> f.resp_sonnet <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> f.flash_response)</span></code></pre></div>
+<p><img src="https://maximerivest.com/posts/dfimage3.png" class="img-fluid"></p>
+<p>Let’s quickly calculate our current precision. Here, we are purely in dataframe manipulation mode with Datar. Using the <code>&gt;&gt;</code> operator, we can pass the dataframe you see above (as it comes out of mutate) to the summarise function, which sums all the True values (1s) and divides by the number of rows.</p>
+<div class="sourceCode" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1">baseline_metrics <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (mutate(df_with_goldset_col, exact_match <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> f.resp_sonnet <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> f.flash_response) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;&gt;</span></span>
+<span id="cb11-2">    summarise(baseline_precision <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> b.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">sum</span>(f.exact_match)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>n() <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>))</span></code></pre></div>
+<p>This tells us that we have <strong>65% baseline precision</strong> with Flash-lite and this prompt.</p>
+</section>
+<section id="preparing-for-the-optimizer" class="level2">
+<h2 class="anchored" data-anchor-id="preparing-for-the-optimizer">Preparing for the optimizer</h2>
+<p>So now we have all the conceptual pieces needed to run the optimizer.</p>
+<div class="sourceCode" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1">optimizer <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dspy.MIPROv2(metric<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>exact_match)</span>
+<span id="cb12-2">optimized_dspy_module <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> optimizer.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">compile</span>(dspy_module, trainset<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>trainset)</span></code></pre></div>
+<p>But notice how I said “conceptual”—now we need to do a bit of data wrangling to get our dataframe into an object that compile knows how to work with. The same goes for the metric.</p>
+<p>Here’s how to reshape the data:</p>
+<div class="sourceCode" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1">trainset <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> []</span>
+<span id="cb13-2"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> r <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> df_with_goldset_col.to_dict(orient<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'records'</span>):</span>
+<span id="cb13-3">    trainset.append(dspy.Example(</span>
+<span id="cb13-4">        paragraph<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>r[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'paragraphs'</span>],                    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># this is the input</span></span>
+<span id="cb13-5">        ai_occurrences_count<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>r[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"resp_sonnet"</span>]).       <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># this is the target</span></span>
+<span id="cb13-6">       with_inputs(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'paragraph'</span>))                      <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># this is needed (not sure why)</span></span></code></pre></div>
+<p>This is how to prepare the metric: it has to use <code>.[output_name]</code> to access the value of x (gold set) and y (trained model output).</p>
+<div class="sourceCode" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> exact_match(x, y, trace<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>):</span>
+<span id="cb14-2">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> x.ai_occurrences_count <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> y.ai_occurrences_count</span></code></pre></div>
+<p>With these two chunks of code, the optimizer will run! In this case, if we were to keep it as is, we would be using Flash-lite to compose the prompts (whenever the optimizer we choose does that). I prefer to use a SOTA model for that, so we will set a teacher model. To set a teacher model on MIPROv2, use the <code>teacher_settings</code> keyword. Be careful—different optimizers set the teacher in different ways.</p>
+</section>
+<section id="automatic-prompt-optimization" class="level2">
+<h2 class="anchored" data-anchor-id="automatic-prompt-optimization">Automatic prompt optimization</h2>
+<div class="sourceCode" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1">optimizer <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dspy.MIPROv2(metric<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>exact_match,</span>
+<span id="cb15-2">                        teacher_settings<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>dspy.LM(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'anthropic/claude-sonnet-4-20250514'</span>))</span>
+<span id="cb15-3">optimized_dspy_module <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> optimizer.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">compile</span>(dspy_module, trainset<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>trainset)</span></code></pre></div>
+<p>We’ll wrap it in a function again so we can use it with our data analytics tools.</p>
+<div class="sourceCode" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> count_ai_occurrences_opt(paragraph):</span>
+<span id="cb16-2">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> optimized_dspy_module(paragraph<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>paragraph).ai_occurrences_count</span></code></pre></div>
+<p>And we’ve built a complete one-shot pipeline to apply the optimized program, add it as a new column, and summarize the dataframe into performance metrics. Apart from <code>count_ai_occurrences_opt</code>, this has nothing to do with DSPy.</p>
+<div class="sourceCode" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1">final_performance <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (df_with_goldset_col <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;&gt;</span></span>
+<span id="cb17-2">    mutate(</span>
+<span id="cb17-3">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Applies flash to every row with the optimized prompt</span></span>
+<span id="cb17-4">        resp_flash_opt<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> f.paragraphs.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">apply</span>(count_ai_occurrences_opt)) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;&gt;</span></span>
+<span id="cb17-5">    mutate(</span>
+<span id="cb17-6">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Add 2 columns with 0 or 1 if the flash response is equal to the sonnet response</span></span>
+<span id="cb17-7">        flash_eq_sonnet <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> f.resp_sonnet <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> f.flash_response,  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Compare flash with sonnet</span></span>
+<span id="cb17-8">        flash_opt_eq_sonnet <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> f.resp_flash_opt <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> f.resp_sonnet  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Compare opt flash with sonnet</span></span>
+<span id="cb17-9">        ) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;&gt;</span></span>
+<span id="cb17-10">    summarise(</span>
+<span id="cb17-11">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Sum the number of rows where the flash response is equal to the sonnet response</span></span>
+<span id="cb17-12">        flashlight_before_opt <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> b.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">sum</span>(f.flash_eq_sonnet)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>n() <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>, <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#n() is the number of rows in df</span></span>
+<span id="cb17-13">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Sum the number of rows where the opt flash response is equal to the sonnet response</span></span>
+<span id="cb17-14">        flashlight_after_opt <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> b.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">sum</span>(f.flash_opt_eq_sonnet)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>n() <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span> <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#n() is the number of rows in df</span></span>
+<span id="cb17-15">    ) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;&gt;</span></span>
+<span id="cb17-16">    mutate(precision_increase<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>f.flashlight_after_opt<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>f.flashlight_before_opt)</span>
+<span id="cb17-17">    )</span></code></pre></div>
+<p><img src="https://maximerivest.com/posts/dfimage4.png" class="img-fluid"></p>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Performance Improvement
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Flash-lite improved by <strong>20%</strong>. Not bad!</p>
+</div>
+</div>
+<p>Here is the optimized prompt:</p>
+<div class="sourceCode" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb18-1"><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb18-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb18-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"role"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"system"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb18-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"content"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"""Your input fields are:</span></span>
+<span id="cb18-5"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  1. `paragraph` (str): The paragraph to count the AI mentions in</span></span>
+<span id="cb18-6"></span>
+<span id="cb18-7"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">Your output fields are:</span></span>
+<span id="cb18-8"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  1. `ai_occurrences_count` (int): The number of times the word 'Artificial Intelligence'</span></span>
+<span id="cb18-9"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">     or 'AI' appears in the paragraph</span></span>
+<span id="cb18-10"></span>
+<span id="cb18-11"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">All interactions will be structured in the following way, with the appropriate values filled in:</span></span>
+<span id="cb18-12"></span>
+<span id="cb18-13"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">[[ ## paragraph ## ]]</span></span>
+<span id="cb18-14"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">{paragraph}</span></span>
+<span id="cb18-15"></span>
+<span id="cb18-16"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">[[ ## ai_occurrences_count ## ]]</span></span>
+<span id="cb18-17"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">{ai_occurrences_count}   # note: the value you produce must be a single int value</span></span>
+<span id="cb18-18"></span>
+<span id="cb18-19"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">[[ ## completed ## ]]</span></span>
+<span id="cb18-20"></span>
+<span id="cb18-21"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">Objective:</span></span>
+<span id="cb18-22"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  Analyze the provided paragraph and determine the frequency of mentions related to</span></span>
+<span id="cb18-23"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  "</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Artificial</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Intelligence</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">" (AI). This includes direct references to "</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">AI</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">",</span></span>
+<span id="cb18-24"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  "</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Artificial</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Intelligence</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">", as well as any related concepts, technologies, or subfields</span></span>
+<span id="cb18-25"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  associated with AI. Provide a count representing the total number of AI-related mentions.</span></span>
+<span id="cb18-26"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"""</span></span>
+<span id="cb18-27">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb18-28">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb18-29">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"role"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"user"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb18-30">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"content"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"""[[ ## paragraph ## ]]</span></span>
+<span id="cb18-31"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">In classical planning, the agent knows exactly what the effect of any action</span></span>
+<span id="cb18-32"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">will be.[35] In most real-world problems, however, the agent may not be certain</span></span>
+<span id="cb18-33"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">about the situation they are in (it is "</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">unknown</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">" or "</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">unobservable</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">") and it may</span></span>
+<span id="cb18-34"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">not know for certain what will happen after each possible action (it is not</span></span>
+<span id="cb18-35"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">deterministic</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"). It must choose an action by making a probabilistic guess and</span></span>
+<span id="cb18-36"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">then reassess the situation to see if the action worked.[36]</span></span>
+<span id="cb18-37"></span>
+<span id="cb18-38"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">Respond with the corresponding output fields, starting with the field</span></span>
+<span id="cb18-39"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">[[ ## ai_occurrences_count ## ]] (must be formatted as a valid Python int), and</span></span>
+<span id="cb18-40"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">then ending with the marker for [[ ## completed ## ]].</span></span>
+<span id="cb18-41"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"""</span></span>
+<span id="cb18-42">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb18-43"><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span></code></pre></div>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>In about 50 lines, we: - Fetched paragraphs from Wikipedia - Created a gold-set - Tuned Flash-lite - Improved its precision by 20%</p>
+<p>No prompt spaghetti.</p>
+</section>
+<section id="the-complete-script" class="level2">
+<h2 class="anchored" data-anchor-id="the-complete-script">The Complete Script</h2>
+<div class="sourceCode" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> dspy</span>
+<span id="cb19-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> attachments <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> Attachments</span>
+<span id="cb19-3"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> datar <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> f</span>
+<span id="cb19-4"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> datar.base <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> b</span>
+<span id="cb19-5"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> datar.tibble <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> tibble</span>
+<span id="cb19-6"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> datar.dplyr <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> mutate, summarise, n</span>
+<span id="cb19-7"></span>
+<span id="cb19-8"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Setup the LLM</span></span>
+<span id="cb19-9">dspy.configure(lm<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>dspy.LM(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'gemini/gemini-2.0-flash-lite'</span>, temperature<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1.0</span>, max_tokens<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6000</span>))</span>
+<span id="cb19-10"></span>
+<span id="cb19-11"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Define the signature</span></span>
+<span id="cb19-12"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">class</span> count_ai_occurrences(dspy.Signature):</span>
+<span id="cb19-13">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""Count the number times the word 'Artificial Intelligence'</span></span>
+<span id="cb19-14"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    or 'AI' or any other reference to AI or AI-related terms appears in the paragraph"""</span></span>
+<span id="cb19-15">    paragraph: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dspy.InputField(desc<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"The paragraph to count the AI mentions in"</span>)</span>
+<span id="cb19-16">    ai_occurrences_count: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dspy.OutputField(desc<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"The number of times the word 'Artificial Intelligence' or 'AI' appears in the paragraph"</span>)</span>
+<span id="cb19-17"></span>
+<span id="cb19-18"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Create the DSPy module</span></span>
+<span id="cb19-19">dspy_module <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dspy.Predict(count_ai_occurrences)</span>
+<span id="cb19-20"></span>
+<span id="cb19-21"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Wrap in a function</span></span>
+<span id="cb19-22"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> count_ai_occurrences_f(paragraph):</span>
+<span id="cb19-23">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> dspy_module(paragraph<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>paragraph).ai_occurrences_count</span>
+<span id="cb19-24"></span>
+<span id="cb19-25"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Fetch data</span></span>
+<span id="cb19-26">attachments_dsl <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"[images: false][select: p,title,h1,h2,h3,h4,h5,h6][split: paragraphs]"</span></span>
+<span id="cb19-27">a <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> Attachments(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://en.wikipedia.org/wiki/Artificial_intelligence"</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> attachments_dsl)</span>
+<span id="cb19-28"></span>
+<span id="cb19-29"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Create dataframe</span></span>
+<span id="cb19-30">df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> tibble(paragraphs<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[p.text <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> p <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> a[:<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>]])</span>
+<span id="cb19-31"></span>
+<span id="cb19-32"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Apply baseline model</span></span>
+<span id="cb19-33">df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> mutate(df, flash_response<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>f.paragraphs.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">apply</span>(count_ai_occurrences_f))</span>
+<span id="cb19-34"></span>
+<span id="cb19-35"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Create gold set with Sonnet</span></span>
+<span id="cb19-36"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span> dspy.context(lm<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>dspy.LM(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'anthropic/claude-sonnet-4-20250514'</span>)):</span>
+<span id="cb19-37">    df_with_goldset_col <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> mutate(df, resp_sonnet<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>f.paragraphs.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">apply</span>(count_ai_occurrences_f))</span>
+<span id="cb19-38"></span>
+<span id="cb19-39"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Calculate baseline precision</span></span>
+<span id="cb19-40">baseline_metrics <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (mutate(df_with_goldset_col, exact_match<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>f.resp_sonnet <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> f.flash_response) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;&gt;</span></span>
+<span id="cb19-41">    summarise(baseline_precision<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>b.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">sum</span>(f.exact_match)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>n() <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>))</span>
+<span id="cb19-42"></span>
+<span id="cb19-43"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Prepare training set</span></span>
+<span id="cb19-44">trainset <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> []</span>
+<span id="cb19-45"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> r <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> df_with_goldset_col.to_dict(orient<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'records'</span>):</span>
+<span id="cb19-46">    trainset.append(dspy.Example(</span>
+<span id="cb19-47">        paragraph<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>r[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'paragraphs'</span>],</span>
+<span id="cb19-48">        ai_occurrences_count<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>r[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"resp_sonnet"</span>]).with_inputs(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'paragraph'</span>))</span>
+<span id="cb19-49"></span>
+<span id="cb19-50"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Define metric</span></span>
+<span id="cb19-51"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> exact_match(x, y, trace<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>):</span>
+<span id="cb19-52">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> x.ai_occurrences_count <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> y.ai_occurrences_count</span>
+<span id="cb19-53"></span>
+<span id="cb19-54"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Optimize</span></span>
+<span id="cb19-55">optimizer <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dspy.MIPROv2(metric<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>exact_match,</span>
+<span id="cb19-56">                        teacher_settings<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>dspy.LM(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'anthropic/claude-sonnet-4-20250514'</span>))</span>
+<span id="cb19-57">optimized_dspy_module <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> optimizer.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">compile</span>(dspy_module, trainset<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>trainset)</span>
+<span id="cb19-58"></span>
+<span id="cb19-59"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Wrap optimized module</span></span>
+<span id="cb19-60"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> count_ai_occurrences_opt(paragraph):</span>
+<span id="cb19-61">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> optimized_dspy_module(paragraph<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>paragraph).ai_occurrences_count</span>
+<span id="cb19-62"></span>
+<span id="cb19-63"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Calculate final performance</span></span>
+<span id="cb19-64">final_performance <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (df_with_goldset_col <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;&gt;</span></span>
+<span id="cb19-65">    mutate(resp_flash_opt<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>f.paragraphs.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">apply</span>(count_ai_occurrences_opt)) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;&gt;</span></span>
+<span id="cb19-66">    mutate(</span>
+<span id="cb19-67">        flash_eq_sonnet<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>f.resp_sonnet <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> f.flash_response,</span>
+<span id="cb19-68">        flash_opt_eq_sonnet<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>f.resp_flash_opt <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> f.resp_sonnet</span>
+<span id="cb19-69">    ) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;&gt;</span></span>
+<span id="cb19-70">    summarise(</span>
+<span id="cb19-71">        flashlight_before_opt<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>b.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">sum</span>(f.flash_eq_sonnet)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>n() <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>,</span>
+<span id="cb19-72">        flashlight_after_opt<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>b.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">sum</span>(f.flash_opt_eq_sonnet)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>n() <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span></span>
+<span id="cb19-73">    ) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;&gt;</span></span>
+<span id="cb19-74">    mutate(precision_increase<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>f.flashlight_after_opt<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>f.flashlight_before_opt)</span>
+<span id="cb19-75">)</span></code></pre></div>
+<style>
+/* Zen DSPy Theme - Minimal and Clean */
+
+/* Hero image styling */
+article > p:first-of-type img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  object-position: center;
+  margin: 0 0 3rem 0;
+  border-radius: 0;
+}
+
+/* Clean title */
+.title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0 0 1rem 0;
+  color: var(--bs-gray-900);
+}
+
+.quarto-title-meta {
+  font-size: 0.9rem;
+  color: var(--bs-gray-600);
+  margin-bottom: 3rem;
+}
+
+/* Simplified TOC */
+#TOC, nav[role="doc-toc"] {
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+
+#TOC ul, nav[role="doc-toc"] ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+#TOC li, nav[role="doc-toc"] li {
+  margin: 0.5rem 0;
+}
+
+#TOC a, nav[role="doc-toc"] a {
+  color: var(--bs-gray-600);
+  text-decoration: none;
+  padding: 0.25rem 0;
+  display: block;
+  border-left: 2px solid transparent;
+  padding-left: 1rem;
+  transition: all 0.2s ease;
+}
+
+#TOC a:hover, nav[role="doc-toc"] a:hover {
+  color: var(--bs-primary);
+  border-left-color: var(--bs-primary);
+  background: rgba(12, 133, 204, 0.05);
+}
+
+#TOC a.active, nav[role="doc-toc"] a.active {
+  color: var(--bs-primary);
+  font-weight: 600;
+  border-left-color: var(--bs-primary);
+}
+
+@media (min-width: 992px) {
+  #TOC, nav[role="doc-toc"] {
+    position: sticky;
+    top: 2rem;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    margin-left: 3rem;
+  }
+}
+
+/* Clean code blocks */
+pre {
+  background: #f8f9fa;
+  border: none;
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  max-height: none;
+  /* Remove shadow line */
+  box-shadow: none !important;
+  border: 1px solid #e9ecef;
+}
+
+pre code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: inherit;
+  white-space: pre;
+  word-break: normal;
+  word-wrap: normal;
+  background: transparent !important;
+  padding: 0 !important;
+  display: inline-block;
+  min-width: 100%;
+}
+
+/* Force syntax highlighting colors */
+.sourceCode {
+  overflow: auto !important;
+}
+
+/* Python syntax highlighting */
+.sourceCode .kw { color: #0969da !important; font-weight: 600; } /* Keywords */
+.sourceCode .dt { color: #0550ae !important; } /* Data types */
+.sourceCode .dv, .sourceCode .fl { color: #0a3069 !important; } /* Numbers */
+.sourceCode .st { color: #032f62 !important; } /* Strings */
+.sourceCode .co { color: #6e7781 !important; font-style: italic; } /* Comments */
+.sourceCode .ot { color: #953800 !important; } /* Other tokens */
+.sourceCode .cf { color: #cf222e !important; font-weight: 600; } /* Control flow */
+.sourceCode .fu { color: #8250df !important; } /* Functions */
+.sourceCode .im { color: #cf222e !important; } /* Import */
+.sourceCode .op { color: #0969da !important; } /* Operators */
+.sourceCode .bu { color: #8250df !important; } /* Built-in */
+.sourceCode .va { color: #0550ae !important; } /* Variables */
+.sourceCode .cn { color: #0a3069 !important; } /* Constants */
+.sourceCode .sc { color: #0a3069 !important; } /* Special chars */
+
+/* Better formatting for JSON/prompt blocks */
+pre:has(code.language-python) {
+  font-size: 0.8rem;
+}
+
+/* Clean scrollbar styling */
+pre::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+pre::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+pre::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+pre::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Remove any shadows or borders that might appear on scroll */
+pre:focus {
+  outline: none;
+  box-shadow: none !important;
+}
+
+div.sourceCode {
+  overflow: auto;
+  background: transparent;
+  border: none;
+  box-shadow: none !important;
+  margin: 0;
+}
+
+/* Inline code */
+code:not(pre code) {
+  background: rgba(12, 133, 204, 0.1);
+  color: var(--bs-gray-900);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 0.875em;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Callouts */
+.callout {
+  border-left: 3px solid var(--bs-primary);
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+  background: rgba(12, 133, 204, 0.05);
+  border-radius: 0 6px 6px 0;
+}
+
+.callout-note {
+  border-left-color: var(--bs-info);
+  background: rgba(29, 191, 224, 0.05);
+}
+
+.callout-tip {
+  border-left-color: var(--bs-success);
+  background: rgba(29, 211, 1, 0.05);
+}
+
+.callout-important {
+  border-left-color: var(--bs-warning);
+  background: rgba(255, 207, 1, 0.05);
+}
+
+/* Dark mode adjustments */
+.quarto-dark pre {
+  background: #1a1a1a;
+  color: #e2e8f0;
+  border-color: #2d3748;
+}
+
+/* Dark mode syntax highlighting */
+.quarto-dark .sourceCode .kw { color: #79c0ff !important; } /* Keywords */
+.quarto-dark .sourceCode .dt { color: #a5d6ff !important; } /* Data types */
+.quarto-dark .sourceCode .dv, .quarto-dark .sourceCode .fl { color: #79c0ff !important; } /* Numbers */
+.quarto-dark .sourceCode .st { color: #a5d6ff !important; } /* Strings */
+.quarto-dark .sourceCode .co { color: #8b949e !important; } /* Comments */
+.quarto-dark .sourceCode .ot { color: #ffa657 !important; } /* Other tokens */
+.quarto-dark .sourceCode .cf { color: #ff7b72 !important; } /* Control flow */
+.quarto-dark .sourceCode .fu { color: #d2a8ff !important; } /* Functions */
+.quarto-dark .sourceCode .im { color: #ff7b72 !important; } /* Import */
+.quarto-dark .sourceCode .op { color: #79c0ff !important; } /* Operators */
+.quarto-dark .sourceCode .bu { color: #d2a8ff !important; } /* Built-in */
+.quarto-dark .sourceCode .va { color: #7ee787 !important; } /* Variables */
+.quarto-dark .sourceCode .cn { color: #79c0ff !important; } /* Constants */
+.quarto-dark .sourceCode .sc { color: #79c0ff !important; } /* Special chars */
+
+.quarto-dark pre::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.quarto-dark pre::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.quarto-dark code:not(pre code) {
+  background: rgba(29, 191, 224, 0.15);
+  color: #e2e8f0;
+}
+
+.quarto-dark .callout {
+  background: rgba(12, 133, 204, 0.1);
+}
+
+.quarto-dark .callout-note {
+  background: rgba(29, 191, 224, 0.1);
+}
+
+.quarto-dark .callout-tip {
+  background: rgba(29, 211, 1, 0.1);
+}
+
+.quarto-dark .callout-important {
+  background: rgba(255, 207, 1, 0.1);
+}
+
+.quarto-dark #TOC a, .quarto-dark nav[role="doc-toc"] a {
+  color: var(--bs-gray-400);
+}
+
+.quarto-dark #TOC a:hover, .quarto-dark nav[role="doc-toc"] a:hover,
+.quarto-dark #TOC a.active, .quarto-dark nav[role="doc-toc"] a.active {
+  color: var(--bs-secondary);
+  border-left-color: var(--bs-secondary);
+  background: rgba(29, 191, 224, 0.1);
+}
+
+/* Content spacing */
+article {
+  max-width: 45rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+article h2 {
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  font-size: 1.75rem;
+  letter-spacing: -0.01em;
+}
+
+article h3 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+article p {
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+  color: var(--bs-gray-800);
+}
+
+article ul, article ol {
+  margin: 1.5rem 0;
+  padding-left: 1.5rem;
+}
+
+article ul li, article ol li {
+  margin-bottom: 0.5rem;
+  line-height: 1.7;
+}
+
+.quarto-dark article p {
+  color: var(--bs-gray-300);
+}
+
+/* Images */
+article img {
+  max-width: 100%;
+  height: auto;
+  margin: 2rem auto;
+  display: block;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 991px) {
+  /* Typography adjustments */
+  .title {
+    font-size: 1.75rem;
+    line-height: 1.3;
+    margin-bottom: 0.75rem;
+  }
+
+  .quarto-title-meta {
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+  }
+
+  article {
+    padding: 1rem;
+    max-width: 100%;
+  }
+
+  article h2 {
+    font-size: 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  article h3 {
+    font-size: 1.25rem;
+    margin-top: 1.5rem;
+  }
+
+  article p {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  /* Hero image adjustment */
+  article > p:first-of-type img {
+    height: 200px;
+    margin-bottom: 2rem;
+  }
+
+  /* TOC as collapsible card on mobile */
+  #TOC, nav[role="doc-toc"] {
+    position: relative;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: var(--bs-gray-100);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  #TOC::before, nav[role="doc-toc"]::before {
+    content: "Table of Contents";
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--bs-gray-700);
+  }
+
+  .quarto-dark #TOC,
+  .quarto-dark nav[role="doc-toc"] {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .quarto-dark #TOC::before,
+  .quarto-dark nav[role="doc-toc"]::before {
+    color: var(--bs-gray-300);
+  }
+
+  /* Code blocks mobile optimization */
+  pre {
+    font-size: 0.75rem;
+    padding: 1rem;
+    margin: 1rem -0.5rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Add visual scroll indicator for code blocks */
+  pre::after {
+    content: "→";
+    position: absolute;
+    right: 0.5rem;
+    top: 0.5rem;
+    color: var(--bs-gray-500);
+    font-size: 0.75rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  pre:hover::after {
+    opacity: 1;
+  }
+
+  /* Inline code sizing */
+  code:not(pre code) {
+    font-size: 0.85em;
+    padding: 0.1em 0.3em;
+  }
+
+  /* Callouts mobile optimization */
+  .callout {
+    margin: 1.5rem -0.5rem;
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .callout-note,
+  .callout-tip,
+  .callout-important {
+    border-left-width: 3px;
+  }
+
+  /* Images mobile optimization */
+  article img:not(article > p:first-of-type img) {
+    margin: 1.5rem -0.5rem;
+    width: calc(100% + 1rem);
+    max-width: none;
+    border-radius: 4px;
+  }
+
+  /* Lists mobile optimization */
+  ul, ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  ul li, ol li {
+    margin-bottom: 0.5rem;
+  }
+
+  /* Blockquotes mobile */
+  blockquote {
+    margin: 1.5rem 0;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  /* Tables mobile - make them scrollable */
+  .table-responsive,
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    font-size: 0.875rem;
+    margin: 1.5rem -0.5rem;
+    width: calc(100% + 1rem);
+  }
+
+  /* Section spacing */
+  section {
+    margin: 2rem 0;
+  }
+}
+
+/* Small mobile devices (phones in portrait) */
+@media (max-width: 575px) {
+  /* Even smaller typography */
+  .title {
+    font-size: 1.5rem;
+  }
+
+  article h2 {
+    font-size: 1.35rem;
+  }
+
+  article h3 {
+    font-size: 1.15rem;
+  }
+
+  /* Minimal padding on very small screens */
+  article {
+    padding: 0.75rem;
+  }
+
+  /* Code blocks full width */
+  pre {
+    margin: 1rem -0.75rem;
+    border-radius: 0;
+    font-size: 0.7rem;
+  }
+
+  /* Images full bleed */
+  article img:not(article > p:first-of-type img) {
+    margin: 1rem -0.75rem;
+    width: calc(100% + 1.5rem);
+    border-radius: 0;
+  }
+
+  /* Hero image smaller on phones */
+  article > p:first-of-type img {
+    height: 160px;
+  }
+
+  /* Callouts full width */
+  .callout {
+    margin: 1rem -0.75rem;
+    border-radius: 0;
+  }
+
+  /* TOC compact */
+  #TOC, nav[role="doc-toc"] {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  #TOC a, nav[role="doc-toc"] a {
+    padding: 0.4rem 0;
+    padding-left: 0.75rem;
+  }
+}
+
+/* Touch-friendly enhancements */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger tap targets */
+  a, button {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Remove hover effects on touch devices */
+  a:hover {
+    background-size: 0 2px !important;
+  }
+
+  /* Better code copy button for touch */
+  .code-copy-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 991px) and (orientation: landscape) {
+  /* Reduce vertical spacing in landscape */
+  .title {
+    margin-bottom: 0.5rem;
+  }
+
+  .quarto-title-meta {
+    margin-bottom: 1.5rem;
+  }
+
+  article h2 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Smaller hero image in landscape */
+  article > p:first-of-type img {
+    height: 150px;
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Focus on readability */
+::selection {
+  background: rgba(12, 133, 204, 0.2);
+  color: inherit;
+}
+
+/* Clean headings without decorations */
+article h2::before {
+  display: none !important;
+}
+
+/* Better link styling */
+article a {
+  color: var(--bs-primary);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+article a:hover {
+  border-bottom-color: var(--bs-primary);
+}
+
+/* Code output styling */
+.cell-output pre {
+  background: #f0f4f8;
+  border-left: 3px solid var(--bs-info);
+  font-size: 0.8rem;
+}
+
+.quarto-dark .cell-output pre {
+  background: rgba(29, 191, 224, 0.1);
+  border-left-color: var(--bs-info);
+}
+
+/* Python code cell styling */
+div.sourceCode {
+  margin: 1rem 0;
+}
+
+/* Improve spacing between sections */
+section {
+  margin: 3rem 0;
+}
+
+/* Clean blockquotes */
+blockquote {
+  border-left: 3px solid var(--bs-gray-300);
+  padding-left: 1rem;
+  color: var(--bs-gray-700);
+  font-style: italic;
+  margin: 1.5rem 0;
+}
+
+.quarto-dark blockquote {
+  border-left-color: var(--bs-gray-600);
+  color: var(--bs-gray-400);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better focus states for accessibility */
+a:focus,
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  pre {
+    max-height: none;
+    page-break-inside: avoid;
+  }
+
+  #TOC, nav[role="doc-toc"] {
+    display: none;
+  }
+
+  article {
+    max-width: 100%;
+  }
+}
+</style>
+
+
+<!-- -->
+
+</section>
+
+ ]]></description>
+  <guid>https://maximerivest.com/posts/dspy-one-hour-guide.html</guid>
+  <pubDate>Tue, 03 Jun 2025 04:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Test Tutorial [wip]</title>
+  <link>https://maximerivest.com/posts/test-tutorial.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>This tutorial demonstrates various features in Quarto.</p>
+<section id="latex-example" class="level2">
+<h2 class="anchored" data-anchor-id="latex-example">LaTeX Example</h2>
+<p>Here is a simple equation:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AE%20=%20mc%5E2%0A"></p>
+</section>
+<section id="plotting-with-python" class="level2">
+<h2 class="anchored" data-anchor-id="plotting-with-python">Plotting with Python</h2>
+<div id="f0ab3896" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> plt</span>
+<span id="cb1-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span>
+<span id="cb1-3"></span>
+<span id="cb1-4">x <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.linspace(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> np.pi, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>)</span>
+<span id="cb1-5">plt.plot(x, np.sin(x))</span>
+<span id="cb1-6">plt.title(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Sine Wave'</span>)</span>
+<span id="cb1-7">plt.xlabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'x'</span>)</span>
+<span id="cb1-8">plt.ylabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'sin(x)'</span>)</span>
+<span id="cb1-9">plt.show()</span></code></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://maximerivest.com/posts/test-tutorial_files/figure-html/cell-2-output-1.png" width="609" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="code-visibility" class="level2">
+<h2 class="anchored" data-anchor-id="code-visibility">Code Visibility</h2>
+<p>Visible code with output:</p>
+<div id="92850d83" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"This code is shown, and so is the output."</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>This code is shown, and so is the output.</code></pre>
+</div>
+</div>
+<p>Hidden code but output shown:</p>
+<div id="cc643b9b" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1">secret <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span></span>
+<span id="cb4-2"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"The secret is </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>secret<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>The secret is 42</code></pre>
+</div>
+</div>
+<p>Code with no output:</p>
+<div id="e901eb76" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1">unused <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span></code></pre></div>
+</div>
+
+
+<!-- -->
+
+</section>
+
+ ]]></description>
+  <guid>https://maximerivest.com/posts/test-tutorial.html</guid>
+  <pubDate>Sun, 23 Jun 2024 04:00:00 GMT</pubDate>
+</item>
+</channel>
+</rss>

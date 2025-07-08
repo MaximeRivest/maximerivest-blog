@@ -1,0 +1,254 @@
+[
+  {
+    "objectID": "posts/dspy-one-hour-guide.html",
+    "href": "posts/dspy-one-hour-guide.html",
+    "title": "A Simple Introduction to DSPy",
+    "section": "",
+    "text": "DSPy is simple and powerful. It is the best way to build LLM software right now. Despite that, lots of people keep putting off learning it. I know I did—for a whole year! I was excited about DSPy, but I thought I would need a substantial time investment before I could “get it.” That’s not the case! It took me one hour. If you know Python, in an hour you’ll either have built several LLM programs, or you’ll have built one, benchmarked it, and optimized it!\nIn this article, we’ll go through the entire cycle: building a program, creating a gold set (synthetically, with AI—and yes, it’s actually useful, not just contrived!), and evaluating the results.\nFor this article, our task will be to build a program that can count the mentions of “Artificial Intelligence,” “AI,” or any other ways of referring to AI."
+  },
+  {
+    "objectID": "posts/dspy-one-hour-guide.html#overview",
+    "href": "posts/dspy-one-hour-guide.html#overview",
+    "title": "A Simple Introduction to DSPy",
+    "section": "Overview",
+    "text": "Overview\nWe’ll:\n\nDefine a DSPy signature for counting AI mentions\nFetch data from Wikipedia\nCreate a training dataset using a stronger model (Claude Sonnet 4)\nOptimize a weaker model (Gemini Flash-lite 2.0) to match the stronger model’s performance\n\n\n\n\n\n\n\nFigure 1: A video version of this tutorial, even more beginner friendly."
+  },
+  {
+    "objectID": "posts/dspy-one-hour-guide.html#step-1-define-the-ai-task-signature",
+    "href": "posts/dspy-one-hour-guide.html#step-1-define-the-ai-task-signature",
+    "title": "A Simple Introduction to DSPy",
+    "section": "Step 1: Define the AI Task Signature",
+    "text": "Step 1: Define the AI Task Signature\nIn DSPy, we define the task using a Signature class instead of writing prompts manually. DSPy provides two ways for you to specify your program. This is the shortest method. In this case, it has four parts:\n\ndspy.Predict: This could have been dspy.ChainOfThought; it lets you specify the “strategy” the LLM should use. Predict is the vanilla option—no special strategy is mentioned in the prompt that DSPy sends to the LLM.\nInput (“paragraph”): This tells the LLM that it will receive a “paragraph” as input.\nOutput (“ai_occurrences_count”): This tells the LLM that it will have to output the “AI occurrences count.”\nOutput Type (“float”): This specifies that the output should be a float—nothing else.\n\n\nimport dspy\n\n\nai_counter = dspy.Predict(\"paragraph -&gt; ai_occurrences_count: float\")\n\nYou can specify more. To fully define your program, you would use the class syntax (see the chunk below). In this case, you can add general instructions and descriptions to the fields (inputs and/or outputs).\n\nimport dspy\n\n# Setup the llm\ndspy.configure(lm=dspy.LM('gemini/gemini-2.0-flash-lite', temperature = 1.0, max_tokens = 6000))\n\n# This define the signature of the AI function. The replaces prompts.\nclass count_ai_occurrences(dspy.Signature):\n    \"\"\"Count the number times the word 'Artificial Intelligence'\n    or 'AI' or any other reference to AI or AI-related terms appears in the paragraph\"\"\"\n    paragraph: str= dspy.InputField(desc = \"The paragraph to count the AI mentions in\")\n    ai_occurrences_count: int= dspy.OutputField(desc = \"The number of times the word 'Artificial Intelligence' or 'AI' appears in the paragraph\")\n\ndspy_module = dspy.Predict(count_ai_occurrences)\n\nThis signature will be turned into the following prompt by DSPy:\n\n[\n  {\n    \"role\": \"system\",\n    \"content\": \"\"\"Your input fields are:\n  1. `paragraph` (str): The paragraph to count the AI mentions in\n\nYour output fields are:\n  1. `ai_occurrences_count` (int): Number of times 'Artificial Intelligence'\n     or 'AI' appears in the paragraph\n\nFormat all interactions like this, filling in the values:\n\n[[ ## paragraph ## ]]\n{paragraph}\n\n[[ ## ai_occurrences_count ## ]]\n{ai_occurrences_count}   # must be a single int value\n\n[[ ## completed ## ]]\n\nObjective:\n  Count the number times the word 'Artificial Intelligence'\n    or 'AI' or any other reference to AI or AI-related terms appears in the paragraph.\"\"\"\n  },\n  {\n    \"role\": \"user\",\n    \"content\": \"\"\"[[ ## paragraph ## ]]\nThis is a paragraph mentioning AI once.\n\nRespond with the corresponding output fields, starting with\n[[ ## ai_occurrences_count ## ]] (must be a valid Python int),\nthen end with [[ ## completed ## ]].\n\"\"\"\n  }\n]\n\nOk, so our program is defined! That’s it.\nThere’s one small thing I like to do—it’s entirely optional. I do it because I want to use my DSPy program more like a regular function. So, before I go ahead, I wrap it in a function:\ndef count_ai_occurrences_f(paragraph):\n    return dspy_module(paragraph=paragraph).ai_occurrences_count\nThe DSPy module requires keyword arguments and returns output as an object. Instead of repeatedly specifying my keyword arguments and the single output I want, I bake that in here. This also has the added benefit that my function now composes well with my data analytics tools, which expect not to provide a keyword argument or extract a value from an output object."
+  },
+  {
+    "objectID": "posts/dspy-one-hour-guide.html#step-2-fetch-data",
+    "href": "posts/dspy-one-hour-guide.html#step-2-fetch-data",
+    "title": "A Simple Introduction to DSPy",
+    "section": "Step 2: Fetch Data",
+    "text": "Step 2: Fetch Data\nThis section has nothing to do with LLMs. We are simply fetching content from the Wikipedia AI page and storing it in a dataframe. We use the Attachments library to easily fetch and split paragraphs from Wikipedia.\nfrom attachments import Attachments\n\nattachments_dsl = \"[images: false][select: p,title,h1,h2,h3,h4,h5,h6][split: paragraphs]\"\na = Attachments(\"https://en.wikipedia.org/wiki/Artificial_intelligence\" + attachments_dsl)\nWe then use Datar as our data manipulation tool. I come from R and I love dplyr. Datar is an effort to provide a similar data manipulation experience here in Python.\nfrom datar import f\nimport datar.base as b\nfrom datar.tibble import tibble\nfrom datar.dplyr import mutate, summarise, n\n\ndf = tibble(paragraphs = [p.text for p in a[:10]])\n\n\n\n\n\n\nDataframe Structure\n\n\n\nThe resulting tibble dataframe contains only one column (paragraphs) with the text from Wikipedia."
+  },
+  {
+    "objectID": "posts/dspy-one-hour-guide.html#step-3-applying-the-ai-to-our-paragraphs",
+    "href": "posts/dspy-one-hour-guide.html#step-3-applying-the-ai-to-our-paragraphs",
+    "title": "A Simple Introduction to DSPy",
+    "section": "Step 3: Applying the AI to our paragraphs",
+    "text": "Step 3: Applying the AI to our paragraphs\nNow we are starting to use large language models. Below, we apply our function to every row in our dataframe. In other words, we loop through each paragraph and send it to the LLM. The LLM returns the number of times it thinks “AI” was mentioned in the paragraph. The result from the LLM is extracted as a float. We store this in a new column of our dataframe, which we name flash_response.\ndf = mutate(df, flash_response = f.paragraphs.apply(count_ai_occurrences_f))\nThis column is now our baseline. This shows how Flash-lite performs with the base prompt from DSPy. Now, we want to optimize that prompt! For this, we need a gold set.\nI like to create gold sets with state-of-the-art (SOTA) models and then optimize the prompt to approximate the responses I would get from a SOTA model, but using a much smaller, faster, and cheaper model. In other words, we’ll provide a sample of our paragraphs to Sonnet 4 and then automatically “find a way” to prompt Flash-lite into responding like Sonnet would. This is extremely useful when you don’t know the answer yourself but know that SOTA models do—or at least they get it “right enough” for you to gain valuable insights.\nOk, so now we want to add a column with Sonnet’s answers.\nwith dspy.context(lm=dspy.LM('anthropic/claude-sonnet-4-20250514')):\n    df_with_goldset_col = mutate(df, resp_sonnet = f.paragraphs.apply(count_ai_occurrences_f))\nThat’s it. Let’s break down those two lines. First, DSPy recommends using either dspy.context or dspy.configure to set the LLM. Both ways are fine and both are thread-safe. On the second line, we take our current dataframe, which now has two columns (paragraphs and flash_response), and loop through every value in paragraphs, passing each one to our AI program. We then save all of that in a new column called resp_sonnet, and the entire dataframe is stored as df_with_goldset_col.\n\n\n\n\n\n\nGold Set Strategy\n\n\n\nUsing a SOTA model to create gold sets is a practical approach when you don’t have manually labeled data but trust that advanced models will perform well enough for your use case."
+  },
+  {
+    "objectID": "posts/dspy-one-hour-guide.html#evaluation",
+    "href": "posts/dspy-one-hour-guide.html#evaluation",
+    "title": "A Simple Introduction to DSPy",
+    "section": "Evaluation",
+    "text": "Evaluation\nNext, we need a metric! In this case, we’ll keep it simple—we’ll require an exact match. Let’s add a column for exact_match (true/false).\ndf_with_goldset_col = mutate(df_with_goldset_col, exact_match = f.resp_sonnet == f.flash_response)\n\nLet’s quickly calculate our current precision. Here, we are purely in dataframe manipulation mode with Datar. Using the &gt;&gt; operator, we can pass the dataframe you see above (as it comes out of mutate) to the summarise function, which sums all the True values (1s) and divides by the number of rows.\nbaseline_metrics = (mutate(df_with_goldset_col, exact_match = f.resp_sonnet == f.flash_response) &gt;&gt;\n    summarise(baseline_precision = b.sum(f.exact_match)/n() * 100))\nThis tells us that we have 65% baseline precision with Flash-lite and this prompt."
+  },
+  {
+    "objectID": "posts/dspy-one-hour-guide.html#preparing-for-the-optimizer",
+    "href": "posts/dspy-one-hour-guide.html#preparing-for-the-optimizer",
+    "title": "A Simple Introduction to DSPy",
+    "section": "Preparing for the optimizer",
+    "text": "Preparing for the optimizer\nSo now we have all the conceptual pieces needed to run the optimizer.\noptimizer = dspy.MIPROv2(metric=exact_match)\noptimized_dspy_module = optimizer.compile(dspy_module, trainset=trainset)\nBut notice how I said “conceptual”—now we need to do a bit of data wrangling to get our dataframe into an object that compile knows how to work with. The same goes for the metric.\nHere’s how to reshape the data:\ntrainset = []\nfor r in df_with_goldset_col.to_dict(orient='records'):\n    trainset.append(dspy.Example(\n        paragraph=r['paragraphs'],                    # this is the input\n        ai_occurrences_count=r[\"resp_sonnet\"]).       # this is the target\n       with_inputs('paragraph'))                      # this is needed (not sure why)\nThis is how to prepare the metric: it has to use .[output_name] to access the value of x (gold set) and y (trained model output).\ndef exact_match(x, y, trace=None):\n    return x.ai_occurrences_count == y.ai_occurrences_count\nWith these two chunks of code, the optimizer will run! In this case, if we were to keep it as is, we would be using Flash-lite to compose the prompts (whenever the optimizer we choose does that). I prefer to use a SOTA model for that, so we will set a teacher model. To set a teacher model on MIPROv2, use the teacher_settings keyword. Be careful—different optimizers set the teacher in different ways."
+  },
+  {
+    "objectID": "posts/dspy-one-hour-guide.html#automatic-prompt-optimization",
+    "href": "posts/dspy-one-hour-guide.html#automatic-prompt-optimization",
+    "title": "A Simple Introduction to DSPy",
+    "section": "Automatic prompt optimization",
+    "text": "Automatic prompt optimization\noptimizer = dspy.MIPROv2(metric=exact_match,\n                        teacher_settings=dspy.LM('anthropic/claude-sonnet-4-20250514'))\noptimized_dspy_module = optimizer.compile(dspy_module, trainset=trainset)\nWe’ll wrap it in a function again so we can use it with our data analytics tools.\ndef count_ai_occurrences_opt(paragraph):\n    return optimized_dspy_module(paragraph=paragraph).ai_occurrences_count\nAnd we’ve built a complete one-shot pipeline to apply the optimized program, add it as a new column, and summarize the dataframe into performance metrics. Apart from count_ai_occurrences_opt, this has nothing to do with DSPy.\nfinal_performance = (df_with_goldset_col &gt;&gt;\n    mutate(\n        # Applies flash to every row with the optimized prompt\n        resp_flash_opt= f.paragraphs.apply(count_ai_occurrences_opt)) &gt;&gt;\n    mutate(\n        # Add 2 columns with 0 or 1 if the flash response is equal to the sonnet response\n        flash_eq_sonnet = f.resp_sonnet == f.flash_response,  # Compare flash with sonnet\n        flash_opt_eq_sonnet = f.resp_flash_opt == f.resp_sonnet  # Compare opt flash with sonnet\n        ) &gt;&gt;\n    summarise(\n        # Sum the number of rows where the flash response is equal to the sonnet response\n        flashlight_before_opt = b.sum(f.flash_eq_sonnet)/n() * 100, #n() is the number of rows in df\n        # Sum the number of rows where the opt flash response is equal to the sonnet response\n        flashlight_after_opt = b.sum(f.flash_opt_eq_sonnet)/n() * 100 #n() is the number of rows in df\n    ) &gt;&gt;\n    mutate(precision_increase=f.flashlight_after_opt-f.flashlight_before_opt)\n    )"
+  },
+  {
+    "objectID": "posts/dspy-one-hour-guide.html#results",
+    "href": "posts/dspy-one-hour-guide.html#results",
+    "title": "A Simple Introduction to DSPy",
+    "section": "Results",
+    "text": "Results\n\n\n\n\n\n\nPerformance Improvement\n\n\n\nFlash-lite improved by 20%. Not bad!\n\n\nHere is the optimized prompt:\n[\n  {\n    \"role\": \"system\",\n    \"content\": \"\"\"Your input fields are:\n  1. `paragraph` (str): The paragraph to count the AI mentions in\n\nYour output fields are:\n  1. `ai_occurrences_count` (int): The number of times the word 'Artificial Intelligence'\n     or 'AI' appears in the paragraph\n\nAll interactions will be structured in the following way, with the appropriate values filled in:\n\n[[ ## paragraph ## ]]\n{paragraph}\n\n[[ ## ai_occurrences_count ## ]]\n{ai_occurrences_count}   # note: the value you produce must be a single int value\n\n[[ ## completed ## ]]\n\nObjective:\n  Analyze the provided paragraph and determine the frequency of mentions related to\n  \"Artificial Intelligence\" (AI). This includes direct references to \"AI\",\n  \"Artificial Intelligence\", as well as any related concepts, technologies, or subfields\n  associated with AI. Provide a count representing the total number of AI-related mentions.\n\"\"\"\n  },\n  {\n    \"role\": \"user\",\n    \"content\": \"\"\"[[ ## paragraph ## ]]\nIn classical planning, the agent knows exactly what the effect of any action\nwill be.[35] In most real-world problems, however, the agent may not be certain\nabout the situation they are in (it is \"unknown\" or \"unobservable\") and it may\nnot know for certain what will happen after each possible action (it is not\n\"deterministic\"). It must choose an action by making a probabilistic guess and\nthen reassess the situation to see if the action worked.[36]\n\nRespond with the corresponding output fields, starting with the field\n[[ ## ai_occurrences_count ## ]] (must be formatted as a valid Python int), and\nthen ending with the marker for [[ ## completed ## ]].\n\"\"\"\n  }\n]"
+  },
+  {
+    "objectID": "posts/dspy-one-hour-guide.html#conclusion",
+    "href": "posts/dspy-one-hour-guide.html#conclusion",
+    "title": "A Simple Introduction to DSPy",
+    "section": "Conclusion",
+    "text": "Conclusion\nIn about 50 lines, we: - Fetched paragraphs from Wikipedia - Created a gold-set - Tuned Flash-lite - Improved its precision by 20%\nNo prompt spaghetti."
+  },
+  {
+    "objectID": "posts/dspy-one-hour-guide.html#the-complete-script",
+    "href": "posts/dspy-one-hour-guide.html#the-complete-script",
+    "title": "A Simple Introduction to DSPy",
+    "section": "The Complete Script",
+    "text": "The Complete Script\nimport dspy\nfrom attachments import Attachments\nfrom datar import f\nimport datar.base as b\nfrom datar.tibble import tibble\nfrom datar.dplyr import mutate, summarise, n\n\n# Setup the LLM\ndspy.configure(lm=dspy.LM('gemini/gemini-2.0-flash-lite', temperature=1.0, max_tokens=6000))\n\n# Define the signature\nclass count_ai_occurrences(dspy.Signature):\n    \"\"\"Count the number times the word 'Artificial Intelligence'\n    or 'AI' or any other reference to AI or AI-related terms appears in the paragraph\"\"\"\n    paragraph: str = dspy.InputField(desc=\"The paragraph to count the AI mentions in\")\n    ai_occurrences_count: int = dspy.OutputField(desc=\"The number of times the word 'Artificial Intelligence' or 'AI' appears in the paragraph\")\n\n# Create the DSPy module\ndspy_module = dspy.Predict(count_ai_occurrences)\n\n# Wrap in a function\ndef count_ai_occurrences_f(paragraph):\n    return dspy_module(paragraph=paragraph).ai_occurrences_count\n\n# Fetch data\nattachments_dsl = \"[images: false][select: p,title,h1,h2,h3,h4,h5,h6][split: paragraphs]\"\na = Attachments(\"https://en.wikipedia.org/wiki/Artificial_intelligence\" + attachments_dsl)\n\n# Create dataframe\ndf = tibble(paragraphs=[p.text for p in a[:10]])\n\n# Apply baseline model\ndf = mutate(df, flash_response=f.paragraphs.apply(count_ai_occurrences_f))\n\n# Create gold set with Sonnet\nwith dspy.context(lm=dspy.LM('anthropic/claude-sonnet-4-20250514')):\n    df_with_goldset_col = mutate(df, resp_sonnet=f.paragraphs.apply(count_ai_occurrences_f))\n\n# Calculate baseline precision\nbaseline_metrics = (mutate(df_with_goldset_col, exact_match=f.resp_sonnet == f.flash_response) &gt;&gt;\n    summarise(baseline_precision=b.sum(f.exact_match)/n() * 100))\n\n# Prepare training set\ntrainset = []\nfor r in df_with_goldset_col.to_dict(orient='records'):\n    trainset.append(dspy.Example(\n        paragraph=r['paragraphs'],\n        ai_occurrences_count=r[\"resp_sonnet\"]).with_inputs('paragraph'))\n\n# Define metric\ndef exact_match(x, y, trace=None):\n    return x.ai_occurrences_count == y.ai_occurrences_count\n\n# Optimize\noptimizer = dspy.MIPROv2(metric=exact_match,\n                        teacher_settings=dspy.LM('anthropic/claude-sonnet-4-20250514'))\noptimized_dspy_module = optimizer.compile(dspy_module, trainset=trainset)\n\n# Wrap optimized module\ndef count_ai_occurrences_opt(paragraph):\n    return optimized_dspy_module(paragraph=paragraph).ai_occurrences_count\n\n# Calculate final performance\nfinal_performance = (df_with_goldset_col &gt;&gt;\n    mutate(resp_flash_opt=f.paragraphs.apply(count_ai_occurrences_opt)) &gt;&gt;\n    mutate(\n        flash_eq_sonnet=f.resp_sonnet == f.flash_response,\n        flash_opt_eq_sonnet=f.resp_flash_opt == f.resp_sonnet\n    ) &gt;&gt;\n    summarise(\n        flashlight_before_opt=b.sum(f.flash_eq_sonnet)/n() * 100,\n        flashlight_after_opt=b.sum(f.flash_opt_eq_sonnet)/n() * 100\n    ) &gt;&gt;\n    mutate(precision_increase=f.flashlight_after_opt-f.flashlight_before_opt)\n)"
+  },
+  {
+    "objectID": "posts/test-tutorial.html",
+    "href": "posts/test-tutorial.html",
+    "title": "Test Tutorial [wip]",
+    "section": "",
+    "text": "This tutorial demonstrates various features in Quarto."
+  },
+  {
+    "objectID": "posts/test-tutorial.html#latex-example",
+    "href": "posts/test-tutorial.html#latex-example",
+    "title": "Test Tutorial [wip]",
+    "section": "LaTeX Example",
+    "text": "LaTeX Example\nHere is a simple equation:\n\\[\nE = mc^2\n\\]"
+  },
+  {
+    "objectID": "posts/test-tutorial.html#plotting-with-python",
+    "href": "posts/test-tutorial.html#plotting-with-python",
+    "title": "Test Tutorial [wip]",
+    "section": "Plotting with Python",
+    "text": "Plotting with Python\n\nimport matplotlib.pyplot as plt\nimport numpy as np\n\nx = np.linspace(0, 2 * np.pi, 100)\nplt.plot(x, np.sin(x))\nplt.title('Sine Wave')\nplt.xlabel('x')\nplt.ylabel('sin(x)')\nplt.show()"
+  },
+  {
+    "objectID": "posts/test-tutorial.html#code-visibility",
+    "href": "posts/test-tutorial.html#code-visibility",
+    "title": "Test Tutorial [wip]",
+    "section": "Code Visibility",
+    "text": "Code Visibility\nVisible code with output:\n\nprint(\"This code is shown, and so is the output.\")\n\nThis code is shown, and so is the output.\n\n\nHidden code but output shown:\n\nsecret = 42\nprint(f\"The secret is {secret}\")\n\nThe secret is 42\n\n\nCode with no output:\n\nunused = 1 + 1"
+  },
+  {
+    "objectID": "posts.html",
+    "href": "posts.html",
+    "title": "All Posts",
+    "section": "",
+    "text": "The anatomy of a prompt [wip]\n\n\n\n\n\n\n\n\n\n\n\nJul 6, 2025\n\n\n\n\n\n\n\n\n\n\n\n\nA Simple Introduction to DSPy\n\n\n\n\n\nLearn DSPy in one hour with practical examples\n\n\n\n\n\nJun 3, 2025\n\n\nMaxime Rivest\n\n\n\n\n\n\n\n\n\n\n\n\nTest Tutorial [wip]\n\n\n\n\n\n\n\n\n\n\n\nJun 23, 2024\n\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "",
+    "section": "",
+    "text": "Code"
+  },
+  {
+    "objectID": "index.html#welcome",
+    "href": "index.html#welcome",
+    "title": "",
+    "section": "Welcome",
+    "text": "Welcome\nI’m Maxime Rivest, a developer passionate about the about api design, tool making and AI.\n\nExplore My Writing About Me"
+  },
+  {
+    "objectID": "index.html#recent-posts",
+    "href": "index.html#recent-posts",
+    "title": "",
+    "section": "Recent Posts",
+    "text": "Recent Posts\n\nA Simple Introduction to DSPy\n\n2025-06-03\n\nLearn DSPy in one hour with practical examples\nContinue reading →"
+  },
+  {
+    "objectID": "index.html#topics",
+    "href": "index.html#topics",
+    "title": "",
+    "section": "I write about what I do",
+    "text": "I write about what I do\nThese days I do those projects:\n\n\nHuman Computer Interaction\nHuman computer interaction with voice, hotkeys and the clipboard with MetaKeyAI\n\n\nData Analytics\nAI interface for data analytics Jupyter-Whisper\n\n\nDeveloper Tool\nGeneral llm funnel; from any file to llm ready content Attachments\n\n\nAPI design\nAPI design for building AI agents and AI Software FunnyDSPy, OneTokenPy"
+  },
+  {
+    "objectID": "index.html#about",
+    "href": "index.html#about",
+    "title": "",
+    "section": "About Me",
+    "text": "About Me\n\nI’m an Applied AI Engineer with a background in Scientific Computing and Data Analytics.\n\nConnect With Me\n\n X  GitHub  Email"
+  },
+  {
+    "objectID": "IMPORTANT-FREEZE-WORKFLOW.html",
+    "href": "IMPORTANT-FREEZE-WORKFLOW.html",
+    "title": "",
+    "section": "",
+    "text": "Code"
+  },
+  {
+    "objectID": "IMPORTANT-FREEZE-WORKFLOW.html#how-it-works",
+    "href": "IMPORTANT-FREEZE-WORKFLOW.html#how-it-works",
+    "title": "",
+    "section": "How it works",
+    "text": "How it works\nWith freeze: true in your posts:\n\nLocal Development: When you run quarto preview or quarto render, code executes and results are saved to _freeze/\nGitHub Actions: Uses the frozen results from _freeze/ - NO code execution happens in CI\nVersion Control: You MUST commit the _freeze/ directory to git for this to work!"
+  },
+  {
+    "objectID": "IMPORTANT-FREEZE-WORKFLOW.html#important-update-your-.gitignore",
+    "href": "IMPORTANT-FREEZE-WORKFLOW.html#important-update-your-.gitignore",
+    "title": "",
+    "section": "Important: Update your .gitignore",
+    "text": "Important: Update your .gitignore\nSince you want to “sign off” on executed results, you need to REMOVE _freeze/ from .gitignore and commit it:\n# Remove _freeze/ from .gitignore\n# Then:\ngit add _freeze/\ngit commit -m \"Add frozen execution results\""
+  },
+  {
+    "objectID": "IMPORTANT-FREEZE-WORKFLOW.html#when-to-re-execute-code",
+    "href": "IMPORTANT-FREEZE-WORKFLOW.html#when-to-re-execute-code",
+    "title": "",
+    "section": "When to re-execute code",
+    "text": "When to re-execute code\nTo force re-execution of code: 1. Delete the specific file in _freeze/posts/your-post/ 2. Or run: quarto render posts/your-post.qmd --execute-daemon-restart 3. Or use the clear-cache.sh script to clear all caches"
+  },
+  {
+    "objectID": "IMPORTANT-FREEZE-WORKFLOW.html#benefits",
+    "href": "IMPORTANT-FREEZE-WORKFLOW.html#benefits",
+    "title": "",
+    "section": "Benefits",
+    "text": "Benefits\n\nReproducible builds - exact same output every time\nNo API calls or expensive computations during CI/CD\nYou control when code executes\nFast builds on GitHub Actions"
+  },
+  {
+    "objectID": "IMPORTANT-FREEZE-WORKFLOW.html#freeze-options",
+    "href": "IMPORTANT-FREEZE-WORKFLOW.html#freeze-options",
+    "title": "",
+    "section": "Freeze options",
+    "text": "Freeze options\n\nfreeze: true - Never re-execute (must manually clear cache)\nfreeze: auto - Re-execute when code changes\nfreeze: false - Always re-execute (default)"
+  },
+  {
+    "objectID": "CLAUDE.html",
+    "href": "CLAUDE.html",
+    "title": "",
+    "section": "",
+    "text": "Code"
+  },
+  {
+    "objectID": "CLAUDE.html#codebase-overview",
+    "href": "CLAUDE.html#codebase-overview",
+    "title": "",
+    "section": "Codebase Overview",
+    "text": "Codebase Overview\nThis is a Quarto-based personal blog for maximerivest.com with custom styling, automated deployment, and support for both R and Python code execution."
+  },
+  {
+    "objectID": "CLAUDE.html#essential-commands",
+    "href": "CLAUDE.html#essential-commands",
+    "title": "",
+    "section": "Essential Commands",
+    "text": "Essential Commands\n\nDevelopment\n# Preview blog locally with hot reload\nquarto preview\n\n# Build the entire site (outputs to _site/)\nquarto render\n\n# Render a specific post\nquarto render posts/my-post.qmd\n\n# Force re-execution of code in a post\nquarto render posts/my-post.qmd --execute-daemon-restart\n\n# Clear all caches (when code isn't re-executing)\n./clear-cache.sh\n\n\nDeployment\nAutomatic deployment via GitHub Actions on push to main. The site deploys to GitHub Pages at maximerivest.com."
+  },
+  {
+    "objectID": "CLAUDE.html#architecture-key-concepts",
+    "href": "CLAUDE.html#architecture-key-concepts",
+    "title": "",
+    "section": "Architecture & Key Concepts",
+    "text": "Architecture & Key Concepts\n\nFreeze Workflow\nPosts use freeze: true to cache code execution results in _freeze/. This means: - Code executes locally during development - GitHub Actions uses cached results (no code execution in CI) - The _freeze/ directory MUST be committed to git - To re-execute code, delete the specific cache or use clear-cache.sh\n\n\nPost Management\n\nPosts with [wip] in the title are automatically hidden from homepage and listings\nHidden via R filtering in index.qmd and JavaScript in posts.qmd\nWIP posts remain accessible via direct URL\n\n\n\nStyling Architecture\nThe blog uses a layered SCSS approach: 1. styles-light.scss / styles-dark.scss - Base theme styles 2. styles-mobile.scss - Responsive design for all screen sizes 3. styles-code-copy-fix.scss - Fixes for code copy button behavior 4. styles-zen-buttons.scss - Removes gradient buttons for minimal aesthetic\nAll styles are compiled by Quarto and applied in order.\n\n\nContent Types\n\n.qmd files: Quarto markdown with executable code chunks\n.ipynb files: Jupyter notebooks (auto-converted by Quarto)\nPython scripts with # %% cells can be converted using Jupytext\n\n\n\nImage Handling\nImages must be: 1. Placed in the posts/ directory 2. Listed in _quarto.yml under resources: (already configured for .jpg, .jpeg, *.png) 3. Referenced with relative paths in posts\n\n\nDependencies\n\nR: Required for index.qmd (uses R for dynamic post listing)\nPython: Required for posts with Python code\nKey Python packages: jupyter-cache (for freeze workflow), dspy-ai, pandas, matplotlib\nSee requirements.txt for full Python dependencies"
+  },
+  {
+    "objectID": "CLAUDE.html#critical-files",
+    "href": "CLAUDE.html#critical-files",
+    "title": "",
+    "section": "Critical Files",
+    "text": "Critical Files\n\n_quarto.yml - Main configuration (themes, resources, output settings)\nindex.qmd - Homepage with R code that filters posts\n.github/workflows/deploy.yml - GitHub Actions deployment pipeline\nIMPORTANT-FREEZE-WORKFLOW.md - Detailed freeze workflow documentation"
+  },
+  {
+    "objectID": "CLAUDE.html#common-issues-solutions",
+    "href": "CLAUDE.html#common-issues-solutions",
+    "title": "",
+    "section": "Common Issues & Solutions",
+    "text": "Common Issues & Solutions\n\nYAML parsing errors: Usually caused by missing blank line after YAML frontmatter or hidden characters\nImages not showing in production: Ensure images are in resources: section of _quarto.yml\nCode not re-executing: Clear cache with ./clear-cache.sh or delete specific _freeze/posts/[post-name]/ directory\nPosts not hiding with [wip]: Check that JavaScript is loading correctly in posts.qmd"
+  },
+  {
+    "objectID": "posts/the_anatomy_of_a_prompt.html",
+    "href": "posts/the_anatomy_of_a_prompt.html",
+    "title": "The anatomy of a prompt [wip]",
+    "section": "",
+    "text": "My criteria for a good AI programing interface:"
+  },
+  {
+    "objectID": "posts/the_anatomy_of_a_prompt.html#pointing-to-models-should-be-at-most-a-url-and-a-model-name",
+    "href": "posts/the_anatomy_of_a_prompt.html#pointing-to-models-should-be-at-most-a-url-and-a-model-name",
+    "title": "The anatomy of a prompt [wip]",
+    "section": "Pointing to models should be at most a url, and a model name",
+    "text": "Pointing to models should be at most a url, and a model name\nI must be able to change model, provider, inference engine as easily as I would say it to a competent Applied AI engineer: “Use ‘meta-llama/Llama-3.1-8B’ on groq” or “Use Claude Sonnet 3.6 on Bedrock” or “Use ‘meta-llama/Llama-3.1-8B’ with vllm”.\nThings everything should always work without exception when I can url and provider except for cases where modalities are not supported. If it’s not a vision capable model it will obviously not take in images."
+  },
+  {
+    "objectID": "posts/the_anatomy_of_a_prompt.html#section",
+    "href": "posts/the_anatomy_of_a_prompt.html#section",
+    "title": "The anatomy of a prompt [wip]",
+    "section": "",
+    "text": "Prompt was a particularly correct term chosen to describe the action of writing llm input to make a response happen. I wonder who said it first and what else was ‘tried’.\nPrompting\nDefinition: “the act of trying to make someone say something”\nExample: Kids of that age really shouldn’t need prompting to say thank you for things.\nPrompt\nDefinition: “to make something happen”\nExample: The bishop’s speech has prompted an angry response from both political parties."
+  }
+]
