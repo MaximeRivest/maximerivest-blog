@@ -2,7 +2,7 @@
 title: "A Simple Introduction to DSPy"
 date: 2025-06-03
 author: Maxime Rivest
-description: ""
+description: "Learn DSPy in one hour with practical examples"
 draft: false
 format:
   html:
