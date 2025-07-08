@@ -15,7 +15,7 @@ execute:
   freeze: true
 ---
 
-![](dspy-banner.jpeg)
+![](images/dspy-banner.jpeg)
 
 DSPy is simple and powerful. It is the best way to build LLM software right now. Despite that, lots of people keep putting off learning it. I know I did—for a whole year! I was excited about DSPy, but I thought I would need a substantial time investment before I could "get it." That’s not the case! It took me one hour. If you know Python, in an hour you’ll either have built several LLM programs, or you’ll have built one, benchmarked it, and optimized it!
 
@@ -159,7 +159,7 @@ df = tibble(paragraphs = [p.text for p in a[:10]])
 The resulting tibble dataframe contains only one column (`paragraphs`) with the text from Wikipedia.
 :::
 
-![](dfimage1.jpg)
+![](images/dfimage1.jpg)
 
 ## Step 3: Applying the AI to our paragraphs
 
@@ -187,7 +187,7 @@ That's it. Let's break down those two lines. First, DSPy recommends using either
 Using a SOTA model to create gold sets is a practical approach when you don't have manually labeled data but trust that advanced models will perform well enough for your use case.
 :::
 
-![](dfimage2.png)
+![](images/dfimage2.png)
 
 ## Evaluation
 
@@ -196,7 +196,7 @@ Next, we need a metric! In this case, we'll keep it simple—we'll require an ex
 ```python
 df_with_goldset_col = mutate(df_with_goldset_col, exact_match = f.resp_sonnet == f.flash_response)
 ```
-![](dfimage3.png)
+![](images/dfimage3.png)
 
 Let's quickly calculate our current precision. Here, we are purely in dataframe manipulation mode with Datar. Using the `>>` operator, we can pass the dataframe you see above (as it comes out of mutate) to the summarise function, which sums all the True values (1s) and divides by the number of rows.
 
@@ -275,7 +275,7 @@ final_performance = (df_with_goldset_col >>
     )
 ```
 
-![](dfimage4.png)
+![](images/dfimage4.png)
 
 ## Results
 

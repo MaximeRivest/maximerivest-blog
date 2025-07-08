@@ -166,7 +166,7 @@ gtag('config', 'G-532FMB8ETS', { 'anonymize_ip': true});
   <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
   <li><a href="#the-complete-script" id="toc-the-complete-script" class="nav-link" data-scroll-target="#the-complete-script">The Complete Script</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/maximerivest/blog/edit/main/posts/dspy-one-hour-guide.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/MaximeRivest/maximerivest-blog/edit/main/posts/dspy-one-hour-guide.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -1834,7 +1834,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a><span class="co">  freeze: true</span></span>
 <span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a><span class="al">![](dspy-banner.jpeg)</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a><span class="al">![](images/dspy-banner.jpeg)</span></span>
 <span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>DSPy is simple and powerful. It is the best way to build LLM software right now. Despite that, lots of people keep putting off learning it. I know I did—for a whole year! I was excited about DSPy, but I thought I would need a substantial time investment before I could "get it." That’s not the case! It took me one hour. If you know Python, in an hour you’ll either have built several LLM programs, or you’ll have built one, benchmarked it, and optimized it!</span>
 <span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a></span>
@@ -1978,7 +1978,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb20-165"><a href="#cb20-165" aria-hidden="true" tabindex="-1"></a>The resulting tibble dataframe contains only one column (<span class="in">`paragraphs`</span>) with the text from Wikipedia.</span>
 <span id="cb20-166"><a href="#cb20-166" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb20-167"><a href="#cb20-167" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-168"><a href="#cb20-168" aria-hidden="true" tabindex="-1"></a><span class="al">![](dfimage1.jpg)</span></span>
+<span id="cb20-168"><a href="#cb20-168" aria-hidden="true" tabindex="-1"></a><span class="al">![](images/dfimage1.jpg)</span></span>
 <span id="cb20-169"><a href="#cb20-169" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-170"><a href="#cb20-170" aria-hidden="true" tabindex="-1"></a><span class="fu">## Step 3: Applying the AI to our paragraphs</span></span>
 <span id="cb20-171"><a href="#cb20-171" aria-hidden="true" tabindex="-1"></a></span>
@@ -2006,7 +2006,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb20-193"><a href="#cb20-193" aria-hidden="true" tabindex="-1"></a>Using a SOTA model to create gold sets is a practical approach when you don't have manually labeled data but trust that advanced models will perform well enough for your use case.</span>
 <span id="cb20-194"><a href="#cb20-194" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb20-195"><a href="#cb20-195" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-196"><a href="#cb20-196" aria-hidden="true" tabindex="-1"></a><span class="al">![](dfimage2.png)</span></span>
+<span id="cb20-196"><a href="#cb20-196" aria-hidden="true" tabindex="-1"></a><span class="al">![](images/dfimage2.png)</span></span>
 <span id="cb20-197"><a href="#cb20-197" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-198"><a href="#cb20-198" aria-hidden="true" tabindex="-1"></a><span class="fu">## Evaluation</span></span>
 <span id="cb20-199"><a href="#cb20-199" aria-hidden="true" tabindex="-1"></a></span>
@@ -2015,7 +2015,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb20-202"><a href="#cb20-202" aria-hidden="true" tabindex="-1"></a><span class="in">```python</span></span>
 <span id="cb20-203"><a href="#cb20-203" aria-hidden="true" tabindex="-1"></a>df_with_goldset_col <span class="op">=</span> mutate(df_with_goldset_col, exact_match <span class="op">=</span> f.resp_sonnet <span class="op">==</span> f.flash_response)</span>
 <span id="cb20-204"><a href="#cb20-204" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb20-205"><a href="#cb20-205" aria-hidden="true" tabindex="-1"></a><span class="al">![](dfimage3.png)</span></span>
+<span id="cb20-205"><a href="#cb20-205" aria-hidden="true" tabindex="-1"></a><span class="al">![](images/dfimage3.png)</span></span>
 <span id="cb20-206"><a href="#cb20-206" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-207"><a href="#cb20-207" aria-hidden="true" tabindex="-1"></a>Let's quickly calculate our current precision. Here, we are purely in dataframe manipulation mode with Datar. Using the <span class="in">`&gt;&gt;`</span> operator, we can pass the dataframe you see above (as it comes out of mutate) to the summarise function, which sums all the True values (1s) and divides by the number of rows.</span>
 <span id="cb20-208"><a href="#cb20-208" aria-hidden="true" tabindex="-1"></a></span>
@@ -2094,7 +2094,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb20-281"><a href="#cb20-281" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb20-282"><a href="#cb20-282" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb20-283"><a href="#cb20-283" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-284"><a href="#cb20-284" aria-hidden="true" tabindex="-1"></a><span class="al">![](dfimage4.png)</span></span>
+<span id="cb20-284"><a href="#cb20-284" aria-hidden="true" tabindex="-1"></a><span class="al">![](images/dfimage4.png)</span></span>
 <span id="cb20-285"><a href="#cb20-285" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-286"><a href="#cb20-286" aria-hidden="true" tabindex="-1"></a><span class="fu">## Results</span></span>
 <span id="cb20-287"><a href="#cb20-287" aria-hidden="true" tabindex="-1"></a></span>
@@ -2909,7 +2909,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/maximerivest/blog/edit/main/posts/dspy-one-hour-guide.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer><script src="../assets/js/custom.js" defer=""></script>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/MaximeRivest/maximerivest-blog/edit/main/posts/dspy-one-hour-guide.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer><script src="../assets/js/custom.js" defer=""></script>
 
 
 

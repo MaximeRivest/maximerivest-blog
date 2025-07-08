@@ -11,15 +11,16 @@ website:
       - href: https://x.com/maximerivest
         text: X
   page-navigation: true
-  repo-url: https://github.com/maximerivest/blog
+  repo-url: https://github.com/MaximeRivest/maximerivest-blog
   repo-actions: [edit]
   google-analytics: "G-532FMB8ETS" # your Measurement ID
 
 resources:
   - assets
-  - posts/*.jpg
-  - posts/*.jpeg
-  - posts/*.png
+  - posts/**/*.jpg
+  - posts/**/*.jpeg
+  - posts/**/*.png
+  - posts/images
 
 format:
   html:
