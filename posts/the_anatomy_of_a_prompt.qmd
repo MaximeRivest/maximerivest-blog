@@ -26,3 +26,5 @@ Prompt
 Definition: "to make something happen"
 
 Example: The bishop's speech has prompted an angry response from both political parties.
+
+but I like that api. Before learning about dspy I was happy with no other interface and I was working on my own (https://github.com/MaximeRivest/onetokenpy-library). I have not yet felt I needed to continue my work in parallel in onetokenpy, I think the few things that were lacking for me, I can contribute to dspy. If you 'accept' that I use dspy because it's the simplest abstraction, then 'adoption' all other abstraction, optionally, and when useful just make total sense. So there is no concept of 'migration' for me it's rather one of addition. I use the off the shell simple caller when enough. The off the shell simple ChatAdapter when I want more. The off the shell simple optimizer when I want that. My own adapter if I want more, my own optimizer if I want more.

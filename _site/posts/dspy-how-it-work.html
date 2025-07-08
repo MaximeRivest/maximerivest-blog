@@ -6,9 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-07-06">
+<meta name="dcterms.date" content="2025-07-08">
 
-<title>The anatomy of a prompt [wip] – Maxime Rivest</title>
+<title>How DSPy really works [wip] – Maxime Rivest</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -111,7 +111,39 @@ gtag('js', new Date());
 gtag('config', 'G-532FMB8ETS', { 'anonymize_ip': true});
 </script>
 <style>html{ scroll-behavior: smooth; }</style>
+<script src="../site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="../site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="../site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -153,17 +185,17 @@ gtag('config', 'G-532FMB8ETS', { 'anonymize_ip': true});
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#pointing-to-models-should-be-at-most-a-url-and-a-model-name" id="toc-pointing-to-models-should-be-at-most-a-url-and-a-model-name" class="nav-link active" data-scroll-target="#pointing-to-models-should-be-at-most-a-url-and-a-model-name">Pointing to models should be at most a url, and a model name</a></li>
-  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section"></a></li>
+  <li><a href="#plotting-with-python" id="toc-plotting-with-python" class="nav-link active" data-scroll-target="#plotting-with-python">Plotting with Python</a></li>
+  <li><a href="#code-visibility" id="toc-code-visibility" class="nav-link" data-scroll-target="#code-visibility">Code Visibility</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/MaximeRivest/maximerivest-blog/edit/main/posts/the_anatomy_of_a_prompt.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/MaximeRivest/maximerivest-blog/edit/main/posts/dspy-how-it-work.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title">The anatomy of a prompt [wip]</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+<div class="quarto-title-block"><div><h1 class="title">How DSPy really works [wip]</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
 </div>
 
 
@@ -174,7 +206,7 @@ gtag('config', 'G-532FMB8ETS', { 'anonymize_ip': true});
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">July 6, 2025</p>
+      <p class="date">July 8, 2025</p>
     </div>
   </div>
   
@@ -186,22 +218,93 @@ gtag('config', 'G-532FMB8ETS', { 'anonymize_ip': true});
 </header>
 
 
-<p>My criteria for a good AI programing interface:</p>
-<section id="pointing-to-models-should-be-at-most-a-url-and-a-model-name" class="level2">
-<h2 class="anchored" data-anchor-id="pointing-to-models-should-be-at-most-a-url-and-a-model-name">Pointing to models should be at most a url, and a model name</h2>
-<p>I must be able to change model, provider, inference engine as easily as I would say it to a competent Applied AI engineer: “Use ‘meta-llama/Llama-3.1-8B’ on groq” or “Use Claude Sonnet 3.6 on Bedrock” or “Use ‘meta-llama/Llama-3.1-8B’ with vllm”.</p>
-<p>Things everything should always work without exception when I can url and provider except for cases where modalities are not supported. If it’s not a vision capable model it will obviously not take in images.</p>
+<p>Lots of people find DSPy magical (I am one of them). To some this is unsettling as they feel they lose control over the LLM and the prompt, by the end of this tutorial you will feel that you have both control and magic. We will build our own (simplified) implementation of all major dspy component in a way that we will control and trace the whole flow of the prompt and its optimization. I want to show you this, not because you need it to use DSPy, but because you need it to <em>grok</em> and the paradigm (I call it Intent-Oriented Programming) behind it.</p>
+<blockquote class="blockquote">
+<p><strong>Intent-Oriented Programming</strong> is a programming paradigm where you explicitly declare the intent of your task—the inputs, desired outputs, success criteria (through metric and training set), and necessary context—without specifying exact implementations. This structured intent can then be automatically specialized, optimized, and adapted to various execution engines (AI models, human agents, APIs, or future intelligent systems). This clearly separates what you want from how it’s achieved, enabling maximum flexibility and continuous improvement.</p>
+</blockquote>
+<p>At its core, in DSPy, information flows like this:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart LR
+    style SIG fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10
+    style ADAPT1 fill:#f5f5f5,stroke:#90caf9,stroke-width:2px,rx:10,ry:10
+    style PROMPT fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10
+    style LLM fill:#fffde7,stroke:#ffd54f,stroke-width:2px,rx:10,ry:10
+    style RAW fill:#f5f5f5,stroke:#90caf9,stroke-width:2px,rx:10,ry:10
+    style ADAPT2 fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10
+    style PRED fill:#b2f7ef,stroke:#00796b,stroke-width:2px,rx:10,ry:10
+
+    SIG["Signature + Input + Demos"]
+    ADAPT1["Adapter"]
+    PROMPT["Formatted Prompt"]
+    LLM["LLM"]
+    RAW["Raw Response"]
+    ADAPT2["Adapter"]
+    PRED["Prediction"]
+
+    SIG --&gt; ADAPT1 --&gt; PROMPT --&gt; LLM --&gt; RAW --&gt; ADAPT2 --&gt; PRED
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<p>A signature contains an instruction (this goes into the system prompt and is ‘trainable’), input and output fields with their structure (e.g.&nbsp;Int, Float, Json, Literal, dataclass, etc). Input and output are generally not trainable nor is the way that they are presented to the LLM.</p>
+<p>To prompt an LLM, one would make a call to a program (dspy.Predict is the simplest one) with a signature and in the call the user (or programmer/you) would fill up the call with the current input you want to provide.</p>
+<p>Your current inputs and the signature (instructions, list of inputs and outputs name and datatype) would be given to an adapter. The demos (if any) are also passed to the adapter at this stage. Demos are few-shot examples that show the LLM what you expect. At that stage, the adapter transforms all that into the ‘formatted prompt’. It puts (interpolates) the instruction into the system prompt template as well as the names of the inputs and the names of the outputs and their type. It formats the demos (if present) as example input-output pairs in the prompt. It always puts (interpolates) your ‘current’ inputs into a user message. Then a prompt is ready and sent to LLM providers (leveraging litellm).</p>
+<p>This means that your current input + your signature + demos + an (your?) adapter are all (and the only) pieces needed to create the actual prompt. In DSPy, it’s not yet well documented (I’m working on that), but you can absolutely make your own adapter. If you do, you build your own prompt by creating these modular pieces: the input, the signature, the demos formatting, the adapter.</p>
+<p>When the LLM responds, the parser in the adapter picks it up and parses it into the output python types that were specified by the signature.</p>
+<p>The demos part is interesting. They can come from three places: hardcoded in your module (predictor.demos = […]), passed at call time (predictor(input=x, demos=[…])), or set by an optimizer during compilation. The adapter decides how to format these demos into the prompt (as few-shot examples before your actual input).</p>
+<p>All of this is inspectable. You can see the formatted prompt, the demos being used, the parsing logic. The ‘magic’ is just modular composition of these pieces. ## LaTeX Example</p>
+<p>Here is a simple equation:</p>
+<p><span class="math display">\[
+E = mc^2
+\]</span></p>
+<section id="plotting-with-python" class="level2">
+<h2 class="anchored" data-anchor-id="plotting-with-python">Plotting with Python</h2>
+<div id="826f6199" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">2</span> <span class="op">*</span> np.pi, <span class="dv">100</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>plt.plot(x, np.sin(x))</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Sine Wave'</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'x'</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'sin(x)'</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="dspy-how-it-work_files/figure-html/cell-2-output-1.png" width="609" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
 </section>
-<section id="section" class="level2">
-<h2 class="anchored" data-anchor-id="section"></h2>
-<p>Prompt was a particularly correct term chosen to describe the action of writing llm input to make a response happen. I wonder who said it first and what else was ‘tried’.</p>
-<p>Prompting</p>
-<p>Definition: “the act of trying to make someone say something”</p>
-<p>Example: Kids of that age really shouldn’t need prompting to say thank you for things.</p>
-<p>Prompt</p>
-<p>Definition: “to make something happen”</p>
-<p>Example: The bishop’s speech has prompted an angry response from both political parties.</p>
-<p>but I like that api. Before learning about dspy I was happy with no other interface and I was working on my own (https://github.com/MaximeRivest/onetokenpy-library). I have not yet felt I needed to continue my work in parallel in onetokenpy, I think the few things that were lacking for me, I can contribute to dspy. If you ‘accept’ that I use dspy because it’s the simplest abstraction, then ‘adoption’ all other abstraction, optionally, and when useful just make total sense. So there is no concept of ‘migration’ for me it’s rather one of addition. I use the off the shell simple caller when enough. The off the shell simple ChatAdapter when I want more. The off the shell simple optimizer when I want that. My own adapter if I want more, my own optimizer if I want more.</p>
+<section id="code-visibility" class="level2">
+<h2 class="anchored" data-anchor-id="code-visibility">Code Visibility</h2>
+<p>Visible code with output:</p>
+<div id="9b16ce04" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"This code is shown, and so is the output."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>This code is shown, and so is the output.</code></pre>
+</div>
+</div>
+<p>Hidden code but output shown:</p>
+<div id="06d64469" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>secret <span class="op">=</span> <span class="dv">42</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"The secret is </span><span class="sc">{</span>secret<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>The secret is 42</code></pre>
+</div>
+</div>
+<p>Code with no output:</p>
+<div id="32b59bbf" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>unused <span class="op">=</span> <span class="dv">1</span> <span class="op">+</span> <span class="dv">1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 
 
 <!-- -->
@@ -824,39 +927,98 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb1" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "The anatomy of a prompt [wip]"</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "2025-07-06"</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>My criteria for a good AI programing interface:</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">## Pointing to models should be at most a url, and a model name</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>I must be able to change model, provider, inference engine as easily as I would say it to a competent Applied AI engineer: "Use 'meta-llama/Llama-3.1-8B' on groq" or "Use Claude Sonnet 3.6 on Bedrock" or "Use 'meta-llama/Llama-3.1-8B' with vllm".</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>Things everything should always work without exception when I can url and provider except for cases where modalities are not supported. If it's not a vision capable model it will obviously not take in images.</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>##</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>Prompt was a particularly correct term chosen to describe the action of writing llm input to make a response happen. I wonder who said it first and what else was 'tried'.</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>Prompting</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>Definition: "the act of trying to make someone say something"</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>Example: Kids of that age really shouldn't need prompting to say thank you for things.</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>Prompt</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>Definition: "to make something happen"</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>Example: The bishop's speech has prompted an angry response from both political parties.</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>but I like that api. Before learning about dspy I was happy with no other interface and I was working on my own (https://github.com/MaximeRivest/onetokenpy-library). I have not yet felt I needed to continue my work in parallel in onetokenpy, I think the few things that were lacking for me, I can contribute to dspy. If you 'accept' that I use dspy because it's the simplest abstraction, then 'adoption' all other abstraction, optionally, and when useful just make total sense. So there is no concept of 'migration' for me it's rather one of addition. I use the off the shell simple caller when enough. The off the shell simple ChatAdapter when I want more. The off the shell simple optimizer when I want that. My own adapter if I want more, my own optimizer if I want more.</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb7" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "How DSPy really works [wip]"</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2025-07-08</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co">  cache: false</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>Lots of people find DSPy magical (I am one of them). To some this is unsettling as they feel they lose control over the LLM and the prompt, by the end of this tutorial you will feel that you have both control and magic. We will build our own (simplified) implementation of all major dspy component in a way that we will control and trace the whole flow of the prompt and its optimization. I want to show you this, not because you need it to use DSPy, but because you need it to *grok* and the paradigm (I call it Intent-Oriented Programming) behind it.</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; **Intent-Oriented Programming** is a programming paradigm where you explicitly declare the intent of your task—the inputs, desired outputs, success criteria (through metric and training set), and necessary context—without specifying exact implementations. This structured intent can then be automatically specialized, optimized, and adapted to various execution engines (AI models, human agents, APIs, or future intelligent systems). This clearly separates what you want from how it’s achieved, enabling maximum flexibility and continuous improvement.</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>At its core, in DSPy, information flows like this:</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="in">flowchart LR</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="in">    style SIG fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="in">    style ADAPT1 fill:#f5f5f5,stroke:#90caf9,stroke-width:2px,rx:10,ry:10</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="in">    style PROMPT fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="in">    style LLM fill:#fffde7,stroke:#ffd54f,stroke-width:2px,rx:10,ry:10</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="in">    style RAW fill:#f5f5f5,stroke:#90caf9,stroke-width:2px,rx:10,ry:10</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="in">    style ADAPT2 fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="in">    style PRED fill:#b2f7ef,stroke:#00796b,stroke-width:2px,rx:10,ry:10</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="in">    SIG["Signature + Input + Demos"]</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="in">    ADAPT1["Adapter"]</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="in">    PROMPT["Formatted Prompt"]</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="in">    LLM["LLM"]</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a><span class="in">    RAW["Raw Response"]</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="in">    ADAPT2["Adapter"]</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a><span class="in">    PRED["Prediction"]</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="in">    SIG --&gt; ADAPT1 --&gt; PROMPT --&gt; LLM --&gt; RAW --&gt; ADAPT2 --&gt; PRED</span></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>A signature contains an instruction (this goes into the system prompt and is 'trainable'), input and output fields with their structure (e.g. Int, Float, Json, Literal, dataclass, etc). Input and output are generally not trainable nor is the way that they are presented to the LLM.</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>To prompt an LLM, one would make a call to a program (dspy.Predict is the simplest one) with a signature and in the call the user (or programmer/you) would fill up the call with the current input you want to provide.</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>Your current inputs and the signature (instructions, list of inputs and outputs name and datatype) would be given to an adapter. The demos (if any) are also passed to the adapter at this stage. Demos are few-shot examples that show the LLM what you expect. At that stage, the adapter transforms all that into the 'formatted prompt'. It puts (interpolates) the instruction into the system prompt template as well as the names of the inputs and the names of the outputs and their type. It formats the demos (if present) as example input-output pairs in the prompt. It always puts (interpolates) your 'current' inputs into a user message. Then a prompt is ready and sent to LLM providers (leveraging litellm).</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>This means that your current input + your signature + demos + an (your?) adapter are all (and the only) pieces needed to create the actual prompt. In DSPy, it's not yet well documented (I'm working on that), but you can absolutely make your own adapter. If you do, you build your own prompt by creating these modular pieces: the input, the signature, the demos formatting, the adapter.</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>When the LLM responds, the parser in the adapter picks it up and parses it into the output python types that were specified by the signature.</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>The demos part is interesting. They can come from three places: hardcoded in your module (predictor.demos = <span class="co">[</span><span class="ot">...</span><span class="co">]</span>), passed at call time (predictor(input=x, demos=<span class="co">[</span><span class="ot">...</span><span class="co">]</span>)), or set by an optimizer during compilation. The adapter decides how to format these demos into the prompt (as few-shot examples before your actual input).</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>All of this is inspectable. You can see the formatted prompt, the demos being used, the parsing logic. The 'magic' is just modular composition of these pieces.</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a><span class="fu">## LaTeX Example</span></span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>Here is a simple equation:</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>E = mc^2</span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a><span class="fu">## Plotting with Python</span></span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">2</span> <span class="op">*</span> np.pi, <span class="dv">100</span>)</span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a>plt.plot(x, np.sin(x))</span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Sine Wave'</span>)</span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'x'</span>)</span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'sin(x)'</span>)</span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a><span class="fu">## Code Visibility</span></span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a>Visible code with output:</span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"This code is shown, and so is the output."</span>)</span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a>Hidden code but output shown:</span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a><span class="in">```{python, echo=false}</span></span>
+<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a><span class="in">secret = 42</span></span>
+<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a><span class="in">print(f"The secret is {secret}")</span></span>
+<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-90"><a href="#cb7-90" aria-hidden="true" tabindex="-1"></a>Code with no output:</span>
+<span id="cb7-91"><a href="#cb7-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a>unused <span class="op">=</span> <span class="dv">1</span> <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+</code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/MaximeRivest/maximerivest-blog/edit/main/posts/the_anatomy_of_a_prompt.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer><script src="../assets/js/custom.js" defer=""></script>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/MaximeRivest/maximerivest-blog/edit/main/posts/dspy-how-it-work.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer><script src="../assets/js/custom.js" defer=""></script>
 
 
 

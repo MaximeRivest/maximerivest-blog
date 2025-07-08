@@ -2,6 +2,7 @@
   {
     "listing": "/posts.html",
     "items": [
+      "/posts/dspy-how-it-work.html",
       "/posts/dspy-one-hour-guide.html",
       "/posts/the_anatomy_of_a_prompt.html",
       "/posts/test-tutorial.html"
