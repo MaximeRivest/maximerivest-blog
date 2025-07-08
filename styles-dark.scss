@@ -232,11 +232,30 @@ code:not(pre code) {
   transition: all 0.3s ease;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   
-  .navbar-title {
+  .navbar-title,
+  .navbar-brand {
     font-weight: 600;
     font-size: 1.125rem;
     letter-spacing: -0.02em;
-    color: $headings-color;
+    color: #F1F5F9 !important;
+    
+    &:hover {
+      color: $primary !important;
+      text-decoration: none;
+    }
+  }
+  
+  // Force navbar title to be light in dark mode
+  &.navbar-dark {
+    .navbar-brand,
+    .navbar-title {
+      color: #F1F5F9 !important;
+      
+      &:hover,
+      &:focus {
+        color: $primary !important;
+      }
+    }
   }
   
   .navbar-nav {
@@ -519,6 +538,34 @@ hr {
   // Match DDS Blue terminal styling
   pre code {
     color: $primary;
+  }
+  
+  // Fix heading and title colors to ensure they use the proper light color
+  h1, h2, h3, h4, h5, h6,
+  .title, .quarto-title, 
+  .quarto-title-banner .title,
+  #title-block-header h1,
+  #title-block-header .title {
+    color: $headings-color !important;
+  }
+  
+  // Ensure navbar title and brand are light colored
+  .navbar-title,
+  .navbar-brand,
+  .navbar .navbar-title,
+  .navbar .navbar-brand {
+    color: $headings-color !important;
+    
+    &:hover, &:focus {
+      color: $primary !important;
+    }
+  }
+  
+  // Fix any post titles in listing pages
+  .quarto-listing .title,
+  .list-item .title,
+  .quarto-post .title {
+    color: $headings-color !important;
   }
 }// Additional enhancements for a stunning, professional blog experience
 // These styles work with both light and dark themes
