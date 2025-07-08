@@ -65,13 +65,19 @@ div.sourceCode {
   }
   
   &.code-copy-button-checked {
-    background: rgba(40, 167, 69, 0.9) !important;
-    color: white !important;
-    border-color: rgba(40, 167, 69, 1) !important;
+    // Use DDS Blue instead of green
+    background: rgba(12, 133, 204, 0.9) !important;  // #0C85CC
+    color: #FFD700 !important;  // Gold/yellow for the checkmark
+    border-color: rgba(12, 133, 204, 1) !important;
     
     // Remove our custom checkmark since Quarto adds its own
     &::after {
       content: none !important;
+    }
+    
+    &:hover {
+      background: rgba(12, 133, 204, 1) !important;
+      color: #FFE55C !important;  // Lighter yellow on hover
     }
   }
 }
@@ -100,9 +106,15 @@ pre:has(.code-copy-button) {
     }
     
     &.code-copy-button-checked {
-      background: rgba(40, 167, 69, 0.9) !important;
-      color: white !important;
-      border-color: rgba(40, 167, 69, 1) !important;
+      // Use DDS Blue in dark mode too
+      background: rgba(12, 133, 204, 0.9) !important;  // #0C85CC
+      color: #FFD700 !important;  // Gold/yellow for the checkmark
+      border-color: rgba(12, 133, 204, 1) !important;
+      
+      &:hover {
+        background: rgba(12, 133, 204, 1) !important;
+        color: #FFE55C !important;  // Lighter yellow on hover
+      }
     }
   }
 }
