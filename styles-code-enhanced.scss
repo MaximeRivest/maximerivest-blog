@@ -69,8 +69,9 @@ div.sourceCode {
     color: white !important;
     border-color: rgba(40, 167, 69, 1) !important;
     
+    // Remove our custom checkmark since Quarto adds its own
     &::after {
-      content: ' ✓' !important;
+      content: none !important;
     }
   }
 }
