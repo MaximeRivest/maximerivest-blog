@@ -29,7 +29,7 @@
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">flowchart LR
+<pre class="mermaid mermaid-js">flowchart TD
     style SIG fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10
     style ADAPT1 fill:#f5f5f5,stroke:#90caf9,stroke-width:2px,rx:10,ry:10
     style PROMPT fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10
@@ -64,7 +64,7 @@
 <p><img src="https://latex.codecogs.com/png.latex?%0AE%20=%20mc%5E2%0A"></p>
 <section id="plotting-with-python" class="level2">
 <h2 class="anchored" data-anchor-id="plotting-with-python">Plotting with Python</h2>
-<div id="826f6199" class="cell" data-execution_count="1">
+<div id="0fc0e467" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
 background-color: null;
 font-style: inherit;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;
@@ -110,7 +110,7 @@ font-style: inherit;">'sin(x)'</span>)</span>
 <section id="code-visibility" class="level2">
 <h2 class="anchored" data-anchor-id="code-visibility">Code Visibility</h2>
 <p>Visible code with output:</p>
-<div id="9b16ce04" class="cell" data-execution_count="2">
+<div id="6d202a29" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
@@ -121,7 +121,7 @@ font-style: inherit;">"This code is shown, and so is the output."</span>)</span>
 </div>
 </div>
 <p>Hidden code but output shown:</p>
-<div id="06d64469" class="cell" data-execution_count="3">
+<div id="65d4344d" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1">secret <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
@@ -143,7 +143,7 @@ font-style: inherit;">"</span>)</span></code></pre></div>
 </div>
 </div>
 <p>Code with no output:</p>
-<div id="32b59bbf" class="cell" data-execution_count="4">
+<div id="603abea9" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1">unused <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;

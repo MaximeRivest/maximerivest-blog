@@ -228,7 +228,7 @@ window.Quarto = {
 <div>
 <p></p><figure class="figure"><p></p>
 <div>
-<pre class="mermaid mermaid-js">flowchart LR
+<pre class="mermaid mermaid-js">flowchart TD
     style SIG fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10
     style ADAPT1 fill:#f5f5f5,stroke:#90caf9,stroke-width:2px,rx:10,ry:10
     style PROMPT fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10
@@ -265,7 +265,7 @@ E = mc^2
 \]</span></p>
 <section id="plotting-with-python" class="level2">
 <h2 class="anchored" data-anchor-id="plotting-with-python">Plotting with Python</h2>
-<div id="826f6199" class="cell" data-execution_count="1">
+<div id="0fc0e467" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -287,14 +287,14 @@ E = mc^2
 <section id="code-visibility" class="level2">
 <h2 class="anchored" data-anchor-id="code-visibility">Code Visibility</h2>
 <p>Visible code with output:</p>
-<div id="9b16ce04" class="cell" data-execution_count="2">
+<div id="6d202a29" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"This code is shown, and so is the output."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>This code is shown, and so is the output.</code></pre>
 </div>
 </div>
 <p>Hidden code but output shown:</p>
-<div id="06d64469" class="cell" data-execution_count="3">
+<div id="65d4344d" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>secret <span class="op">=</span> <span class="dv">42</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"The secret is </span><span class="sc">{</span>secret<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -302,7 +302,7 @@ E = mc^2
 </div>
 </div>
 <p>Code with no output:</p>
-<div id="32b59bbf" class="cell" data-execution_count="4">
+<div id="603abea9" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>unused <span class="op">=</span> <span class="dv">1</span> <span class="op">+</span> <span class="dv">1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
@@ -941,7 +941,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>At its core, in DSPy, information flows like this:</span>
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="in">flowchart LR</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="in">flowchart TD</span></span>
 <span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="in">    style SIG fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10</span></span>
 <span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="in">    style ADAPT1 fill:#f5f5f5,stroke:#90caf9,stroke-width:2px,rx:10,ry:10</span></span>
 <span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="in">    style PROMPT fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10</span></span>

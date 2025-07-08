@@ -1,26 +1,50 @@
 /*-- scss:rules --*/
 
 // Mermaid diagram styling
-.mermaid {
+.mermaid,
+.mermaid-js {
   text-align: center !important;
-  margin: 2rem auto !important;
-  max-width: 100% !important;
+  margin: 2rem 0 !important;
+  width: 100% !important;
   overflow-x: auto !important;
+  overflow-y: visible !important;
   
   svg {
-    max-width: 100% !important;
+    max-width: none !important;
+    width: auto !important;
     height: auto !important;
     margin: 0 auto !important;
     display: block !important;
   }
 }
 
-// Container for mermaid diagrams
+// Container for mermaid diagrams - fix all possible containers
 pre.mermaid-pre,
-div.cell-output-display {
+div.cell-output-display,
+.cell-output-display .quarto-figure-default,
+.quarto-figure-default {
   overflow-x: auto !important;
+  overflow-y: visible !important;
   max-width: 100% !important;
   margin: 1.5rem 0 !important;
+  
+  // Remove any figure margins that might interfere
+  figure {
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+  
+  p {
+    margin: 0 !important;
+  }
+}
+
+// Force mermaid containers to have scrollbars
+.cell-output-display:has(.mermaid),
+.cell-output-display:has(.mermaid-js) {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding-bottom: 1rem !important;
   
   // Add scrollbar styling
   &::-webkit-scrollbar {
@@ -42,11 +66,27 @@ div.cell-output-display {
   }
 }
 
+// Specific fix for the flowchart LR that's getting cut off
+.mermaid svg[viewBox] {
+  min-width: fit-content !important;
+}
+
+// Create a scrollable wrapper
+.cell-output-display {
+  position: relative !important;
+  
+  .mermaid,
+  .mermaid-js {
+    display: inline-block !important;
+    min-width: fit-content !important;
+  }
+}
+
 // Mobile adjustments for mermaid
 @media (max-width: 991px) {
-  .mermaid {
-    margin: 1.5rem -0.5rem !important;
-    padding: 0 0.5rem !important;
+  .mermaid,
+  .mermaid-js {
+    margin: 1.5rem 0 !important;
     
     svg {
       font-size: 0.875rem !important;
@@ -54,10 +94,9 @@ div.cell-output-display {
   }
   
   // Allow horizontal scroll on mobile
-  pre.mermaid-pre,
-  div.cell-output-display {
-    margin: 1rem -0.5rem !important;
-    padding: 0 0.5rem !important;
+  .cell-output-display {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 }
 

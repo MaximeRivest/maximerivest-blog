@@ -12,7 +12,7 @@ Lots of people find DSPy magical (I am one of them). To some this is unsettling 
 At its core, in DSPy, information flows like this:
 
 ```{mermaid}
-flowchart LR
+flowchart TD
     style SIG fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10
     style ADAPT1 fill:#f5f5f5,stroke:#90caf9,stroke-width:2px,rx:10,ry:10
     style PROMPT fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10
