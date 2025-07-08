@@ -33,7 +33,7 @@ We'll:
 4. Optimize a weaker model (Gemini Flash-lite 2.0) to match the stronger model's performance
 
 
-::: {#fig-cern}
+::: {#fig-yt}
 
 {{< video https://youtu.be/fXjCleTYUm8?si=qA6mF6tccVDkOeez >}}
 
