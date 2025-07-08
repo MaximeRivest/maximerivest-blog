@@ -106,7 +106,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
+  // Remove hamburger menu since we only have one nav item
+  function removeHamburgerMenu() {
+    const hamburger = document.querySelector('.navbar-toggler');
+    if (hamburger) {
+      hamburger.remove();
+    }
+    
+    // Ensure navbar is always expanded
+    const navbarCollapse = document.querySelector('.navbar-collapse');
+    if (navbarCollapse) {
+      navbarCollapse.classList.add('show');
+      navbarCollapse.classList.remove('collapse');
+    }
+  }
+  
   // Initialize all enhancements
+  removeHamburgerMenu();
+  
   if (document.querySelector('article')) {
     createReadingProgress();
     createBackToTop();
