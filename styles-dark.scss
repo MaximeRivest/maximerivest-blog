@@ -92,9 +92,8 @@ body {
   line-height: $line-height-base;
   color: $body-color;
   background-color: $body-bg;
-  background-image: 
-    radial-gradient(ellipse at top left, rgba($primary, 0.05) 0%, transparent 50%),
-    radial-gradient(ellipse at bottom right, rgba($accent, 0.05) 0%, transparent 50%);
+  // Removed gradient glow for cleaner dark mode
+  background-image: none;
   background-attachment: fixed;
   letter-spacing: $letter-spacing-base;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
