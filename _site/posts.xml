@@ -10,40 +10,7 @@
 <atom:link href="https://maximerivest.com/posts.xml" rel="self" type="application/rss+xml"/>
 <description>Personal blog</description>
 <generator>quarto-1.5.57</generator>
-<lastBuildDate>Sun, 06 Jul 2025 04:00:00 GMT</lastBuildDate>
-<item>
-  <title>The anatomy of a prompt [wip]</title>
-  <link>https://maximerivest.com/posts/the_anatomy_of_a_prompt.html</link>
-  <description><![CDATA[ 
-
-
-
-
-<p>My criteria for a good AI programing interface:</p>
-<section id="pointing-to-models-should-be-at-most-a-url-and-a-model-name" class="level2">
-<h2 class="anchored" data-anchor-id="pointing-to-models-should-be-at-most-a-url-and-a-model-name">Pointing to models should be at most a url, and a model name</h2>
-<p>I must be able to change model, provider, inference engine as easily as I would say it to a competent Applied AI engineer: “Use ‘meta-llama/Llama-3.1-8B’ on groq” or “Use Claude Sonnet 3.6 on Bedrock” or “Use ‘meta-llama/Llama-3.1-8B’ with vllm”.</p>
-<p>Things everything should always work without exception when I can url and provider except for cases where modalities are not supported. If it’s not a vision capable model it will obviously not take in images.</p>
-</section>
-<section id="section" class="level2">
-<h2 class="anchored" data-anchor-id="section"></h2>
-<p>Prompt was a particularly correct term chosen to describe the action of writing llm input to make a response happen. I wonder who said it first and what else was ‘tried’.</p>
-<p>Prompting</p>
-<p>Definition: “the act of trying to make someone say something”</p>
-<p>Example: Kids of that age really shouldn’t need prompting to say thank you for things.</p>
-<p>Prompt</p>
-<p>Definition: “to make something happen”</p>
-<p>Example: The bishop’s speech has prompted an angry response from both political parties.</p>
-
-
-<!-- -->
-
-</section>
-
- ]]></description>
-  <guid>https://maximerivest.com/posts/the_anatomy_of_a_prompt.html</guid>
-  <pubDate>Sun, 06 Jul 2025 04:00:00 GMT</pubDate>
-</item>
+<lastBuildDate>Mon, 07 Jul 2025 04:00:00 GMT</lastBuildDate>
 <item>
   <title>A Simple Introduction to DSPy</title>
   <dc:creator>Maxime Rivest</dc:creator>
@@ -1809,7 +1776,40 @@ select:focus {
 
  ]]></description>
   <guid>https://maximerivest.com/posts/dspy-one-hour-guide.html</guid>
-  <pubDate>Tue, 03 Jun 2025 04:00:00 GMT</pubDate>
+  <pubDate>Mon, 07 Jul 2025 04:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>The anatomy of a prompt [wip]</title>
+  <link>https://maximerivest.com/posts/the_anatomy_of_a_prompt.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>My criteria for a good AI programing interface:</p>
+<section id="pointing-to-models-should-be-at-most-a-url-and-a-model-name" class="level2">
+<h2 class="anchored" data-anchor-id="pointing-to-models-should-be-at-most-a-url-and-a-model-name">Pointing to models should be at most a url, and a model name</h2>
+<p>I must be able to change model, provider, inference engine as easily as I would say it to a competent Applied AI engineer: “Use ‘meta-llama/Llama-3.1-8B’ on groq” or “Use Claude Sonnet 3.6 on Bedrock” or “Use ‘meta-llama/Llama-3.1-8B’ with vllm”.</p>
+<p>Things everything should always work without exception when I can url and provider except for cases where modalities are not supported. If it’s not a vision capable model it will obviously not take in images.</p>
+</section>
+<section id="section" class="level2">
+<h2 class="anchored" data-anchor-id="section"></h2>
+<p>Prompt was a particularly correct term chosen to describe the action of writing llm input to make a response happen. I wonder who said it first and what else was ‘tried’.</p>
+<p>Prompting</p>
+<p>Definition: “the act of trying to make someone say something”</p>
+<p>Example: Kids of that age really shouldn’t need prompting to say thank you for things.</p>
+<p>Prompt</p>
+<p>Definition: “to make something happen”</p>
+<p>Example: The bishop’s speech has prompted an angry response from both political parties.</p>
+
+
+<!-- -->
+
+</section>
+
+ ]]></description>
+  <guid>https://maximerivest.com/posts/the_anatomy_of_a_prompt.html</guid>
+  <pubDate>Sun, 06 Jul 2025 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Test Tutorial [wip]</title>
