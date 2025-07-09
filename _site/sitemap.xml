@@ -2,31 +2,35 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://maximerivest.com/posts/dspy-one-hour-guide.html</loc>
-    <lastmod>2025-07-08T01:04:36.850Z</lastmod>
+    <lastmod>2025-07-09T18:45:13.668Z</lastmod>
   </url>
   <url>
     <loc>https://maximerivest.com/posts/test-tutorial.html</loc>
     <lastmod>2025-07-07T21:04:21.402Z</lastmod>
   </url>
   <url>
-    <loc>https://maximerivest.com/CLAUDE.html</loc>
-    <lastmod>2025-07-07T23:36:15.113Z</lastmod>
-  </url>
-  <url>
-    <loc>https://maximerivest.com/IMPORTANT-FREEZE-WORKFLOW.html</loc>
-    <lastmod>2025-07-07T11:46:24.366Z</lastmod>
-  </url>
-  <url>
-    <loc>https://maximerivest.com/index.html</loc>
-    <lastmod>2025-07-07T20:56:46.574Z</lastmod>
+    <loc>https://maximerivest.com/posts/dspy-how-it-work.html</loc>
+    <lastmod>2025-07-09T18:45:15.813Z</lastmod>
   </url>
   <url>
     <loc>https://maximerivest.com/posts.html</loc>
     <lastmod>2025-07-07T20:58:07.609Z</lastmod>
   </url>
   <url>
-    <loc>https://maximerivest.com/posts/dspy-how-it-work.html</loc>
-    <lastmod>2025-07-08T22:45:00.558Z</lastmod>
+    <loc>https://maximerivest.com/index.html</loc>
+    <lastmod>2025-07-09T19:54:52.553Z</lastmod>
+  </url>
+  <url>
+    <loc>https://maximerivest.com/IMPORTANT-FREEZE-WORKFLOW.html</loc>
+    <lastmod>2025-07-07T11:46:24.366Z</lastmod>
+  </url>
+  <url>
+    <loc>https://maximerivest.com/CLAUDE.html</loc>
+    <lastmod>2025-07-07T23:36:15.113Z</lastmod>
+  </url>
+  <url>
+    <loc>https://maximerivest.com/posts/dspy-prompt-optimization.html</loc>
+    <lastmod>2025-07-09T19:57:43.536Z</lastmod>
   </url>
   <url>
     <loc>https://maximerivest.com/posts/the_anatomy_of_a_prompt.html</loc>

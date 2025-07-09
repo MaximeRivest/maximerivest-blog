@@ -6,11 +6,17 @@ website:
   title: "Maxime Rivest"
   description: "Personal blog"
   site-url: "https://maximerivest.com"
-  navbar:
-    right:
-      - href: https://x.com/maximerivest
-        text: X
+  twitter-card: true
   page-navigation: true
+  bread-crumbs: true
+  navbar:
+    left:
+      - href: https://x.com/maximerivest
+        icon: twitter
+      - href: https://www.youtube.com/@maximerivest
+        icon: youtube
+      - href: https://github.com/maximerivest
+        icon: github
   repo-url: https://github.com/MaximeRivest/maximerivest-blog
   repo-actions: [edit]
   google-analytics: "G-532FMB8ETS" # your Measurement ID
@@ -25,22 +31,11 @@ resources:
 format:
   html:
     theme:
-      light: [cosmo, styles-light.scss, styles-mobile.scss, styles-code-enhanced.scss, styles-zen-buttons.scss, styles-hamburger-fix.scss, styles-navbar-spacing.scss, styles-mermaid.scss, styles-sidebar-fix.scss]
-      dark: [darkly, styles-dark.scss, styles-mobile.scss, styles-code-enhanced.scss, styles-zen-buttons.scss, styles-hamburger-fix.scss, styles-navbar-spacing.scss, styles-mermaid.scss, styles-sidebar-fix.scss]
-    include-after-body:
-      - text: |
-          <script src="/assets/js/custom.js" defer></script>
-    toc: true
-    toc-depth: 3
-    toc-location: right
-    smooth-scroll: true
-    link-external-icon: false
-    link-external-newwindow: false
-    code-fold: false
-    code-tools: true
-    code-copy: true
-    anchor-sections: true
-    number-sections: false
-    highlight-style:
-      light: github
-      dark: monokai
+      light: [cosmo, theme.scss]
+      dark: [cosmo, theme-dark.scss]
+    css: custom.css
+    #include-after-body:
+    #  - text: |
+    #      <script src="/assets/js/custom.js" defer></script>
+    toc: false
+    #css: my_style.css

@@ -25,7 +25,7 @@
     "href": "posts/dspy-one-hour-guide.html#step-2-fetch-data",
     "title": "A Simple Introduction to DSPy",
     "section": "Step 2: Fetch Data",
-    "text": "Step 2: Fetch Data\nThis section has nothing to do with LLMs. We are simply fetching content from the Wikipedia AI page and storing it in a dataframe. We use the Attachments library to easily fetch and split paragraphs from Wikipedia.\nfrom attachments import Attachments\n\nattachments_dsl = \"[images: false][select: p,title,h1,h2,h3,h4,h5,h6][split: paragraphs]\"\na = Attachments(\"https://en.wikipedia.org/wiki/Artificial_intelligence\" + attachments_dsl)\nWe then use Datar as our data manipulation tool. I come from R and I love dplyr. Datar is an effort to provide a similar data manipulation experience here in Python.\nfrom datar import f\nimport datar.base as b\nfrom datar.tibble import tibble\nfrom datar.dplyr import mutate, summarise, n\n\ndf = tibble(paragraphs = [p.text for p in a[:10]])\n\n\n\n\n\n\nDataframe Structure\n\n\n\nThe resulting tibble dataframe contains only one column (paragraphs) with the text from Wikipedia."
+    "text": "Step 2: Fetch Data\nThis section has nothing to do with LLMs. We are simply fetching content from the Wikipedia AI page and storing it in a dataframe. We use the Attachments library to easily fetch and split paragraphs from Wikipedia.\nfrom attachments import Attachments\n\nattachments_dsl = \"[images: false][select: p,title,h1,h2,h3,h4,h5,h6][split: paragraphs]\"\na = Attachments(\"https://en.wikipedia.org/wiki/Artificial_intelligence\" + attachments_dsl)\nWe then use Datar as our data manipulation tool. I come from R and I love dplyr. Datar is an effort to provide a similar data manipulation experience here in Python.\nfrom datar import f\nimport datar.base as b\nfrom datar.tibble import tibble\nfrom datar.dplyr import mutate, summarise, n\n\ndf = tibble(paragraphs = [p.text for p in a[:10]])\n\n\n\n\n\n\nDataframe Structure\n\n\n\nThe resulting tibble dataframe contains only one column (paragraphs) with the text from Wikipedia.\n\n\n\n\n\na tibble"
   },
   {
     "objectID": "posts/dspy-one-hour-guide.html#step-3-applying-the-ai-to-our-paragraphs",
@@ -105,46 +105,67 @@
     "text": "Code Visibility\nVisible code with output:\n\nprint(\"This code is shown, and so is the output.\")\n\nThis code is shown, and so is the output.\n\n\nHidden code but output shown:\n\nsecret = 42\nprint(f\"The secret is {secret}\")\n\nThe secret is 42\n\n\nCode with no output:\n\nunused = 1 + 1"
   },
   {
-    "objectID": "CLAUDE.html",
-    "href": "CLAUDE.html",
-    "title": "",
+    "objectID": "posts/dspy-how-it-work.html",
+    "href": "posts/dspy-how-it-work.html",
+    "title": "How DSPy really works [wip]",
     "section": "",
-    "text": "Code"
+    "text": "Lots of people find DSPy magical (I am one of them). To some this is unsettling as they feel they lose control over the LLM and the prompt, by the end of this tutorial you will feel that you have both control and magic. We will build our own (simplified) implementation of all major dspy component in a way that we will control and trace the whole flow of the prompt and its optimization. I want to show you this, not because you need it to use DSPy, but because you need it to grok and the paradigm (I call it Intent-Oriented Programming) behind it.\nAt its core, in DSPy, information flows like this:\nflowchart TD\n    style SIG fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10\n    style ADAPT1 fill:#f5f5f5,stroke:#90caf9,stroke-width:2px,rx:10,ry:10\n    style PROMPT fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10\n    style LLM fill:#fffde7,stroke:#ffd54f,stroke-width:2px,rx:10,ry:10\n    style RAW fill:#f5f5f5,stroke:#90caf9,stroke-width:2px,rx:10,ry:10\n    style ADAPT2 fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10\n    style PRED fill:#b2f7ef,stroke:#00796b,stroke-width:2px,rx:10,ry:10\n\n    SIG[\"Signature + Input + Demos\"]\n    ADAPT1[\"Adapter\"]\n    PROMPT[\"Formatted Prompt\"]\n    LLM[\"LLM\"]\n    RAW[\"Raw Response\"]\n    ADAPT2[\"Adapter\"]\n    PRED[\"Prediction\"]\n\n    SIG --&gt; ADAPT1 --&gt; PROMPT --&gt; LLM --&gt; RAW --&gt; ADAPT2 --&gt; PRED\nA signature contains an instruction (this goes into the system prompt and is ‘trainable’), input and output fields with their structure (e.g. Int, Float, Json, Literal, dataclass, etc). Input and output are generally not trainable nor is the way that they are presented to the LLM.\nTo prompt an LLM, one would make a call to a program (dspy.Predict is the simplest one) with a signature and in the call the user (or programmer/you) would fill up the call with the current input you want to provide.\nYour current inputs and the signature (instructions, list of inputs and outputs name and datatype) would be given to an adapter. The demos (if any) are also passed to the adapter at this stage. Demos are few-shot examples that show the LLM what you expect. At that stage, the adapter transforms all that into the ‘formatted prompt’. It puts (interpolates) the instruction into the system prompt template as well as the names of the inputs and the names of the outputs and their type. It formats the demos (if present) as example input-output pairs in the prompt. It always puts (interpolates) your ‘current’ inputs into a user message. Then a prompt is ready and sent to LLM providers (leveraging litellm).\nThis means that your current input + your signature + demos + an (your?) adapter are all (and the only) pieces needed to create the actual prompt. In DSPy, it’s not yet well documented (I’m working on that), but you can absolutely make your own adapter. If you do, you build your own prompt by creating these modular pieces: the input, the signature, the demos formatting, the adapter.\nWhen the LLM responds, the parser in the adapter picks it up and parses it into the output python types that were specified by the signature.\nThe demos part is interesting. They can come from three places: hardcoded in your module (predictor.demos = […]), passed at call time (predictor(input=x, demos=[…])), or set by an optimizer during compilation. The adapter decides how to format these demos into the prompt (as few-shot examples before your actual input).\nAll of this is inspectable. You can see the formatted prompt, the demos being used, the parsing logic. The ‘magic’ is just modular composition of these pieces. ## LaTeX Example\nHere is a simple equation:\n\\[\nE = mc^2\n\\]"
   },
   {
-    "objectID": "CLAUDE.html#codebase-overview",
-    "href": "CLAUDE.html#codebase-overview",
-    "title": "",
-    "section": "Codebase Overview",
-    "text": "Codebase Overview\nThis is a Quarto-based personal blog for maximerivest.com with custom styling, automated deployment, and support for both R and Python code execution."
+    "objectID": "posts/dspy-how-it-work.html#plotting-with-python",
+    "href": "posts/dspy-how-it-work.html#plotting-with-python",
+    "title": "How DSPy really works [wip]",
+    "section": "Plotting with Python",
+    "text": "Plotting with Python\n\nimport matplotlib.pyplot as plt\nimport numpy as np\n\nx = np.linspace(0, 2 * np.pi, 100)\nplt.plot(x, np.sin(x))\nplt.title('Sine Wave')\nplt.xlabel('x')\nplt.ylabel('sin(x)')\nplt.show()"
   },
   {
-    "objectID": "CLAUDE.html#essential-commands",
-    "href": "CLAUDE.html#essential-commands",
-    "title": "",
-    "section": "Essential Commands",
-    "text": "Essential Commands\n\nDevelopment\n# Preview blog locally with hot reload\nquarto preview\n\n# Build the entire site (outputs to _site/)\nquarto render\n\n# Render a specific post\nquarto render posts/my-post.qmd\n\n# Force re-execution of code in a post\nquarto render posts/my-post.qmd --execute-daemon-restart\n\n# Clear all caches (when code isn't re-executing)\n./clear-cache.sh\n\n\nDeployment\nAutomatic deployment via GitHub Actions on push to main. The site deploys to GitHub Pages at maximerivest.com."
+    "objectID": "posts/dspy-how-it-work.html#code-visibility",
+    "href": "posts/dspy-how-it-work.html#code-visibility",
+    "title": "How DSPy really works [wip]",
+    "section": "Code Visibility",
+    "text": "Code Visibility\nVisible code with output:\n\nprint(\"This code is shown, and so is the output.\")\n\nThis code is shown, and so is the output.\n\n\nHidden code but output shown:\n\nsecret = 42\nprint(f\"The secret is {secret}\")\n\nThe secret is 42\n\n\nCode with no output:\n\nunused = 1 + 1"
   },
   {
-    "objectID": "CLAUDE.html#architecture-key-concepts",
-    "href": "CLAUDE.html#architecture-key-concepts",
-    "title": "",
-    "section": "Architecture & Key Concepts",
-    "text": "Architecture & Key Concepts\n\nFreeze Workflow\nPosts use freeze: true to cache code execution results in _freeze/. This means: - Code executes locally during development - GitHub Actions uses cached results (no code execution in CI) - The _freeze/ directory MUST be committed to git - To re-execute code, delete the specific cache or use clear-cache.sh\n\n\nPost Management\n\nPosts with [wip] in the title are automatically hidden from homepage and listings\nHidden via R filtering in index.qmd and JavaScript in posts.qmd\nWIP posts remain accessible via direct URL\n\n\n\nStyling Architecture\nThe blog uses a layered SCSS approach: 1. styles-light.scss / styles-dark.scss - Base theme styles 2. styles-mobile.scss - Responsive design for all screen sizes 3. styles-code-copy-fix.scss - Fixes for code copy button behavior 4. styles-zen-buttons.scss - Removes gradient buttons for minimal aesthetic\nAll styles are compiled by Quarto and applied in order.\n\n\nContent Types\n\n.qmd files: Quarto markdown with executable code chunks\n.ipynb files: Jupyter notebooks (auto-converted by Quarto)\nPython scripts with # %% cells can be converted using Jupytext\n\n\n\nImage Handling\nImages must be: 1. Placed in the posts/ directory 2. Listed in _quarto.yml under resources: (already configured for .jpg, .jpeg, *.png) 3. Referenced with relative paths in posts\n\n\nDependencies\n\nR: Required for index.qmd (uses R for dynamic post listing)\nPython: Required for posts with Python code\nKey Python packages: jupyter-cache (for freeze workflow), dspy-ai, pandas, matplotlib\nSee requirements.txt for full Python dependencies"
+    "objectID": "posts.html",
+    "href": "posts.html",
+    "title": "All Posts",
+    "section": "",
+    "text": "How DSPy really works [wip]\n\n\n\n\n\n\n\n\n\n\n\nJul 8, 2025\n\n\n\n\n\n\n\n\n\n\n\n\nComplete Introduction to Automatic Prompt Engineering in Python\n\n\n\n\n\nDSPy prompt opt\n\n\n\n\n\nJul 8, 2025\n\n\nMaxime Rivest\n\n\n\n\n\n\n\n\n\n\n\n\nA Simple Introduction to DSPy\n\n\n\n\n\nLearn DSPy in one hour with practical examples\n\n\n\n\n\nJul 7, 2025\n\n\nMaxime Rivest\n\n\n\n\n\n\n\n\n\n\n\n\nThe anatomy of a prompt [wip]\n\n\n\n\n\n\n\n\n\n\n\nJul 6, 2025\n\n\n\n\n\n\n\n\n\n\n\n\nTest Tutorial [wip]\n\n\n\n\n\n\n\n\n\n\n\nJun 23, 2024\n\n\n\n\n\n\nNo matching items"
   },
   {
-    "objectID": "CLAUDE.html#critical-files",
-    "href": "CLAUDE.html#critical-files",
-    "title": "",
-    "section": "Critical Files",
-    "text": "Critical Files\n\n_quarto.yml - Main configuration (themes, resources, output settings)\nindex.qmd - Homepage with R code that filters posts\n.github/workflows/deploy.yml - GitHub Actions deployment pipeline\nIMPORTANT-FREEZE-WORKFLOW.md - Detailed freeze workflow documentation"
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Maxime Rivest",
+    "section": "",
+    "text": "I’m Maxime Rivest, a developer passionate about the about api design, tool making and AI.\n\nExplore My Writing About Me"
   },
   {
-    "objectID": "CLAUDE.html#common-issues-solutions",
-    "href": "CLAUDE.html#common-issues-solutions",
-    "title": "",
-    "section": "Common Issues & Solutions",
-    "text": "Common Issues & Solutions\n\nYAML parsing errors: Usually caused by missing blank line after YAML frontmatter or hidden characters\nImages not showing in production: Ensure images are in resources: section of _quarto.yml\nCode not re-executing: Clear cache with ./clear-cache.sh or delete specific _freeze/posts/[post-name]/ directory\nPosts not hiding with [wip]: Check that JavaScript is loading correctly in posts.qmd"
+    "objectID": "index.html#welcome",
+    "href": "index.html#welcome",
+    "title": "Maxime Rivest",
+    "section": "",
+    "text": "I’m Maxime Rivest, a developer passionate about the about api design, tool making and AI.\n\nExplore My Writing About Me"
+  },
+  {
+    "objectID": "index.html#recent-posts",
+    "href": "index.html#recent-posts",
+    "title": "Maxime Rivest",
+    "section": "Recent Posts",
+    "text": "Recent Posts\n\nComplete Introduction to Automatic Prompt Engineering in Python\n\n2025-07-08\n\nDSPy prompt opt\nContinue reading →\n\n\nA Simple Introduction to DSPy\n\n2025-07-07\n\nLearn DSPy in one hour with practical examples\nContinue reading →"
+  },
+  {
+    "objectID": "index.html#topics",
+    "href": "index.html#topics",
+    "title": "Maxime Rivest",
+    "section": "I write about what I do",
+    "text": "I write about what I do\nThese days I do those projects:\n\n\nHuman Computer Interaction\nHuman computer interaction with voice, hotkeys and the clipboard with MetaKeyAI\n\n\nData Analytics\nAI interface for data analytics Jupyter-Whisper\n\n\nDeveloper Tool\nGeneral llm funnel; from any file to llm ready content Attachments\n\n\nAPI design\nAPI design for building AI agents and AI Software FunnyDSPy, OneTokenPy"
+  },
+  {
+    "objectID": "index.html#about",
+    "href": "index.html#about",
+    "title": "Maxime Rivest",
+    "section": "About Me",
+    "text": "About Me\n\nI’m an Applied AI Engineer with a background in Scientific Computing and Data Analytics.\n\nConnect With Me\n\n X  GitHub  Email"
   },
   {
     "objectID": "IMPORTANT-FREEZE-WORKFLOW.html",
@@ -189,67 +210,60 @@
     "text": "Freeze options\n\nfreeze: true - Never re-execute (must manually clear cache)\nfreeze: auto - Re-execute when code changes\nfreeze: false - Always re-execute (default)"
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
+    "objectID": "CLAUDE.html",
+    "href": "CLAUDE.html",
     "title": "",
     "section": "",
     "text": "Code"
   },
   {
-    "objectID": "index.html#welcome",
-    "href": "index.html#welcome",
+    "objectID": "CLAUDE.html#codebase-overview",
+    "href": "CLAUDE.html#codebase-overview",
     "title": "",
-    "section": "Welcome",
-    "text": "Welcome\nI’m Maxime Rivest, a developer passionate about the about api design, tool making and AI.\n\nExplore My Writing About Me"
+    "section": "Codebase Overview",
+    "text": "Codebase Overview\nThis is a Quarto-based personal blog for maximerivest.com with custom styling, automated deployment, and support for both R and Python code execution."
   },
   {
-    "objectID": "index.html#recent-posts",
-    "href": "index.html#recent-posts",
+    "objectID": "CLAUDE.html#essential-commands",
+    "href": "CLAUDE.html#essential-commands",
     "title": "",
-    "section": "Recent Posts",
-    "text": "Recent Posts\n\nA Simple Introduction to DSPy\n\n2025-07-07\n\nLearn DSPy in one hour with practical examples\nContinue reading →"
+    "section": "Essential Commands",
+    "text": "Essential Commands\n\nDevelopment\n# Preview blog locally with hot reload\nquarto preview\n\n# Build the entire site (outputs to _site/)\nquarto render\n\n# Render a specific post\nquarto render posts/my-post.qmd\n\n# Force re-execution of code in a post\nquarto render posts/my-post.qmd --execute-daemon-restart\n\n# Clear all caches (when code isn't re-executing)\n./clear-cache.sh\n\n\nDeployment\nAutomatic deployment via GitHub Actions on push to main. The site deploys to GitHub Pages at maximerivest.com."
   },
   {
-    "objectID": "index.html#topics",
-    "href": "index.html#topics",
+    "objectID": "CLAUDE.html#architecture-key-concepts",
+    "href": "CLAUDE.html#architecture-key-concepts",
     "title": "",
-    "section": "I write about what I do",
-    "text": "I write about what I do\nThese days I do those projects:\n\n\nHuman Computer Interaction\nHuman computer interaction with voice, hotkeys and the clipboard with MetaKeyAI\n\n\nData Analytics\nAI interface for data analytics Jupyter-Whisper\n\n\nDeveloper Tool\nGeneral llm funnel; from any file to llm ready content Attachments\n\n\nAPI design\nAPI design for building AI agents and AI Software FunnyDSPy, OneTokenPy"
+    "section": "Architecture & Key Concepts",
+    "text": "Architecture & Key Concepts\n\nFreeze Workflow\nPosts use freeze: true to cache code execution results in _freeze/. This means: - Code executes locally during development - GitHub Actions uses cached results (no code execution in CI) - The _freeze/ directory MUST be committed to git - To re-execute code, delete the specific cache or use clear-cache.sh\n\n\nPost Management\n\nPosts with [wip] in the title are automatically hidden from homepage and listings\nHidden via R filtering in index.qmd and JavaScript in posts.qmd\nWIP posts remain accessible via direct URL\n\n\n\nStyling Architecture\nThe blog uses a layered SCSS approach: 1. styles-light.scss / styles-dark.scss - Base theme styles 2. styles-mobile.scss - Responsive design for all screen sizes 3. styles-code-copy-fix.scss - Fixes for code copy button behavior 4. styles-zen-buttons.scss - Removes gradient buttons for minimal aesthetic\nAll styles are compiled by Quarto and applied in order.\n\n\nContent Types\n\n.qmd files: Quarto markdown with executable code chunks\n.ipynb files: Jupyter notebooks (auto-converted by Quarto)\nPython scripts with # %% cells can be converted using Jupytext\n\n\n\nImage Handling\nImages must be: 1. Placed in the posts/ directory 2. Listed in _quarto.yml under resources: (already configured for .jpg, .jpeg, *.png) 3. Referenced with relative paths in posts\n\n\nDependencies\n\nR: Required for index.qmd (uses R for dynamic post listing)\nPython: Required for posts with Python code\nKey Python packages: jupyter-cache (for freeze workflow), dspy-ai, pandas, matplotlib\nSee requirements.txt for full Python dependencies"
   },
   {
-    "objectID": "index.html#about",
-    "href": "index.html#about",
+    "objectID": "CLAUDE.html#critical-files",
+    "href": "CLAUDE.html#critical-files",
     "title": "",
-    "section": "About Me",
-    "text": "About Me\n\nI’m an Applied AI Engineer with a background in Scientific Computing and Data Analytics.\n\nConnect With Me\n\n X  GitHub  Email"
+    "section": "Critical Files",
+    "text": "Critical Files\n\n_quarto.yml - Main configuration (themes, resources, output settings)\nindex.qmd - Homepage with R code that filters posts\n.github/workflows/deploy.yml - GitHub Actions deployment pipeline\nIMPORTANT-FREEZE-WORKFLOW.md - Detailed freeze workflow documentation"
   },
   {
-    "objectID": "posts.html",
-    "href": "posts.html",
-    "title": "All Posts",
+    "objectID": "CLAUDE.html#common-issues-solutions",
+    "href": "CLAUDE.html#common-issues-solutions",
+    "title": "",
+    "section": "Common Issues & Solutions",
+    "text": "Common Issues & Solutions\n\nYAML parsing errors: Usually caused by missing blank line after YAML frontmatter or hidden characters\nImages not showing in production: Ensure images are in resources: section of _quarto.yml\nCode not re-executing: Clear cache with ./clear-cache.sh or delete specific _freeze/posts/[post-name]/ directory\nPosts not hiding with [wip]: Check that JavaScript is loading correctly in posts.qmd"
+  },
+  {
+    "objectID": "posts/dspy-prompt-optimization.html",
+    "href": "posts/dspy-prompt-optimization.html",
+    "title": "Complete Introduction to Automatic Prompt Engineering in Python",
     "section": "",
-    "text": "How DSPy really works [wip]\n\n\n\n\n\n\n\n\n\n\n\nJul 8, 2025\n\n\n\n\n\n\n\n\n\n\n\n\nA Simple Introduction to DSPy\n\n\n\n\n\nLearn DSPy in one hour with practical examples\n\n\n\n\n\nJul 7, 2025\n\n\nMaxime Rivest\n\n\n\n\n\n\n\n\n\n\n\n\nThe anatomy of a prompt [wip]\n\n\n\n\n\n\n\n\n\n\n\nJul 6, 2025\n\n\n\n\n\n\n\n\n\n\n\n\nTest Tutorial [wip]\n\n\n\n\n\n\n\n\n\n\n\nJun 23, 2024\n\n\n\n\n\n\nNo matching items"
+    "text": "As we become familiar with prompting llms we quickly realize that they are sensitive to the words we choose and the way we prompt. This has lead to the, now, popular expression and practice of prompt engineering.1 There are several components that you can tweak in a prompt to improve a models performance and there are several ways to arrive to an optimized prompt. In this tutorial, we will focus on those the are automatically optimizable."
   },
   {
-    "objectID": "posts/dspy-how-it-work.html",
-    "href": "posts/dspy-how-it-work.html",
-    "title": "How DSPy really works [wip]",
-    "section": "",
-    "text": "Lots of people find DSPy magical (I am one of them). To some this is unsettling as they feel they lose control over the LLM and the prompt, by the end of this tutorial you will feel that you have both control and magic. We will build our own (simplified) implementation of all major dspy component in a way that we will control and trace the whole flow of the prompt and its optimization. I want to show you this, not because you need it to use DSPy, but because you need it to grok and the paradigm (I call it Intent-Oriented Programming) behind it.\nAt its core, in DSPy, information flows like this:\nflowchart TD\n    style SIG fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10\n    style ADAPT1 fill:#f5f5f5,stroke:#90caf9,stroke-width:2px,rx:10,ry:10\n    style PROMPT fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10\n    style LLM fill:#fffde7,stroke:#ffd54f,stroke-width:2px,rx:10,ry:10\n    style RAW fill:#f5f5f5,stroke:#90caf9,stroke-width:2px,rx:10,ry:10\n    style ADAPT2 fill:#e3f6f5,stroke:#64b5f6,stroke-width:2px,rx:10,ry:10\n    style PRED fill:#b2f7ef,stroke:#00796b,stroke-width:2px,rx:10,ry:10\n\n    SIG[\"Signature + Input + Demos\"]\n    ADAPT1[\"Adapter\"]\n    PROMPT[\"Formatted Prompt\"]\n    LLM[\"LLM\"]\n    RAW[\"Raw Response\"]\n    ADAPT2[\"Adapter\"]\n    PRED[\"Prediction\"]\n\n    SIG --&gt; ADAPT1 --&gt; PROMPT --&gt; LLM --&gt; RAW --&gt; ADAPT2 --&gt; PRED\nA signature contains an instruction (this goes into the system prompt and is ‘trainable’), input and output fields with their structure (e.g. Int, Float, Json, Literal, dataclass, etc). Input and output are generally not trainable nor is the way that they are presented to the LLM.\nTo prompt an LLM, one would make a call to a program (dspy.Predict is the simplest one) with a signature and in the call the user (or programmer/you) would fill up the call with the current input you want to provide.\nYour current inputs and the signature (instructions, list of inputs and outputs name and datatype) would be given to an adapter. The demos (if any) are also passed to the adapter at this stage. Demos are few-shot examples that show the LLM what you expect. At that stage, the adapter transforms all that into the ‘formatted prompt’. It puts (interpolates) the instruction into the system prompt template as well as the names of the inputs and the names of the outputs and their type. It formats the demos (if present) as example input-output pairs in the prompt. It always puts (interpolates) your ‘current’ inputs into a user message. Then a prompt is ready and sent to LLM providers (leveraging litellm).\nThis means that your current input + your signature + demos + an (your?) adapter are all (and the only) pieces needed to create the actual prompt. In DSPy, it’s not yet well documented (I’m working on that), but you can absolutely make your own adapter. If you do, you build your own prompt by creating these modular pieces: the input, the signature, the demos formatting, the adapter.\nWhen the LLM responds, the parser in the adapter picks it up and parses it into the output python types that were specified by the signature.\nThe demos part is interesting. They can come from three places: hardcoded in your module (predictor.demos = […]), passed at call time (predictor(input=x, demos=[…])), or set by an optimizer during compilation. The adapter decides how to format these demos into the prompt (as few-shot examples before your actual input).\nAll of this is inspectable. You can see the formatted prompt, the demos being used, the parsing logic. The ‘magic’ is just modular composition of these pieces. ## LaTeX Example\nHere is a simple equation:\n\\[\nE = mc^2\n\\]"
-  },
-  {
-    "objectID": "posts/dspy-how-it-work.html#plotting-with-python",
-    "href": "posts/dspy-how-it-work.html#plotting-with-python",
-    "title": "How DSPy really works [wip]",
-    "section": "Plotting with Python",
-    "text": "Plotting with Python\n\nimport matplotlib.pyplot as plt\nimport numpy as np\n\nx = np.linspace(0, 2 * np.pi, 100)\nplt.plot(x, np.sin(x))\nplt.title('Sine Wave')\nplt.xlabel('x')\nplt.ylabel('sin(x)')\nplt.show()"
-  },
-  {
-    "objectID": "posts/dspy-how-it-work.html#code-visibility",
-    "href": "posts/dspy-how-it-work.html#code-visibility",
-    "title": "How DSPy really works [wip]",
-    "section": "Code Visibility",
-    "text": "Code Visibility\nVisible code with output:\n\nprint(\"This code is shown, and so is the output.\")\n\nThis code is shown, and so is the output.\n\n\nHidden code but output shown:\n\nsecret = 42\nprint(f\"The secret is {secret}\")\n\nThe secret is 42\n\n\nCode with no output:\n\nunused = 1 + 1"
+    "objectID": "posts/dspy-prompt-optimization.html#footnotes",
+    "href": "posts/dspy-prompt-optimization.html#footnotes",
+    "title": "Complete Introduction to Automatic Prompt Engineering in Python",
+    "section": "Footnotes",
+    "text": "Footnotes\n\n\nPrompt Engineering is the process of designing, crafting, and refining input text (a “prompt”) to guide a Generative AI model toward producing a desired, high-quality, and relevant output. It’s a combination of instruction, context, examples, and questioning to control the AI’s behavior. It’s not about coding; it’s about communicating effectively with an AI using natural language.↩︎\nthis is conceivable optimizable but would be much harder, it’s usually in the user’s input hands↩︎\nIf I want to onboard an employess to classify some document for me, I would prepare some sort of onboarding document, this could include examples on how to classify some instructions, maybe a list of internal tools to accelerate or verify the job and explanation on how to use them, that would be context engineering, I would right it once and it would serve as a document to specify my intent. Then, if I hire someone as a trainer, they may need to translate, transform, or optimize my intent to a particular Intelligent entity. For instance, we may have someone who is not familiar with our corporate linguo or someone who does not speak the language in which the document was written. In those moments the translation and adaption of the intent would be prompt engineering. It is entirely possible to train a large language model that only use slang, if that was the only AI you have access to, you would need to prompt engineer so that you ask in slang for best results. This has nothing to do with the content and everything with the ‘affinities’ of the llm.↩︎\npython library is a collection of functions and objects↩︎"
   },
   {
     "objectID": "posts/the_anatomy_of_a_prompt.html",
