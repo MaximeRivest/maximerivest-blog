@@ -3,6 +3,7 @@ jupyter
 jupyter-cache
 nbclient
 nbformat
+python-dotenv
 
 # Plotting and data
 matplotlib
@@ -13,3 +14,5 @@ pandas
 dspy-ai
 attachments
 datar
+fastcore
+claudette

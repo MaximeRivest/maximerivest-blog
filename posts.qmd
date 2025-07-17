@@ -1,7 +1,13 @@
 ---
 title: "All Posts"
 listing:
-  contents: posts
+  contents: 
+    - "posts/*.qmd"
+    - "posts/*.md" 
+    - "posts/*.ipynb"
+    - "posts/**/*.qmd"
+    - "posts/**/*.md"
+    - "posts/**/*.ipynb"
   sort: "date desc"
   type: default
   categories: true

@@ -1,4 +1,3 @@
-*.ipynb
 *.nb.html
 .Rhistory
 .Rdata
@@ -7,8 +6,12 @@
 
 /.quarto/
 .jupyter_cache/
+.ipynb_checkpoints
 # Note: _freeze/ is intentionally NOT ignored
 # We want to commit frozen execution results for reproducible builds
+
+# Environment variables
+.env
 
 # Ignore installer files
 *.deb

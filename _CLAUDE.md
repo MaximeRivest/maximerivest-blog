@@ -54,8 +54,11 @@ All styles are compiled by Quarto and applied in order.
 
 ### Content Types
 - `.qmd` files: Quarto markdown with executable code chunks
+- `.md` files: Standard markdown files
 - `.ipynb` files: Jupyter notebooks (auto-converted by Quarto)
 - Python scripts with `# %%` cells can be converted using Jupytext
+
+**Post Discovery**: The blog automatically finds posts recursively in the `posts/` directory and subdirectories. This allows you to organize posts in folders with their assets (e.g., `posts/my-project/post.qmd` and `posts/my-project/images/`).
 
 ### Image Handling
 Images must be:

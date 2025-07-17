@@ -23,61 +23,84 @@ I'm **Maxime Rivest**, a developer passionate about the about api design, tool m
 #| output: asis
 #| warning: false
 
-# Get all posts
-posts <- list.files("posts", pattern = "\\.qmd$", full.names = TRUE)
+# Get all posts (recursively search for .qmd, .md, and .ipynb files)
+posts <- list.files("posts", pattern = "\\.(qmd|md|ipynb)$", full.names = TRUE, recursive = TRUE)
 
 # Function to extract metadata from a post
 extract_metadata <- function(post_path) {
-  lines <- readLines(post_path, warn = FALSE)
-
-  # Find YAML boundaries
-  yaml_start <- which(lines == "---")[1]
-  yaml_end <- which(lines == "---")[2]
-
-  if (!is.na(yaml_start) && !is.na(yaml_end)) {
-    yaml_content <- lines[(yaml_start + 1):(yaml_end - 1)]
-
-    # Extract title
-    title_line <- grep("^title:", yaml_content, value = TRUE)
-    title <- gsub("^title:\\s*['\"]?([^'\"]*)['\"]?", "\\1", title_line)
-
-    # Extract date
-    date_line <- grep("^date:", yaml_content, value = TRUE)
-    date <- gsub("^date:\\s*['\"]?([^'\"]*)['\"]?", "\\1", date_line)
-
-    # Extract description
-    desc_line <- grep("^description:", yaml_content, value = TRUE)
-    description <- if(length(desc_line) > 0) {
-      gsub("^description:\\s*['\"]?([^'\"]*)['\"]?", "\\1", desc_line)
+  # Handle different file types
+  if (grepl("\\.ipynb$", post_path)) {
+    # For Jupyter notebooks, try to parse JSON and extract raw cell metadata
+    tryCatch({
+      json_content <- jsonlite::fromJSON(post_path, simplifyVector = FALSE)
+      # Look for a raw cell with YAML frontmatter
+      yaml_content <- NULL
+      for (cell in json_content$cells) {
+        if (cell$cell_type == "raw" && length(cell$source) > 0) {
+          source_text <- paste(cell$source, collapse = "\n")
+          if (grepl("^---", source_text)) {
+            yaml_lines <- strsplit(source_text, "\n")[[1]]
+            yaml_start <- which(yaml_lines == "---")[1]
+            yaml_end <- which(yaml_lines == "---")[2]
+            if (!is.na(yaml_start) && !is.na(yaml_end) && yaml_end > yaml_start) {
+              yaml_content <- yaml_lines[(yaml_start + 1):(yaml_end - 1)]
+              break
+            }
+          }
+        }
+      }
+      if (is.null(yaml_content)) return(NULL)
+      lines <- yaml_content
+    }, error = function(e) return(NULL))
+  } else {
+    # For .qmd and .md files
+    lines <- readLines(post_path, warn = FALSE)
+    # Find YAML boundaries
+    yaml_start <- which(lines == "---")[1]
+    yaml_end <- which(lines == "---")[2]
+    if (!is.na(yaml_start) && !is.na(yaml_end)) {
+      lines <- lines[(yaml_start + 1):(yaml_end - 1)]
     } else {
-      # Try to get first paragraph after YAML
-      content_start <- yaml_end + 1
-      while(content_start <= length(lines) && lines[content_start] == "") {
-        content_start <- content_start + 1
-      }
-      if(content_start <= length(lines)) {
-        substr(lines[content_start], 1, 150)
-      } else {
-        "Read more..."
-      }
+      return(NULL)
     }
+  }
 
-    # Extract categories
-    cat_line <- grep("^categories:", yaml_content, value = TRUE)
-    categories <- if(length(cat_line) > 0) {
-      # Look for array format
-      cat_start <- which(yaml_content == cat_line)
-      cats <- c()
+  # Extract title
+  title_line <- grep("^title:", lines, value = TRUE)
+  title <- if(length(title_line) > 0) gsub("^title:\\s*['\"]?([^'\"]*)['\"]?", "\\1", title_line) else ""
+
+  # Extract date
+  date_line <- grep("^date:", lines, value = TRUE)
+  date <- if(length(date_line) > 0) gsub("^date:\\s*['\"]?([^'\"]*)['\"]?", "\\1", date_line) else ""
+
+  # Extract description
+  desc_line <- grep("^description:", lines, value = TRUE)
+  description <- if(length(desc_line) > 0) {
+    gsub("^description:\\s*['\"]?([^'\"]*)['\"]?", "\\1", desc_line)
+  } else {
+    "Read more..."
+  }
+
+  # Extract categories
+  cat_line <- grep("^categories:", lines, value = TRUE)
+  categories <- if(length(cat_line) > 0) {
+    # Look for array format
+    cat_start <- which(lines == cat_line)
+    cats <- c()
+    if(length(cat_start) > 0) {
       i <- cat_start + 1
-      while(i <= length(yaml_content) && grepl("^\\s*-", yaml_content[i])) {
-        cats <- c(cats, gsub("^\\s*-\\s*", "", yaml_content[i]))
+      while(i <= length(lines) && grepl("^\\s*-", lines[i])) {
+        cats <- c(cats, gsub("^\\s*-\\s*", "", lines[i]))
         i <- i + 1
       }
-      cats
-    } else {
-      NULL
     }
+    cats
+  } else {
+    NULL
+  }
 
+  # Only return if we have at least a title
+  if(title != "") {
     return(list(
       title = title,
       date = date,
@@ -103,9 +126,13 @@ if(length(posts_metadata) > 0) {
   posts_metadata <- posts_metadata[order(dates, decreasing = TRUE)]
 
   # Display posts
-  for(post in posts_metadata[1:min(3, length(posts_metadata))]) {
+  for(post in posts_metadata[1:min(4, length(posts_metadata))]) {
     cat(sprintf('::: {.post-card}\n'))
-    cat(sprintf('### [%s](%s)\n\n', post$title, gsub("\\.qmd$", ".html", post$path)))
+    # Convert file path to HTML path
+    html_path <- gsub("\\.qmd$", ".html", post$path)
+    html_path <- gsub("\\.md$", ".html", html_path)
+    html_path <- gsub("\\.ipynb$", ".html", html_path)
+    cat(sprintf('### [%s](%s)\n\n', post$title, html_path))
 
     if(!is.null(post$date) && post$date != "") {
       cat(sprintf('::: {.post-meta}\n'))
@@ -123,11 +150,15 @@ if(length(posts_metadata) > 0) {
     }
 
     cat(sprintf('%s\n\n', post$description))
-    cat(sprintf('[Continue reading →](%s){.read-more}\n', gsub("\\.qmd$", ".html", post$path)))
+    # Convert file path to HTML path
+    html_path <- gsub("\\.qmd$", ".html", post$path)
+    html_path <- gsub("\\.md$", ".html", html_path)
+    html_path <- gsub("\\.ipynb$", ".html", html_path)
+    cat(sprintf('[Continue reading →](%s){.read-more}\n', html_path))
     cat(':::\n\n')
   }
 
-  if(length(posts_metadata) > 3) {
+  if(length(posts_metadata) > 4) {
     cat('\n[View all posts →](posts.html){.btn-outline}\n')
   }
 } else {

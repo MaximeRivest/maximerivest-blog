@@ -4,3 +4,43 @@
 .cell-output-stdout code {
     font-family: "VT323", monospace !important;
 }
+/* custom.css */
+
+/* --- Code Block Font Scaling --- */
+
+/* 1. Define the main content area as a CSS container.
+   On a standard Quarto page, .quarto-body-content is the right selector. */
+.quarto-body-content {
+    container-type: inline-size;
+    container-name: main-content;
+}
+
+/* 2. Style the <pre> block to prevent wrapping and hide overflow */
+pre {
+    white-space: pre; /* Do NOT wrap lines */
+    overflow-x: auto; /* Show scrollbar as a fallback for browsers that don't support container queries */
+}
+
+/* 3. Style the <code> element using container query units (cqw) */
+@supports (font-size: 1cqw) {
+    pre {
+        overflow-x: hidden; /* Hide the scrollbar if container queries are supported, as we scale instead */
+    }
+
+    pre > code {
+        /*
+     * This is the magic line.
+     * `1.25cqw` means "1.25% of the container's width".
+     * Why 1.25? Because 100 / 80 = 1.25. This formula dynamically sets the
+     * font size so that ~80 characters fit across the container's width.
+     */
+        font-size: clamp(
+            0.6em,
+            /* Minimum font size: never get smaller than this */ 2cqw,
+            /* Desired font size: scales with the container */ 1em
+                /* Maximum font size: never get larger than the default theme font size */
+        );
+        display: inline-block; /* Ensures the code element can be sized correctly */
+        min-width: 100%; /* Forces the code block to take up the full available width */
+    }
+}

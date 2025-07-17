@@ -10,6 +10,9 @@ website:
   page-navigation: true
   bread-crumbs: true
   navbar:
+    right:
+      - text: "Posts"
+        href: posts.html
     left:
       - href: https://x.com/maximerivest
         icon: twitter
