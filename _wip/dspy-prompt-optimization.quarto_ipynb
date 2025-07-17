@@ -1,0 +1,120 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "6f775929",
+   "metadata": {},
+   "source": [
+    "---\n",
+    "title: \"[wip]Complete Introduction to Automatic Prompt Engineering in Python\"\n",
+    "date: 2025-07-08\n",
+    "author: Maxime Rivest\n",
+    "description: \"tdb\"\n",
+    "draft: false\n",
+    "format:\n",
+    "  html:\n",
+    "    toc: false\n",
+    "    toc-location: right\n",
+    "title-block-banner: false\n",
+    "title-block-style: none\n",
+    "execute:\n",
+    "  cache: false\n",
+    "  freeze: false\n",
+    "---\n",
+    "\n",
+    "\n",
+    "As we become familiar with prompting llms we quickly realize that they are sensitive to the words we choose and the way we prompt. This has lead to the, now, popular expression and practice of **prompt engineering**^[Prompt Engineering is the process of designing, crafting, and refining input text to guide a generative AI model toward producing desired, high-quality, and relevant outputs. It's a blend of instructions, context, examples, and strategic questioning to effectively communicate with the AI using natural language. Prompt engineering isn't about coding per se; it's about mastering AI communication] but as tasks grow complex, manual tweaking becomes brittle and time-consuming. Enter automatic prompt engineering, where we leverage frameworks to optimize prompts systematically based on data and metrics. In this tutorial, we'll explore this through the lens of Intent-Oriented Programming (IOP)^[Intent-Oriented Programming IOP is a programming paradigm where you explicitly declare the intent of your task—the inputs, desired outputs, success criteria (through metric and training set), and necessary context—without specifying exact implementations. This structured intent can then be automatically specialized, optimized, and adapted to various execution engines (AI models, human agents, APIs, or future intelligent systems). This clearly separates what you want from how it’s achieved, enabling maximum flexibility and continuous improvement.], using the DSPy^[DSPy is a Python library that treats LLM interactions as programmable code. Instead of brittle strings, you declare signatures (task specs) and compose modules (prompting patterns). DSPy then uses optimizers to automatically tune prompts based on a training set and metric.] library in Python to automate the process.\n",
+    "\n",
+    "### The optimizable component of a prompt.\n",
+    "\n",
+    "\n",
+    "and more recently **<need a word for that>** which is more about providing all the context for the task to be plausibly solvable by the LLM^[this is conceivable optimizable but would be much harder, it's usually in the user's input hands]. In other words, as I see it, <need a word for that> is about creating a prompt or an onboarding for an intelligent entity to perform a task successfully whereas prompt engineering is about taking that and hacking it so that it actually works for a particular Intelligent entity (example here^[If I want to onboard an employess to classify some document for me, I would prepare some sort of onboarding document, this could include examples on how to classify some instructions, maybe a list of internal tools to accelerate or verify the job and explanation on how to use them, that would be <need a word for that>, I would right it once and it would serve as a document to specify my intent. Then, if I hire someone as a trainer, they may need to translate, transform, or optimize my intent to a particular Intelligent entity. For instance, we may have someone who is not familiar with our corporate linguo or someone who does not speak the language in which the document was written. In those moments the translation and adaption of the intent would be prompt engineering. It is entirely possible to train a large language model that only use slang, if that was the only AI you have access to, you would need to prompt engineer so that you ask in slang for best results. This has nothing to do with the content and everything with the 'affinities' of the llm.]).\n",
+    "\n",
+    "Intent Oriented Programming: the practice of defining a program intent, by specifying inputs, outputs, evals and examples.\n",
+    "Most people associate DSPy with automatic prompt optimization and by the end of this tutorial you'll understand why.\n",
+    "\n",
+    "DSPy is a python library^[python library is a collection of functions and objects]\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "5cbc0b33",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "hello\n"
+     ]
+    }
+   ],
+   "source": [
+    "from dspy import *\n",
+    "translator = Predict(\"french -> english\")\n",
+    "translator.set_lm(LM(\"gpt-4.1\"))\n",
+    "#translator(french = \"Allo\")\n",
+    "print(\"hello\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "60764aaa",
+   "metadata": {},
+   "source": [
+    "In DSPy, this is all you need to create a program that translates text from french to english with gpt-4.1 (but how can that be? how can gpt-4.1 or any other model do it's job with so few instructions?), and the crazy thing is that if I do `set_lm(\"<another model and provider>\")` it will also work 🤯.\n",
+    "\n",
+    "```python\n",
+    "translator.set_lm(LM(\"gemini/gemini-2.5-flash-lite-preview-06-17\"))\n",
+    "translator(french = \"J'aime les animaux\")\n",
+    "```\n",
+    "\n",
+    "```python\n",
+    "configure(lm = LM(\"gpt-4.1-nano\"))\n",
+    "\n",
+    "trainingset = [\n",
+    "    Example(french=\"Salut\", english=\"Hi\").with_inputs(),\n",
+    "    Example(french=\"Je suis dans le champs\", english=\"I am wrong\").with_inputs(),\n",
+    "    Example(french=\"L'IA semble utile\", english=\"AI seems useful\").with_inputs(),\n",
+    "    Example(french=\"La fleur est rose\", english=\"The flower is pink\").with_inputs(),\n",
+    "    Example(french=\"Il était une fois un chat\", english=\"Once upon a time, there was a cat.\").with_inputs(),\n",
+    "    Example(french=\"Bonjour, comment ça va?\", english=\"Hello, how are you?\").with_inputs()\n",
+    "    ]\n",
+    "\n",
+    "def translation_judge(example, prediction, trace=None):\n",
+    "    judge = Predict(\"input_french, groundtruth_english, prediction_english -> prediction_vs_groundtruth_similarity: int\")\n",
+    "    judge.set_lm(LM(\"gpt-4.1-nano\"))\n",
+    "    return judge(input_french = example.french, groundtruth_english = example.english, prediction_english = prediction.english).score\n",
+    "\n",
+    "optimizer = MIPROv2(metric = translation_judge, auto=\"light\")\n",
+    "translator_opt = optimizer.compile(translator, trainset = trainingset, requires_permission_to_run = False)\n",
+    "\n",
+    "translator_opt(french = \"J'aime les animaux\")\n",
+    "```"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3",
+   "path": "/home/maxime/.local/share/jupyter/kernels/python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.10"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
