@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Maxime Rivest">
+<meta name="dcterms.date" content="2025-07-20">
+<meta name="description" content="By the end of this post, you’ll understand how clearly defining the intent of each task enables you to confidently combine traditional coding, specialized ML models, and LLM-driven workflows into powerful, maintainable, and easily optimizable systems.">
+
+<title>Build Well and You Will be Rewarded – Maxime Rivest</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-532FMB8ETS"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-532FMB8ETS', { 'anonymize_ip': true});
+</script>
+
+
+<link rel="stylesheet" href="../custom.css">
+<meta name="twitter:title" content="Build Well and You Will be Rewarded – Maxime Rivest">
+<meta name="twitter:description" content="By the end of this post, you’ll understand how clearly defining the intent of each task enables you to confidently combine traditional coding, specialized ML models, and LLM-driven workflows into powerful, maintainable, and easily optimizable systems.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Maxime Rivest</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://x.com/maximerivest"> <i class="bi bi-twitter" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.youtube.com/@maximerivest"> <i class="bi bi-youtube" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/maximerivest"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../posts.html"> 
+<span class="menu-text">Posts</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-does-it-mean-to-build-with-intent-at-the-forefront" id="toc-what-does-it-mean-to-build-with-intent-at-the-forefront" class="nav-link active" data-scroll-target="#what-does-it-mean-to-build-with-intent-at-the-forefront">What does it mean to build with intent at the forefront?</a></li>
+  <li><a href="#how-do-you-define-a-component-intent" id="toc-how-do-you-define-a-component-intent" class="nav-link" data-scroll-target="#how-do-you-define-a-component-intent">How do you define a component intent?</a>
+  <ul class="collapse">
+  <li><a href="#translating-from-english-text-into-french-canadian" id="toc-translating-from-english-text-into-french-canadian" class="nav-link" data-scroll-target="#translating-from-english-text-into-french-canadian">Translating from English text into French Canadian</a></li>
+  </ul></li>
+  <li><a href="#how-do-you-do-intent-oriented-programming" id="toc-how-do-you-do-intent-oriented-programming" class="nav-link" data-scroll-target="#how-do-you-do-intent-oriented-programming">How do you do Intent-Oriented Programming?</a>
+  <ul class="collapse">
+  <li><a href="#task-specification-object" id="toc-task-specification-object" class="nav-link" data-scroll-target="#task-specification-object">Task Specification Object</a></li>
+  <li><a href="#compiler" id="toc-compiler" class="nav-link" data-scroll-target="#compiler">Compiler</a></li>
+  <li><a href="#ai-program-composition" id="toc-ai-program-composition" class="nav-link" data-scroll-target="#ai-program-composition">AI program composition</a></li>
+  </ul></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/MaximeRivest/maximerivest-blog/edit/main/posts/on-building-ai-programs.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header">
+<div class="quarto-title-block"><div><h1 class="title">Build Well and You Will be Rewarded</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+<p class="author">Maxime Rivest</p>
+
+<p class="date">2025-07-20</p>
+</header>
+
+
+<div class="page-columns page-full"><blockquote class="blockquote">
+<p><strong>The promise</strong><br>
+The fastest path to robust AI systems is to nail the <em>intent<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></em> of every component <strong>independently</strong> of its implementation. Get that right and you can swap, combine, or optimise implementations at will—without huges headaches.</p>
+</blockquote><div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;Intent is the underlying purpose or goal behind a task or component. Unlike a rigid task specification, intent acknowledges an inherent fuzziness—it represents direction and motivation. A task specification is merely one concrete attempt to clarify intent; each refinement of the specification moves us closer to accurately capturing the true intent.</p></div></div></div>
+<p>Nobody will disagree that, as coders<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>, we now have a powerful new tool at our disposal: AI (and I am not refering to coding with AI but rather about putting AI component in our code). However, such power does not come for free, and if code is not crafted with care, things can quickly get ugly.</p>
+<div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup>&nbsp;including software engineers, data analysts, hackers, system administrators, and anyone else who gets things done with code</p></div></div><p>These days, in coding, I see four main paradigms for building a program that solve a task:</p>
+<ol type="1">
+<li>Traditional software: Feature engineering and deterministic code.</li>
+<li>Specialized machine learning: End-to-end algorithms, including deep neural networks (e.g., SAM).</li>
+<li>LLM-driven approaches: Workflows using large language models, possibly with tools.</li>
+<li><strong>Compound approach</strong>: Any combination or iteration of the above.</li>
+</ol>
+<blockquote class="blockquote">
+<p><strong>Invoice‑to‑CSV Converter</strong></p>
+<p>Intent: turn a PDF invoice into one CSV row per line‑item.</p>
+<p>I/O Spec: PDF → CSV with columns [date, item, qty, price].</p>
+<p>Success Metric: ≥ 98 % line‑item extraction accuracy on 50 sample invoices.</p>
+<p>Implementation Options:</p>
+<ul>
+<li>regex + heuristics (traditional)</li>
+<li>fine‑tuned vision model (specialised ML)</li>
+<li>GPT‑4o with function‑calling (LLM)</li>
+<li>hybrid pipeline (compound)</li>
+</ul>
+</blockquote>
+<p>The fourth path is overwhelmingly powerful. Its lone cost is cognitive and architectural complexity. However, this complexity and the builder psychology in facing that complexity can be enough to wipe out all of the promised benefits of the compound approach if one is not careful in how one builds. Using any of the three and, potentially, their combination means that you must be skilled at all of them. It also means that you will have to learn and worry about design patterns and the tradeoffs of each, and if you mix all three (or even any of the 3 with itself) all in one long linear flat logical flow, you may lose the edge that the combination promised because you will quickly be slowed down by the complexity. Therefore you must build with care. Build with intent (task specification) at the forefront, and you will be handsomely rewarded.</p>
+<section id="what-does-it-mean-to-build-with-intent-at-the-forefront" class="level2">
+<h2 class="anchored" data-anchor-id="what-does-it-mean-to-build-with-intent-at-the-forefront">What does it mean to build with intent at the forefront?</h2>
+<p>Another way to say “build with intent” is: “specify each task’s components and their success criteria, independently from their chosen implementation”. Doing that will enable you to quickly evaluate a task-completing-artifact and compose then together modularly. Thus letting you build programs as logical sequence of clearly defined tasks, where the specifics of implementation are unimportant (all you care about is that they follow the specs and pass the success criteria). This is not a very novel or revolutionary idea; it is the idea behind modular programming, functional programming, microservices, and declarative paradigms, the one crucial difference is that, due to the stochastic nature of AI components, the success criteria is essential and no longer as simple as writing a simple test or executing the program bug free.</p>
+<p>Previously, each modular component was deterministic, mostly transparent, understandable, and—crucially—testable. Introducing machine learning and large language models (LLMs) into your system means accepting and incorporating stochasticity. To embrace machine learning and LLMs is to embrace and introduce stochasticity into your system. This means that the traditional ‘does it work?’ question is changed to ‘how well does it work’ and each component has its own performance spectrum. It is thus crucial that a success criteria, evaluated through a set of example task inputs and outputs, and metrics be defined along with task input and output specification. Once you do that, you are truly ready to be careless about the internals of the task completing system. All you need to know is that, when given inputs of a certain type and profile, outputs of required types and characteristics come out at a performance level that you can evaluate and check for ‘passing’ your performance threshold requirements. This decoupling is extremely liberating and powerful as we can swap, modify, optimize the component independently and with confidence.</p>
+</section>
+<section id="how-do-you-define-a-component-intent" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="how-do-you-define-a-component-intent">How do you define a component intent?</h2>
+<p>A user has a task, goal, or intent. They can specify it very clearly using a combination of the following:</p>
+<ul>
+<li>Examples (demonstrating what to do or not to do)</li>
+<li>Inputs/Outputs specifications</li>
+<li>Metrics/Evaluations/Rubrics/Judges/Scores*<br>
+</li>
+<li>Stories/Instructions/Hints/Personas (analogies: “give me a recipe like Gordon Ramsay would”)</li>
+</ul>
+<p>In theory, any single element might suffice for an intelligent entity to complete the task.</p>
+<section id="translating-from-english-text-into-french-canadian" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="translating-from-english-text-into-french-canadian">Translating from English text into French Canadian</h3>
+<p>Consider the task of translating English text into French Canadian:</p>
+<section id="examples" class="level4">
+<h4 class="anchored" data-anchor-id="examples">Examples</h4>
+<p>The following should be enough for a talented human to find the pattern and comply:</p>
+<div id="b03e130d" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>example_of_success <span class="op">=</span> {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">'english'</span>: [</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">"I'm going to the convenience store."</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        <span class="st">"It's really cold out today."</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Can you help me move this weekend?"</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        <span class="st">"We were stuck in traffic for two hours."</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">"She's my girlfriend."</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">"That car is so cool!"</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">"I'll call you tonight."</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        <span class="st">"He's always bragging."</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">"We grabbed a coffee at Tim's."</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Close the window, it's chilly."</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">"I have an appointment at 3."</span>,</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">"They're celebrating their birthday."</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>        <span class="st">"I parked in the back."</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>        <span class="st">"The metro is packed."</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>        <span class="st">"We watched a movie last night."</span>,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        <span class="st">"I need to do my groceries."</span>,</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Don't forget your boots."</span>,</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>        <span class="st">"It's snowing again."</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>        <span class="st">"I'll take the bus."</span>,</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>        <span class="st">"We're out of milk."</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    ],</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="st">'french'</span>: [</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Je m'en vais au dépanneur."</span>,</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Il fait frette en maudit aujourd'hui."</span>,</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Tu peux m'aider à déménager ce weekend?"</span>,</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>        <span class="st">"On était pognés dans le trafic pendant deux heures."</span>,</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>        <span class="st">"C'est ma blonde."</span>,</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>        <span class="st">"C'est ben l'fun ce char-là!"</span>,</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Je vais t'appeler ce soir."</span>,</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Il se vente tout l'temps."</span>,</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>        <span class="st">"On a pris un café au Tim."</span>,</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Ferme la fenêtre, y fait frette."</span>,</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>        <span class="st">"J'ai un rendez-vous à trois heures."</span>,</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Ils fêtent leur fête."</span>,</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>        <span class="st">"J'ai stationné dans l'fond."</span>,</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Le métro est plein à craquer."</span>,</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>        <span class="st">"On a écouté un film hier soir."</span>,</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>        <span class="st">"J'dois faire mon épicerie."</span>,</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Oublie pas tes bottes."</span>,</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Il neige encore."</span>,</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>        <span class="st">"J'va prendre l'bus."</span>,</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>        <span class="st">"On est à court de lait."</span></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>However, for other intelligent systems, additional clarifications like instructions, judges, or input/output schemas might be necessary.</p>
+</section>
+<section id="instruction" class="level4">
+<h4 class="anchored" data-anchor-id="instruction">Instruction</h4>
+<p>Similarly to examples, these instructions could be sufficient:</p>
+<blockquote class="blockquote">
+<p>Translate the following English sentences into colloquial Quebec French. Preserve the informal, spoken register—use contractions, regional vocabulary (e.g., “dépanneur”, “frette”, “blonde”), and typical Quebec French syntax. Do not translate proper nouns like “Tim’s” or anglicisms that are common in Quebec French (e.g., “weekend”). Keep the tone casual and conversational.</p>
+</blockquote>
+</section>
+<section id="judge-or-metric" class="level4">
+<h4 class="anchored" data-anchor-id="judge-or-metric">Judge or metric</h4>
+<p>Or if you have a metric or a performance LLM judge you can build an example set using them by searching for high scoring examples. A metric using code could hypothetically be built, like that:</p>
+<div id="5f94d6ec" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>is_quebec_form <span class="op">=</span> []</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> word <span class="kw">in</span> translated_text:</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> word <span class="kw">in</span> quebec_colloquial_word_set:</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        is_quebec_form.append(<span class="dv">1</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        is_quebec_form.append(<span class="dv">0</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>mean(is_quebec_form)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Or, perhaps, more easily for this task a judge LLM could be tuned and used:</p>
+<blockquote class="blockquote">
+<p>You are an expert Quebec French linguist. For each English sentence and its proposed French translation, evaluate:</p>
+<ol type="1">
+<li><p><strong>Accuracy</strong>: Does the French convey the same meaning as the English?</p></li>
+<li><p><strong>Register</strong>: Is the tone appropriately informal/colloquial (not formal textbook French)?</p></li>
+<li><p><strong>Regional Vocabulary</strong>: Does it use authentic Quebec French terms (e.g., “dépanneur”, “frette”, “blonde”)?</p></li>
+<li><p><strong>Contractions</strong>: Are natural Quebec French contractions used (e.g., “j’va”, “t’”, “y’a”)?</p></li>
+<li><p><strong>Proper Nouns</strong>: Are names like “Tim’s” left untranslated?</p></li>
+<li><p><strong>Anglicisms</strong>: Are common Quebec anglicisms preserved when appropriate (e.g., “weekend”)? Score each translation from 1-5 on these criteria, with 5 being perfect. Provide brief feedback on any issues.</p></li>
+</ol>
+</blockquote>
+</section>
+<section id="task-inputoutput" class="level4 page-columns page-full">
+<h4 class="anchored" data-anchor-id="task-inputoutput">Task input/output</h4>
+<p>Often, if you are told what you will be given to complete a certain task and what you must return, it is enough for you to understand the intent of the person giving you the task.</p>
+<p>Input/Output specification could look something like that:</p>
+<blockquote class="blockquote">
+<ul>
+<li><p><strong>Input</strong>: A plain-text string in English.</p></li>
+<li><p><strong>Output</strong>: Plain-text colloquial Quebec French sentence, using regional vocabulary, contractions, and anglicisms common in spoken Quebec French.</p></li>
+</ul>
+</blockquote>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Note that, in building systems with AI components there are, confusingly, at least two input and output types. That is:</p>
+<ol type="1">
+<li>the inputs and outputs of the task-completing-system<br>
+</li>
+<li>the inputs and outputs of the LLM, often times, inside the task completing system<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></li>
+</ol>
+</div>
+</div>
+<div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;sometimes for LLM performance reason we may want to give it a role/persona, some fewshots examples, maybe a list of tools that would not generally need to be specified to a human or any other system completing the task, or maybe a generating strategy like think step-by-step, all of those are LLM inputs but not task inputs. Some extra LLM outputs would include thinking traces, tool calling traces, etc.</p></div></div></section>
+<section id="artifacts" class="level4 page-columns page-full">
+<h4 class="anchored" data-anchor-id="artifacts">Artifacts</h4>
+<p>Artifacts<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> can also specify or at least contribute to specifying a task intent. This one is somewhat special compared to the other specification mechanisms we just went through as there are 2 types of artifacts and they are both indirect specification mechanisms, meaning from the artifact we can deduce specifications. There are opaque and there are transparent artifacts. An opaque artifact (black box deep neural net) acts similarly to examples but might lead to misuse. A transparent, understandable artifact contributes significantly to task clarity, enabling extraction of instructions, examples, input/output pairs, and potentially training judges (open source program or mathematical formula). While an understandable artifact can greatly help in specifying the task it does not, however, resolve the task permanently, as future needs may require efficiency improvements or different dependencies.</p>
+<div class="no-row-height column-margin column-container"><div id="fn4"><p><sup>4</sup>&nbsp;meaning a thing that successfully completes the task</p></div></div></section>
+</section>
+</section>
+<section id="how-do-you-do-intent-oriented-programming" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="how-do-you-do-intent-oriented-programming">How do you do Intent-Oriented Programming?</h2>
+<p>I am not sure anybody yet completely knows how to do that but here is my current thinking on this.</p>
+<section id="task-specification-object" class="level3">
+<h3 class="anchored" data-anchor-id="task-specification-object">Task Specification Object</h3>
+<p>First, you need to have a place where you define task specifications, there should be one source of truth for each task. This could be in a separate file, or a separate section in a file or a separate module, etc. Let’s call that a Task Specification Object. A task specification object would contain all the above-mentioned elements, and they would have versioning (à la git) and attributions. Were the instructions deduced? If so, from what and by what?</p>
+<p>One should be careful with the task specification object, as there is a fine line between specifying a task and optimizing a system that aims to complete the task successfully. A specification should be general; it should aim to be coherent, and brevity is better than verbosity. Anything that would not help the majority of intelligent entities interpret the task and successfully complete it should be a concern for the optimizer.</p>
+</section>
+<section id="compiler" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="compiler">Compiler</h3>
+<p>Then, we will need a place where you turn a task spec into something that, at the very least, attempts to complete the task. The action necessary to go from task spec to a program that tentatively completes the task could be referred to as <em>compiling</em>. In the sense that you are compiling a task spec into a program, the system performing that action could be called a <em>compiler</em>. Generally, that compiler would need to be told what particular AI component to target (analogous to hardware components<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>). In most cases, the target is a model paired with a provider endpoint, where the model could be weights on your computer and the provider could be your own inference code; but often, it would be a commercial provider (e.g., Groq, Cerebras, Bedrock, OpenAI, Anthropic, OpenRouter, Ollama, vLLM, etc.) along with a model ID (generally a string).</p>
+<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;as with hardware AI components, especially neural networks or external APIs, are notable for: Limited flexibility regarding accepted inputs, Limited flexibility in output structure or format. Complex constraints often accepted due to their significant value and leverage. High ressource requirement and bottlenecking, necessitating careful management.</p></div></div><p>Within the compiler task specifications and optimization flags will combined using adapters into a specific prompt and format to interface with the AI component.</p>
+<section id="optimization-flags" class="level4">
+<h4 class="anchored" data-anchor-id="optimization-flags">Optimization flags</h4>
+<p>Optimization is a process where you take a working system, meaning it can in theory go from inputs to outputs, but it does not currently do so in a satisfactory way. It is not optimization to define and construct the task-completing system. Upon compiling, optimization flags can be provided. For instance, few-shot demos could be added into the prompt, or an AI persona could be defined. The same goes for a specific type of generation such as ‘think step by step,’ and the style of adapter, using JSON or XML, or even a compilation flag for triggering the fine-tuning of model weights using appropriate hyperparameters and training set, etc. Those are compilation tags that are too specific to a certain compilation and model to be in the specification, but they are nevertheless extremely important and powerful to drive an AI component’s performance.</p>
+</section>
+<section id="adapters" class="level4">
+<h4 class="anchored" data-anchor-id="adapters">Adapters</h4>
+<p>Adapters handle practical issues that arise when interfacing general system logic with specialized AI components. Their role is to abstract away friction caused by specific constraints or idiosyncrasies of powerful but less flexible AI component interfaces.</p>
+<p>As just discussed in the optimization section, sometimes for LLM performance reasons we may want to give it a role or persona, some few-shot examples, maybe a list of tools in addition to elements from the Task Specification Object. It is the task of a formatting adapter to bring all those together for the LLM input interface. Similarly, AI outputs must be parsed into the output required by the task alongside some extra LLM outputs which may be beneficial for performance or monitoring reasons. For instance, an LLM could produce thinking traces, tool calling traces, etc.</p>
+<p>In short, adapters primarily manage two areas:</p>
+<ol type="1">
+<li>Input Formatting: Converting inputs into the precise formats AI models expect (tokenization, padding, embedding formats, API call structures).</li>
+<li>Output Parsing: Interpreting and translating model outputs back into clearly specified, structured forms suitable for downstream processing or evaluation.</li>
+</ol>
+<p>Adapters simplify the logical composition and enable developers and AI practitioners to concentrate on specifying tasks clearly rather than managing cumbersome AI-specific plumbing.</p>
+</section>
+<section id="the-compilers-advantage" class="level4">
+<h4 class="anchored" data-anchor-id="the-compilers-advantage">The compilers’ advantage</h4>
+<p>Ultimatly given a task specification, optimization flags and AI component target, a program can be compiled automatically thanks to the compiler picking previously defined adapters (formatters or parsers) and the resulting program can be evaluated using a combination of judge, metric, and example set. That is how I would build programs that use AI for completing their tasks. This has the advantage of opening the door to optimization, and easily and confidently changing AI component target.</p>
+</section>
+</section>
+<section id="ai-program-composition" class="level3">
+<h3 class="anchored" data-anchor-id="ai-program-composition">AI program composition</h3>
+<p>Orthogonally to the compilation of AI programs from task specification, you can compose those AI programs together in very powerful, maintainable and very importantly ever improving systems. As a new AI component comes out you can easily change the compilation target, evaluate and if satisfactory change to the improved AI component.</p>
+</section>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>To build systems that age well, treat every task as a contract: state what must happen, not how. Encode that contract in a single, versioned Task-Spec Object—examples, metrics, I/O schemas, and nothing more. Hand it to a compiler that knows how to translate the contract into calls to whatever AI component (LLM, model, or rule engine) happens to be fastest, cheapest or most accurate today. Let adapters absorb the messy realities of tokens, JSON quirks, rate limits. Measure against the specifications; this keeps the door open for painless swaps when better models appear.</p>
+
+
+<!-- -->
+
+</section>
+
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+    const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+    const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+    let newTheme = '';
+    if(darkModeDefault) {
+      newTheme = isAlternate ? baseTheme : alternateTheme;
+    } else {
+      newTheme = isAlternate ? alternateTheme : baseTheme;
+    }
+    const changeGiscusTheme = () => {
+      // From: https://github.com/giscus/giscus/issues/336
+      const sendMessage = (message) => {
+        const iframe = document.querySelector('iframe.giscus-frame');
+        if (!iframe) return;
+        iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+      }
+      sendMessage({
+        setConfig: {
+          theme: newTheme
+        }
+      });
+    }
+    const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+    if (isGiscussLoaded) {
+      changeGiscusTheme();
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  const darkModeDefault = false;
+  let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+    toggleGiscusIfUsed(toAlternate, darkModeDefault);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/maximerivest\.com");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb3" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Build Well and You Will be Rewarded"</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2025-07-20</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> Maxime Rivest</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "By the end of this post, you'll understand how clearly defining the intent of each task enables you to confidently combine traditional coding, specialized ML models, and LLM-driven workflows into powerful, maintainable, and easily optimizable systems."</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="an">draft:</span><span class="co"> false</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">  html:</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co">    toc: true</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">    toc-location: right</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co">    code-tools: true</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co">    reference-location: margin</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="an">title-block-banner:</span><span class="co"> false</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="an">title-block-style:</span><span class="co"> none</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co">  echo: true  </span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co">  #cache: true</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co">  #freeze: true</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; **The promise**</span>  </span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; The fastest path to robust AI systems is to nail the *intent^[Intent is the underlying purpose or goal behind a task or component. Unlike a rigid task specification, intent acknowledges an inherent fuzziness—it represents direction and motivation. A task specification is merely one concrete attempt to clarify intent; each refinement of the specification moves us closer to accurately capturing the true intent.]* of every component **independently** of its implementation. Get that right and you can swap, combine, or optimise implementations at will—without huges headaches.</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>Nobody will disagree that, as coders^<span class="co">[</span><span class="ot">including software engineers, data analysts, hackers, system administrators, and anyone else who gets things done with code</span><span class="co">]</span>, we now have a powerful new tool at our disposal: AI (and I am not refering to coding with AI but rather about putting AI component in our code). However, such power does not come for free, and if code is not crafted with care, things can quickly get ugly.</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>These days, in coding, I see four main paradigms for building a program that solve a task:</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Traditional software: Feature engineering and deterministic code.</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Specialized machine learning: End-to-end algorithms, including deep neural networks (e.g., SAM).</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>LLM-driven approaches: Workflows using large language models, possibly with tools.</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>**Compound approach**: Any combination or iteration of the above.</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;__Invoice‑to‑CSV Converter__</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Intent: turn a PDF invoice into one CSV row per line‑item.</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; I/O Spec: PDF → CSV with columns </span><span class="co">[</span><span class="ot">date, item, qty, price</span><span class="co">]</span><span class="at">.</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Success Metric: ≥ 98 % line‑item extraction accuracy on 50 sample invoices.</span></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Implementation Options:</span></span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; * regex + heuristics (traditional)</span></span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; * fine‑tuned vision model (specialised ML)</span></span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; * GPT‑4o with function‑calling (LLM) </span></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; * hybrid pipeline (compound)</span></span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>The fourth path is overwhelmingly powerful. Its lone cost is cognitive and architectural complexity. However, this complexity and the builder psychology in facing that complexity can be enough to wipe out all of the promised benefits of the compound approach if one is not careful in how one builds. Using any of the three and, potentially, their combination means that you must be skilled at all of them. It also means that you will have to learn and worry about design patterns and the tradeoffs of each, and if you mix all three (or even any of the 3 with itself) all in one long linear flat logical flow, you may lose the edge that the combination promised because you will quickly be slowed down by the complexity. Therefore you must build with care. Build with intent (task specification) at the forefront, and you will be handsomely rewarded.</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a><span class="fu">## What does it mean to build with intent at the forefront?</span></span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>Another way to say "build with intent" is: "specify each task's components and their success criteria, independently from their chosen implementation". Doing that will enable you to quickly evaluate a task-completing-artifact and compose then together modularly. Thus letting you build programs as logical sequence of clearly defined tasks, where the specifics of implementation are unimportant (all you care about is that they follow the specs and pass the success criteria). This is not a very novel or revolutionary idea; it is the idea behind modular programming, functional programming, microservices, and declarative paradigms, the one crucial difference is that, due to the stochastic nature of AI components, the success criteria is essential and no longer as simple as writing a simple test or executing the program bug free.</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>Previously, each modular component was deterministic, mostly transparent, understandable, and—crucially—testable. Introducing machine learning and large language models (LLMs) into your system means accepting and incorporating stochasticity. To embrace machine learning and LLMs is to embrace and introduce stochasticity into your system. This means that the traditional 'does it work?' question is changed to 'how well does it work' and each component has its own performance spectrum. It is thus crucial that a success criteria, evaluated through a set of example task inputs and outputs, and metrics be defined along with task input and output specification. Once you do that, you are truly ready to be careless about the internals of the task completing system. All you need to know is that, when given inputs of a certain type and profile, outputs of required types and characteristics come out at a performance level that you can evaluate and check for 'passing' your performance threshold requirements. This decoupling is extremely liberating and powerful as we can swap, modify, optimize the component independently and with confidence.</span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a><span class="fu">## How do you define a component intent?</span></span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>A user has a task, goal, or intent. They can specify it very clearly using a combination of the following:</span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Examples (demonstrating what to do or not to do)</span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Inputs/Outputs specifications</span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Metrics/Evaluations/Rubrics/Judges/Scores*  </span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>Stories/Instructions/Hints/Personas (analogies: "give me a recipe like Gordon Ramsay would")</span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>In theory, any single element might suffice for an intelligent entity to complete the task.</span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a><span class="fu">### Translating from English text into French Canadian</span></span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a>Consider the task of translating English text into French Canadian:</span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Examples</span></span>
+<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a>The following should be enough for a talented human to find the pattern and comply:</span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>example_of_success <span class="op">=</span> {</span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>    <span class="st">'english'</span>: [</span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>        <span class="st">"I'm going to the convenience store."</span>,</span>
+<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a>        <span class="st">"It's really cold out today."</span>,</span>
+<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Can you help me move this weekend?"</span>,</span>
+<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a>        <span class="st">"We were stuck in traffic for two hours."</span>,</span>
+<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a>        <span class="st">"She's my girlfriend."</span>,</span>
+<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a>        <span class="st">"That car is so cool!"</span>,</span>
+<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a>        <span class="st">"I'll call you tonight."</span>,</span>
+<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a>        <span class="st">"He's always bragging."</span>,</span>
+<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a>        <span class="st">"We grabbed a coffee at Tim's."</span>,</span>
+<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Close the window, it's chilly."</span>,</span>
+<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a>        <span class="st">"I have an appointment at 3."</span>,</span>
+<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a>        <span class="st">"They're celebrating their birthday."</span>,</span>
+<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a>        <span class="st">"I parked in the back."</span>,</span>
+<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a>        <span class="st">"The metro is packed."</span>,</span>
+<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a>        <span class="st">"We watched a movie last night."</span>,</span>
+<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a>        <span class="st">"I need to do my groceries."</span>,</span>
+<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Don't forget your boots."</span>,</span>
+<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a>        <span class="st">"It's snowing again."</span>,</span>
+<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a>        <span class="st">"I'll take the bus."</span>,</span>
+<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a>        <span class="st">"We're out of milk."</span></span>
+<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a>    ],</span>
+<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a>    <span class="st">'french'</span>: [</span>
+<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Je m'en vais au dépanneur."</span>,</span>
+<span id="cb3-102"><a href="#cb3-102" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Il fait frette en maudit aujourd'hui."</span>,</span>
+<span id="cb3-103"><a href="#cb3-103" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Tu peux m'aider à déménager ce weekend?"</span>,</span>
+<span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a>        <span class="st">"On était pognés dans le trafic pendant deux heures."</span>,</span>
+<span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a>        <span class="st">"C'est ma blonde."</span>,</span>
+<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a>        <span class="st">"C'est ben l'fun ce char-là!"</span>,</span>
+<span id="cb3-107"><a href="#cb3-107" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Je vais t'appeler ce soir."</span>,</span>
+<span id="cb3-108"><a href="#cb3-108" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Il se vente tout l'temps."</span>,</span>
+<span id="cb3-109"><a href="#cb3-109" aria-hidden="true" tabindex="-1"></a>        <span class="st">"On a pris un café au Tim."</span>,</span>
+<span id="cb3-110"><a href="#cb3-110" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Ferme la fenêtre, y fait frette."</span>,</span>
+<span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a>        <span class="st">"J'ai un rendez-vous à trois heures."</span>,</span>
+<span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Ils fêtent leur fête."</span>,</span>
+<span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a>        <span class="st">"J'ai stationné dans l'fond."</span>,</span>
+<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Le métro est plein à craquer."</span>,</span>
+<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a>        <span class="st">"On a écouté un film hier soir."</span>,</span>
+<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a>        <span class="st">"J'dois faire mon épicerie."</span>,</span>
+<span id="cb3-117"><a href="#cb3-117" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Oublie pas tes bottes."</span>,</span>
+<span id="cb3-118"><a href="#cb3-118" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Il neige encore."</span>,</span>
+<span id="cb3-119"><a href="#cb3-119" aria-hidden="true" tabindex="-1"></a>        <span class="st">"J'va prendre l'bus."</span>,</span>
+<span id="cb3-120"><a href="#cb3-120" aria-hidden="true" tabindex="-1"></a>        <span class="st">"On est à court de lait."</span></span>
+<span id="cb3-121"><a href="#cb3-121" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb3-122"><a href="#cb3-122" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-123"><a href="#cb3-123" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-124"><a href="#cb3-124" aria-hidden="true" tabindex="-1"></a>However, for other intelligent systems, additional clarifications like instructions, judges, or input/output schemas might be necessary.</span>
+<span id="cb3-125"><a href="#cb3-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-126"><a href="#cb3-126" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Instruction</span></span>
+<span id="cb3-127"><a href="#cb3-127" aria-hidden="true" tabindex="-1"></a>Similarly to examples, these instructions could be sufficient:</span>
+<span id="cb3-128"><a href="#cb3-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-129"><a href="#cb3-129" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Translate the following English sentences into colloquial Quebec French. Preserve the informal, spoken register—use contractions, regional vocabulary (e.g., "dépanneur", "frette", "blonde"), and typical Quebec French syntax. Do not translate proper nouns like "Tim's" or anglicisms that are common in Quebec French (e.g., "weekend"). Keep the tone casual and conversational.</span></span>
+<span id="cb3-130"><a href="#cb3-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-131"><a href="#cb3-131" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Judge or metric</span></span>
+<span id="cb3-132"><a href="#cb3-132" aria-hidden="true" tabindex="-1"></a>Or if you have a metric or a performance LLM judge you can build an example set using them by searching for high scoring examples.</span>
+<span id="cb3-133"><a href="#cb3-133" aria-hidden="true" tabindex="-1"></a>A metric using code could hypothetically be built, like that:</span>
+<span id="cb3-136"><a href="#cb3-136" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb3-137"><a href="#cb3-137" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<span id="cb3-138"><a href="#cb3-138" aria-hidden="true" tabindex="-1"></a>is_quebec_form <span class="op">=</span> []</span>
+<span id="cb3-139"><a href="#cb3-139" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> word <span class="kw">in</span> translated_text:</span>
+<span id="cb3-140"><a href="#cb3-140" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> word <span class="kw">in</span> quebec_colloquial_word_set:</span>
+<span id="cb3-141"><a href="#cb3-141" aria-hidden="true" tabindex="-1"></a>        is_quebec_form.append(<span class="dv">1</span>)</span>
+<span id="cb3-142"><a href="#cb3-142" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb3-143"><a href="#cb3-143" aria-hidden="true" tabindex="-1"></a>        is_quebec_form.append(<span class="dv">0</span>)</span>
+<span id="cb3-144"><a href="#cb3-144" aria-hidden="true" tabindex="-1"></a>mean(is_quebec_form)</span>
+<span id="cb3-145"><a href="#cb3-145" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-146"><a href="#cb3-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-147"><a href="#cb3-147" aria-hidden="true" tabindex="-1"></a>Or, perhaps, more easily for this task a judge LLM could be tuned and used:</span>
+<span id="cb3-148"><a href="#cb3-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-149"><a href="#cb3-149" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; You are an expert Quebec French linguist. For each English sentence and its proposed French translation, evaluate:</span></span>
+<span id="cb3-150"><a href="#cb3-150" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span></span>
+<span id="cb3-151"><a href="#cb3-151" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; 1.  **Accuracy**: Does the French convey the same meaning as the English?</span></span>
+<span id="cb3-152"><a href="#cb3-152" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;     </span></span>
+<span id="cb3-153"><a href="#cb3-153" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; 2.  **Register**: Is the tone appropriately informal/colloquial (not formal textbook French)?</span></span>
+<span id="cb3-154"><a href="#cb3-154" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;     </span></span>
+<span id="cb3-155"><a href="#cb3-155" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; 3.  **Regional Vocabulary**: Does it use authentic Quebec French terms (e.g., "dépanneur", "frette", "blonde")?</span></span>
+<span id="cb3-156"><a href="#cb3-156" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;     </span></span>
+<span id="cb3-157"><a href="#cb3-157" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; 4.  **Contractions**: Are natural Quebec French contractions used (e.g., "j'va", "t'", "y'a")?</span></span>
+<span id="cb3-158"><a href="#cb3-158" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;     </span></span>
+<span id="cb3-159"><a href="#cb3-159" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; 5.  **Proper Nouns**: Are names like "Tim's" left untranslated?</span></span>
+<span id="cb3-160"><a href="#cb3-160" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;     </span></span>
+<span id="cb3-161"><a href="#cb3-161" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; 6.  **Anglicisms**: Are common Quebec anglicisms preserved when appropriate (e.g., "weekend")? Score each translation from 1-5 on these criteria, with 5 being perfect. Provide brief feedback on any issues.</span></span>
+<span id="cb3-162"><a href="#cb3-162" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;     </span></span>
+<span id="cb3-163"><a href="#cb3-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-164"><a href="#cb3-164" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Task input/output</span></span>
+<span id="cb3-165"><a href="#cb3-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-166"><a href="#cb3-166" aria-hidden="true" tabindex="-1"></a>Often, if you are told what you will be given to complete a certain task and what you must return, it is enough for you to understand the intent of the person giving you the task.</span>
+<span id="cb3-167"><a href="#cb3-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-168"><a href="#cb3-168" aria-hidden="true" tabindex="-1"></a>Input/Output specification could look something like that:</span>
+<span id="cb3-169"><a href="#cb3-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-170"><a href="#cb3-170" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; *   **Input**: A plain-text string in English.</span></span>
+<span id="cb3-171"><a href="#cb3-171" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;     </span></span>
+<span id="cb3-172"><a href="#cb3-172" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; *   **Output**: Plain-text colloquial Quebec French sentence, using regional vocabulary, contractions, and anglicisms common in spoken Quebec French.</span></span>
+<span id="cb3-173"><a href="#cb3-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-174"><a href="#cb3-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-175"><a href="#cb3-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-176"><a href="#cb3-176" aria-hidden="true" tabindex="-1"></a>::: {.callout-note} </span>
+<span id="cb3-177"><a href="#cb3-177" aria-hidden="true" tabindex="-1"></a>Note that, in building systems with AI components there are, confusingly, at least two input and output types. That is:</span>
+<span id="cb3-178"><a href="#cb3-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-179"><a href="#cb3-179" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>the inputs and outputs of the task-completing-system    </span>
+<span id="cb3-180"><a href="#cb3-180" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>the inputs and outputs of the LLM, often times, inside the task completing system^<span class="co">[</span><span class="ot">sometimes for LLM performance reason we may want to give it a role/persona, some fewshots examples, maybe a list of tools that would not generally need to be specified to a human or any other system completing the task, or maybe a generating strategy like think step-by-step, all of those are LLM inputs but not task inputs. Some extra LLM outputs would include thinking traces, tool calling traces, etc.</span><span class="co">]</span></span>
+<span id="cb3-181"><a href="#cb3-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-182"><a href="#cb3-182" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-183"><a href="#cb3-183" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-184"><a href="#cb3-184" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Artifacts</span></span>
+<span id="cb3-185"><a href="#cb3-185" aria-hidden="true" tabindex="-1"></a>Artifacts^<span class="co">[</span><span class="ot">meaning a thing that successfully completes the task</span><span class="co">]</span> can also specify or at least contribute to specifying a task intent. This one is somewhat special compared to the other specification mechanisms we just went through as there are 2 types of artifacts and they are both indirect specification mechanisms, meaning from the artifact we can deduce specifications. There are opaque and there are transparent artifacts. An opaque artifact (black box deep neural net) acts similarly to examples but might lead to misuse. A transparent, understandable artifact contributes significantly to task clarity, enabling extraction of instructions, examples, input/output pairs, and potentially training judges (open source program or mathematical formula). While an understandable artifact can greatly help in specifying the task it does not, however, resolve the task permanently, as future needs may require efficiency improvements or different dependencies.</span>
+<span id="cb3-186"><a href="#cb3-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-187"><a href="#cb3-187" aria-hidden="true" tabindex="-1"></a><span class="fu">## How do you do Intent-Oriented Programming?</span></span>
+<span id="cb3-188"><a href="#cb3-188" aria-hidden="true" tabindex="-1"></a>I am not sure anybody yet completely knows how to do that but here is my current thinking on this.</span>
+<span id="cb3-189"><a href="#cb3-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-190"><a href="#cb3-190" aria-hidden="true" tabindex="-1"></a><span class="fu">### Task Specification Object</span></span>
+<span id="cb3-191"><a href="#cb3-191" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-192"><a href="#cb3-192" aria-hidden="true" tabindex="-1"></a>First, you need to have a place where you define task specifications, there should be one source of truth for each task. This could be in a separate file, or a separate section in a file or a separate module, etc. Let's call that a Task Specification Object.</span>
+<span id="cb3-193"><a href="#cb3-193" aria-hidden="true" tabindex="-1"></a>A task specification object would contain all the above-mentioned elements, and they would have versioning (à la git) and attributions. Were the instructions deduced? If so, from what and by what?</span>
+<span id="cb3-194"><a href="#cb3-194" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-195"><a href="#cb3-195" aria-hidden="true" tabindex="-1"></a>One should be careful with the task specification object, as there is a fine line between specifying a task and optimizing a system that aims to complete the task successfully. A specification should be general; it should aim to be coherent, and brevity is better than verbosity. Anything that would not help the majority of intelligent entities interpret the task and successfully complete it should be a concern for the optimizer.</span>
+<span id="cb3-196"><a href="#cb3-196" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-197"><a href="#cb3-197" aria-hidden="true" tabindex="-1"></a><span class="fu">### Compiler</span></span>
+<span id="cb3-198"><a href="#cb3-198" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-199"><a href="#cb3-199" aria-hidden="true" tabindex="-1"></a>Then, we will need a place where you turn a task spec into something that, at the very least, attempts to complete the task. The action necessary to go from task spec to a program that tentatively completes the task could be referred to as *compiling*. In the sense that you are compiling a task spec into a program, the system performing that action could be called a *compiler*. Generally, that compiler would need to be told what particular AI component to target (analogous to hardware components^<span class="co">[</span><span class="ot">as with hardware AI components, especially neural networks or external APIs, are notable for: Limited flexibility regarding accepted inputs, Limited flexibility in output structure or format. Complex constraints often accepted due to their significant value and leverage. High ressource requirement and bottlenecking, necessitating careful management.</span><span class="co">]</span>). In most cases, the target is a model paired with a provider endpoint, where the model could be weights on your computer and the provider could be your own inference code; but often, it would be a commercial provider (e.g., Groq, Cerebras, Bedrock, OpenAI, Anthropic, OpenRouter, Ollama, vLLM, etc.) along with a model ID (generally a string).</span>
+<span id="cb3-200"><a href="#cb3-200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-201"><a href="#cb3-201" aria-hidden="true" tabindex="-1"></a>Within the compiler task specifications and optimization flags will combined using adapters into a specific prompt and format to interface with the AI component.</span>
+<span id="cb3-202"><a href="#cb3-202" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-203"><a href="#cb3-203" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Optimization flags</span></span>
+<span id="cb3-204"><a href="#cb3-204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-205"><a href="#cb3-205" aria-hidden="true" tabindex="-1"></a>Optimization is a process where you take a working system, meaning it can in theory go from inputs to outputs, but it does not currently do so in a satisfactory way. It is not optimization to define and construct the task-completing system. Upon compiling, optimization flags can be provided. For instance, few-shot demos could be added into the prompt, or an AI persona could be defined. The same goes for a specific type of generation such as 'think step by step,' and the style of adapter, using JSON or XML, or even a compilation flag for triggering the fine-tuning of model weights using appropriate hyperparameters and training set, etc. Those are compilation tags that are too specific to a certain compilation and model to be in the specification, but they are nevertheless extremely important and powerful to drive an AI component's performance.</span>
+<span id="cb3-206"><a href="#cb3-206" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-207"><a href="#cb3-207" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Adapters</span></span>
+<span id="cb3-208"><a href="#cb3-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-209"><a href="#cb3-209" aria-hidden="true" tabindex="-1"></a>Adapters handle practical issues that arise when interfacing general system logic with specialized AI components. Their role is to abstract away friction caused by specific constraints or idiosyncrasies of powerful but less flexible AI component interfaces.</span>
+<span id="cb3-210"><a href="#cb3-210" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-211"><a href="#cb3-211" aria-hidden="true" tabindex="-1"></a>As just discussed in the optimization section, sometimes for LLM performance reasons we may want to give it a role or persona, some few-shot examples, maybe a list of tools in addition to elements from the Task Specification Object. It is the task of a formatting adapter to bring all those together for the LLM input interface. Similarly, AI outputs must be parsed into the output required by the task alongside some extra LLM outputs which may be beneficial for performance or monitoring reasons. For instance, an LLM could produce thinking traces, tool calling traces, etc.</span>
+<span id="cb3-212"><a href="#cb3-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-213"><a href="#cb3-213" aria-hidden="true" tabindex="-1"></a>In short, adapters primarily manage two areas:</span>
+<span id="cb3-214"><a href="#cb3-214" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-215"><a href="#cb3-215" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Input Formatting: Converting inputs into the precise formats AI models expect (tokenization, padding, embedding formats, API call structures).</span>
+<span id="cb3-216"><a href="#cb3-216" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Output Parsing: Interpreting and translating model outputs back into clearly specified, structured forms suitable for downstream processing or evaluation.</span>
+<span id="cb3-217"><a href="#cb3-217" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-218"><a href="#cb3-218" aria-hidden="true" tabindex="-1"></a>Adapters simplify the logical composition and enable developers and AI practitioners to concentrate on specifying tasks clearly rather than managing cumbersome AI-specific plumbing.</span>
+<span id="cb3-219"><a href="#cb3-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-220"><a href="#cb3-220" aria-hidden="true" tabindex="-1"></a><span class="fu">#### The compilers' advantage</span></span>
+<span id="cb3-221"><a href="#cb3-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-222"><a href="#cb3-222" aria-hidden="true" tabindex="-1"></a>Ultimatly given a task specification, optimization flags and AI component target, a program can be compiled automatically thanks to the compiler picking previously defined adapters (formatters or parsers) and the resulting program can be evaluated using a combination of judge, metric, and example set. That is how I would build programs that use AI for completing their tasks. This has the advantage of opening the door to optimization, and easily and confidently changing AI component target.</span>
+<span id="cb3-223"><a href="#cb3-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-224"><a href="#cb3-224" aria-hidden="true" tabindex="-1"></a><span class="fu">### AI program composition</span></span>
+<span id="cb3-225"><a href="#cb3-225" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-226"><a href="#cb3-226" aria-hidden="true" tabindex="-1"></a>Orthogonally to the compilation of AI programs from task specification, you can compose those AI programs together in very powerful, maintainable and very importantly ever improving systems. As a new AI component comes out you can easily change the compilation target, evaluate and if satisfactory change to the improved AI component.</span>
+<span id="cb3-227"><a href="#cb3-227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-228"><a href="#cb3-228" aria-hidden="true" tabindex="-1"></a><span class="fu">## Conclusion</span></span>
+<span id="cb3-229"><a href="#cb3-229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-230"><a href="#cb3-230" aria-hidden="true" tabindex="-1"></a>To build systems that age well, treat every task as a contract: state what must happen, not how. Encode that contract in a single, versioned Task-Spec Object—examples, metrics, I/O schemas, and nothing more. Hand it to a compiler that knows how to translate the contract into calls to whatever AI component (LLM, model, or rule engine) happens to be fastest, cheapest or most accurate today. Let adapters absorb the messy realities of tokens, JSON quirks, rate limits. Measure against the specifications; this keeps the door open for painless swaps when better models appear.</span>
+</code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/MaximeRivest/maximerivest-blog/edit/main/posts/on-building-ai-programs.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer></body></html>

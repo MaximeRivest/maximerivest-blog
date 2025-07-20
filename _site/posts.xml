@@ -10,7 +10,339 @@
 <atom:link href="https://maximerivest.com/posts.xml" rel="self" type="application/rss+xml"/>
 <description>Personal blog</description>
 <generator>quarto-1.5.57</generator>
-<lastBuildDate>Fri, 18 Jul 2025 04:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 20 Jul 2025 04:00:00 GMT</lastBuildDate>
+<item>
+  <title>Build Well and You Will be Rewarded</title>
+  <dc:creator>Maxime Rivest</dc:creator>
+  <link>https://maximerivest.com/posts/on-building-ai-programs.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<div class="page-columns page-full"><blockquote class="blockquote">
+<p><strong>The promise</strong><br>
+The fastest path to robust AI systems is to nail the <em>intent<sup>1</sup></em> of every component <strong>independently</strong> of its implementation. Get that right and you can swap, combine, or optimise implementations at will—without huges headaches.</p>
+</blockquote><div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;Intent is the underlying purpose or goal behind a task or component. Unlike a rigid task specification, intent acknowledges an inherent fuzziness—it represents direction and motivation. A task specification is merely one concrete attempt to clarify intent; each refinement of the specification moves us closer to accurately capturing the true intent.</p></div></div></div>
+<p>Nobody will disagree that, as coders<sup>2</sup>, we now have a powerful new tool at our disposal: AI (and I am not refering to coding with AI but rather about putting AI component in our code). However, such power does not come for free, and if code is not crafted with care, things can quickly get ugly.</p>
+<div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup>&nbsp;including software engineers, data analysts, hackers, system administrators, and anyone else who gets things done with code</p></div></div><p>These days, in coding, I see four main paradigms for building a program that solve a task:</p>
+<ol type="1">
+<li>Traditional software: Feature engineering and deterministic code.</li>
+<li>Specialized machine learning: End-to-end algorithms, including deep neural networks (e.g., SAM).</li>
+<li>LLM-driven approaches: Workflows using large language models, possibly with tools.</li>
+<li><strong>Compound approach</strong>: Any combination or iteration of the above.</li>
+</ol>
+<blockquote class="blockquote">
+<p><strong>Invoice‑to‑CSV Converter</strong></p>
+<p>Intent: turn a PDF invoice into one CSV row per line‑item.</p>
+<p>I/O Spec: PDF → CSV with columns [date, item, qty, price].</p>
+<p>Success Metric: ≥ 98 % line‑item extraction accuracy on 50 sample invoices.</p>
+<p>Implementation Options:</p>
+<ul>
+<li>regex + heuristics (traditional)</li>
+<li>fine‑tuned vision model (specialised ML)</li>
+<li>GPT‑4o with function‑calling (LLM)</li>
+<li>hybrid pipeline (compound)</li>
+</ul>
+</blockquote>
+<p>The fourth path is overwhelmingly powerful. Its lone cost is cognitive and architectural complexity. However, this complexity and the builder psychology in facing that complexity can be enough to wipe out all of the promised benefits of the compound approach if one is not careful in how one builds. Using any of the three and, potentially, their combination means that you must be skilled at all of them. It also means that you will have to learn and worry about design patterns and the tradeoffs of each, and if you mix all three (or even any of the 3 with itself) all in one long linear flat logical flow, you may lose the edge that the combination promised because you will quickly be slowed down by the complexity. Therefore you must build with care. Build with intent (task specification) at the forefront, and you will be handsomely rewarded.</p>
+<section id="what-does-it-mean-to-build-with-intent-at-the-forefront" class="level2">
+<h2 class="anchored" data-anchor-id="what-does-it-mean-to-build-with-intent-at-the-forefront">What does it mean to build with intent at the forefront?</h2>
+<p>Another way to say “build with intent” is: “specify each task’s components and their success criteria, independently from their chosen implementation”. Doing that will enable you to quickly evaluate a task-completing-artifact and compose then together modularly. Thus letting you build programs as logical sequence of clearly defined tasks, where the specifics of implementation are unimportant (all you care about is that they follow the specs and pass the success criteria). This is not a very novel or revolutionary idea; it is the idea behind modular programming, functional programming, microservices, and declarative paradigms, the one crucial difference is that, due to the stochastic nature of AI components, the success criteria is essential and no longer as simple as writing a simple test or executing the program bug free.</p>
+<p>Previously, each modular component was deterministic, mostly transparent, understandable, and—crucially—testable. Introducing machine learning and large language models (LLMs) into your system means accepting and incorporating stochasticity. To embrace machine learning and LLMs is to embrace and introduce stochasticity into your system. This means that the traditional ‘does it work?’ question is changed to ‘how well does it work’ and each component has its own performance spectrum. It is thus crucial that a success criteria, evaluated through a set of example task inputs and outputs, and metrics be defined along with task input and output specification. Once you do that, you are truly ready to be careless about the internals of the task completing system. All you need to know is that, when given inputs of a certain type and profile, outputs of required types and characteristics come out at a performance level that you can evaluate and check for ‘passing’ your performance threshold requirements. This decoupling is extremely liberating and powerful as we can swap, modify, optimize the component independently and with confidence.</p>
+</section>
+<section id="how-do-you-define-a-component-intent" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="how-do-you-define-a-component-intent">How do you define a component intent?</h2>
+<p>A user has a task, goal, or intent. They can specify it very clearly using a combination of the following:</p>
+<ul>
+<li>Examples (demonstrating what to do or not to do)</li>
+<li>Inputs/Outputs specifications</li>
+<li>Metrics/Evaluations/Rubrics/Judges/Scores*<br>
+</li>
+<li>Stories/Instructions/Hints/Personas (analogies: “give me a recipe like Gordon Ramsay would”)</li>
+</ul>
+<p>In theory, any single element might suffice for an intelligent entity to complete the task.</p>
+<section id="translating-from-english-text-into-french-canadian" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="translating-from-english-text-into-french-canadian">Translating from English text into French Canadian</h3>
+<p>Consider the task of translating English text into French Canadian:</p>
+<section id="examples" class="level4">
+<h4 class="anchored" data-anchor-id="examples">Examples</h4>
+<p>The following should be enough for a talented human to find the pattern and comply:</p>
+<div id="b03e130d" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1">example_of_success <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> {</span>
+<span id="cb1-2">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'english'</span>: [</span>
+<span id="cb1-3">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"I'm going to the convenience store."</span>,</span>
+<span id="cb1-4">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"It's really cold out today."</span>,</span>
+<span id="cb1-5">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Can you help me move this weekend?"</span>,</span>
+<span id="cb1-6">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"We were stuck in traffic for two hours."</span>,</span>
+<span id="cb1-7">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"She's my girlfriend."</span>,</span>
+<span id="cb1-8">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"That car is so cool!"</span>,</span>
+<span id="cb1-9">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"I'll call you tonight."</span>,</span>
+<span id="cb1-10">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"He's always bragging."</span>,</span>
+<span id="cb1-11">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"We grabbed a coffee at Tim's."</span>,</span>
+<span id="cb1-12">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Close the window, it's chilly."</span>,</span>
+<span id="cb1-13">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"I have an appointment at 3."</span>,</span>
+<span id="cb1-14">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"They're celebrating their birthday."</span>,</span>
+<span id="cb1-15">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"I parked in the back."</span>,</span>
+<span id="cb1-16">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"The metro is packed."</span>,</span>
+<span id="cb1-17">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"We watched a movie last night."</span>,</span>
+<span id="cb1-18">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"I need to do my groceries."</span>,</span>
+<span id="cb1-19">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Don't forget your boots."</span>,</span>
+<span id="cb1-20">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"It's snowing again."</span>,</span>
+<span id="cb1-21">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"I'll take the bus."</span>,</span>
+<span id="cb1-22">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"We're out of milk."</span></span>
+<span id="cb1-23">    ],</span>
+<span id="cb1-24">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'french'</span>: [</span>
+<span id="cb1-25">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Je m'en vais au dépanneur."</span>,</span>
+<span id="cb1-26">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Il fait frette en maudit aujourd'hui."</span>,</span>
+<span id="cb1-27">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Tu peux m'aider à déménager ce weekend?"</span>,</span>
+<span id="cb1-28">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"On était pognés dans le trafic pendant deux heures."</span>,</span>
+<span id="cb1-29">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"C'est ma blonde."</span>,</span>
+<span id="cb1-30">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"C'est ben l'fun ce char-là!"</span>,</span>
+<span id="cb1-31">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Je vais t'appeler ce soir."</span>,</span>
+<span id="cb1-32">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Il se vente tout l'temps."</span>,</span>
+<span id="cb1-33">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"On a pris un café au Tim."</span>,</span>
+<span id="cb1-34">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Ferme la fenêtre, y fait frette."</span>,</span>
+<span id="cb1-35">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"J'ai un rendez-vous à trois heures."</span>,</span>
+<span id="cb1-36">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Ils fêtent leur fête."</span>,</span>
+<span id="cb1-37">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"J'ai stationné dans l'fond."</span>,</span>
+<span id="cb1-38">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Le métro est plein à craquer."</span>,</span>
+<span id="cb1-39">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"On a écouté un film hier soir."</span>,</span>
+<span id="cb1-40">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"J'dois faire mon épicerie."</span>,</span>
+<span id="cb1-41">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Oublie pas tes bottes."</span>,</span>
+<span id="cb1-42">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Il neige encore."</span>,</span>
+<span id="cb1-43">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"J'va prendre l'bus."</span>,</span>
+<span id="cb1-44">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"On est à court de lait."</span></span>
+<span id="cb1-45">    ]</span>
+<span id="cb1-46">}</span></code></pre></div>
+</div>
+<p>However, for other intelligent systems, additional clarifications like instructions, judges, or input/output schemas might be necessary.</p>
+</section>
+<section id="instruction" class="level4">
+<h4 class="anchored" data-anchor-id="instruction">Instruction</h4>
+<p>Similarly to examples, these instructions could be sufficient:</p>
+<blockquote class="blockquote">
+<p>Translate the following English sentences into colloquial Quebec French. Preserve the informal, spoken register—use contractions, regional vocabulary (e.g., “dépanneur”, “frette”, “blonde”), and typical Quebec French syntax. Do not translate proper nouns like “Tim’s” or anglicisms that are common in Quebec French (e.g., “weekend”). Keep the tone casual and conversational.</p>
+</blockquote>
+</section>
+<section id="judge-or-metric" class="level4">
+<h4 class="anchored" data-anchor-id="judge-or-metric">Judge or metric</h4>
+<p>Or if you have a metric or a performance LLM judge you can build an example set using them by searching for high scoring examples. A metric using code could hypothetically be built, like that:</p>
+<div id="5f94d6ec" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1">is_quebec_form <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> []</span>
+<span id="cb2-2"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> word <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> translated_text:</span>
+<span id="cb2-3">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> word <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> quebec_colloquial_word_set:</span>
+<span id="cb2-4">        is_quebec_form.append(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)</span>
+<span id="cb2-5">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span>:</span>
+<span id="cb2-6">        is_quebec_form.append(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)</span>
+<span id="cb2-7">mean(is_quebec_form)</span></code></pre></div>
+</div>
+<p>Or, perhaps, more easily for this task a judge LLM could be tuned and used:</p>
+<blockquote class="blockquote">
+<p>You are an expert Quebec French linguist. For each English sentence and its proposed French translation, evaluate:</p>
+<ol type="1">
+<li><p><strong>Accuracy</strong>: Does the French convey the same meaning as the English?</p></li>
+<li><p><strong>Register</strong>: Is the tone appropriately informal/colloquial (not formal textbook French)?</p></li>
+<li><p><strong>Regional Vocabulary</strong>: Does it use authentic Quebec French terms (e.g., “dépanneur”, “frette”, “blonde”)?</p></li>
+<li><p><strong>Contractions</strong>: Are natural Quebec French contractions used (e.g., “j’va”, “t’”, “y’a”)?</p></li>
+<li><p><strong>Proper Nouns</strong>: Are names like “Tim’s” left untranslated?</p></li>
+<li><p><strong>Anglicisms</strong>: Are common Quebec anglicisms preserved when appropriate (e.g., “weekend”)? Score each translation from 1-5 on these criteria, with 5 being perfect. Provide brief feedback on any issues.</p></li>
+</ol>
+</blockquote>
+</section>
+<section id="task-inputoutput" class="level4 page-columns page-full">
+<h4 class="anchored" data-anchor-id="task-inputoutput">Task input/output</h4>
+<p>Often, if you are told what you will be given to complete a certain task and what you must return, it is enough for you to understand the intent of the person giving you the task.</p>
+<p>Input/Output specification could look something like that:</p>
+<blockquote class="blockquote">
+<ul>
+<li><p><strong>Input</strong>: A plain-text string in English.</p></li>
+<li><p><strong>Output</strong>: Plain-text colloquial Quebec French sentence, using regional vocabulary, contractions, and anglicisms common in spoken Quebec French.</p></li>
+</ul>
+</blockquote>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Note that, in building systems with AI components there are, confusingly, at least two input and output types. That is:</p>
+<ol type="1">
+<li>the inputs and outputs of the task-completing-system<br>
+</li>
+<li>the inputs and outputs of the LLM, often times, inside the task completing system<sup>3</sup></li>
+</ol>
+</div>
+</div>
+<div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;sometimes for LLM performance reason we may want to give it a role/persona, some fewshots examples, maybe a list of tools that would not generally need to be specified to a human or any other system completing the task, or maybe a generating strategy like think step-by-step, all of those are LLM inputs but not task inputs. Some extra LLM outputs would include thinking traces, tool calling traces, etc.</p></div></div></section>
+<section id="artifacts" class="level4 page-columns page-full">
+<h4 class="anchored" data-anchor-id="artifacts">Artifacts</h4>
+<p>Artifacts<sup>4</sup> can also specify or at least contribute to specifying a task intent. This one is somewhat special compared to the other specification mechanisms we just went through as there are 2 types of artifacts and they are both indirect specification mechanisms, meaning from the artifact we can deduce specifications. There are opaque and there are transparent artifacts. An opaque artifact (black box deep neural net) acts similarly to examples but might lead to misuse. A transparent, understandable artifact contributes significantly to task clarity, enabling extraction of instructions, examples, input/output pairs, and potentially training judges (open source program or mathematical formula). While an understandable artifact can greatly help in specifying the task it does not, however, resolve the task permanently, as future needs may require efficiency improvements or different dependencies.</p>
+<div class="no-row-height column-margin column-container"><div id="fn4"><p><sup>4</sup>&nbsp;meaning a thing that successfully completes the task</p></div></div></section>
+</section>
+</section>
+<section id="how-do-you-do-intent-oriented-programming" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="how-do-you-do-intent-oriented-programming">How do you do Intent-Oriented Programming?</h2>
+<p>I am not sure anybody yet completely knows how to do that but here is my current thinking on this.</p>
+<section id="task-specification-object" class="level3">
+<h3 class="anchored" data-anchor-id="task-specification-object">Task Specification Object</h3>
+<p>First, you need to have a place where you define task specifications, there should be one source of truth for each task. This could be in a separate file, or a separate section in a file or a separate module, etc. Let’s call that a Task Specification Object. A task specification object would contain all the above-mentioned elements, and they would have versioning (à la git) and attributions. Were the instructions deduced? If so, from what and by what?</p>
+<p>One should be careful with the task specification object, as there is a fine line between specifying a task and optimizing a system that aims to complete the task successfully. A specification should be general; it should aim to be coherent, and brevity is better than verbosity. Anything that would not help the majority of intelligent entities interpret the task and successfully complete it should be a concern for the optimizer.</p>
+</section>
+<section id="compiler" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="compiler">Compiler</h3>
+<p>Then, we will need a place where you turn a task spec into something that, at the very least, attempts to complete the task. The action necessary to go from task spec to a program that tentatively completes the task could be referred to as <em>compiling</em>. In the sense that you are compiling a task spec into a program, the system performing that action could be called a <em>compiler</em>. Generally, that compiler would need to be told what particular AI component to target (analogous to hardware components<sup>5</sup>). In most cases, the target is a model paired with a provider endpoint, where the model could be weights on your computer and the provider could be your own inference code; but often, it would be a commercial provider (e.g., Groq, Cerebras, Bedrock, OpenAI, Anthropic, OpenRouter, Ollama, vLLM, etc.) along with a model ID (generally a string).</p>
+<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;as with hardware AI components, especially neural networks or external APIs, are notable for: Limited flexibility regarding accepted inputs, Limited flexibility in output structure or format. Complex constraints often accepted due to their significant value and leverage. High ressource requirement and bottlenecking, necessitating careful management.</p></div></div><p>Within the compiler task specifications and optimization flags will combined using adapters into a specific prompt and format to interface with the AI component.</p>
+<section id="optimization-flags" class="level4">
+<h4 class="anchored" data-anchor-id="optimization-flags">Optimization flags</h4>
+<p>Optimization is a process where you take a working system, meaning it can in theory go from inputs to outputs, but it does not currently do so in a satisfactory way. It is not optimization to define and construct the task-completing system. Upon compiling, optimization flags can be provided. For instance, few-shot demos could be added into the prompt, or an AI persona could be defined. The same goes for a specific type of generation such as ‘think step by step,’ and the style of adapter, using JSON or XML, or even a compilation flag for triggering the fine-tuning of model weights using appropriate hyperparameters and training set, etc. Those are compilation tags that are too specific to a certain compilation and model to be in the specification, but they are nevertheless extremely important and powerful to drive an AI component’s performance.</p>
+</section>
+<section id="adapters" class="level4">
+<h4 class="anchored" data-anchor-id="adapters">Adapters</h4>
+<p>Adapters handle practical issues that arise when interfacing general system logic with specialized AI components. Their role is to abstract away friction caused by specific constraints or idiosyncrasies of powerful but less flexible AI component interfaces.</p>
+<p>As just discussed in the optimization section, sometimes for LLM performance reasons we may want to give it a role or persona, some few-shot examples, maybe a list of tools in addition to elements from the Task Specification Object. It is the task of a formatting adapter to bring all those together for the LLM input interface. Similarly, AI outputs must be parsed into the output required by the task alongside some extra LLM outputs which may be beneficial for performance or monitoring reasons. For instance, an LLM could produce thinking traces, tool calling traces, etc.</p>
+<p>In short, adapters primarily manage two areas:</p>
+<ol type="1">
+<li>Input Formatting: Converting inputs into the precise formats AI models expect (tokenization, padding, embedding formats, API call structures).</li>
+<li>Output Parsing: Interpreting and translating model outputs back into clearly specified, structured forms suitable for downstream processing or evaluation.</li>
+</ol>
+<p>Adapters simplify the logical composition and enable developers and AI practitioners to concentrate on specifying tasks clearly rather than managing cumbersome AI-specific plumbing.</p>
+</section>
+<section id="the-compilers-advantage" class="level4">
+<h4 class="anchored" data-anchor-id="the-compilers-advantage">The compilers’ advantage</h4>
+<p>Ultimatly given a task specification, optimization flags and AI component target, a program can be compiled automatically thanks to the compiler picking previously defined adapters (formatters or parsers) and the resulting program can be evaluated using a combination of judge, metric, and example set. That is how I would build programs that use AI for completing their tasks. This has the advantage of opening the door to optimization, and easily and confidently changing AI component target.</p>
+</section>
+</section>
+<section id="ai-program-composition" class="level3">
+<h3 class="anchored" data-anchor-id="ai-program-composition">AI program composition</h3>
+<p>Orthogonally to the compilation of AI programs from task specification, you can compose those AI programs together in very powerful, maintainable and very importantly ever improving systems. As a new AI component comes out you can easily change the compilation target, evaluate and if satisfactory change to the improved AI component.</p>
+</section>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>To build systems that age well, treat every task as a contract: state what must happen, not how. Encode that contract in a single, versioned Task-Spec Object—examples, metrics, I/O schemas, and nothing more. Hand it to a compiler that knows how to translate the contract into calls to whatever AI component (LLM, model, or rule engine) happens to be fastest, cheapest or most accurate today. Let adapters absorb the messy realities of tokens, JSON quirks, rate limits. Measure against the specifications; this keeps the door open for painless swaps when better models appear.</p>
+
+
+<!-- -->
+
+</section>
+
+
+ ]]></description>
+  <guid>https://maximerivest.com/posts/on-building-ai-programs.html</guid>
+  <pubDate>Sun, 20 Jul 2025 04:00:00 GMT</pubDate>
+</item>
 <item>
   <title>How to Build an Automatically Branching Chat with DSPy</title>
   <dc:creator>Maxime Rivest</dc:creator>
