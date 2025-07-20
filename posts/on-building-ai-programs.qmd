@@ -1,0 +1,226 @@
+---
+title: "Build Well and You Will be Rewarded"
+date: 2025-07-20
+author: Maxime Rivest
+description: "By the end of this post, you'll understand how clearly defining the intent of each task enables you to confidently combine traditional coding, specialized ML models, and LLM-driven workflows into powerful, maintainable, and easily optimizable systems."
+draft: false
+format:
+  html:
+    toc: true
+    toc-location: right
+    code-tools: true
+    reference-location: margin
+title-block-banner: false
+title-block-style: none
+execute:
+  echo: true  
+  #cache: true
+  #freeze: true
+---
+
+> **The promise**  
+> The fastest path to robust AI systems is to nail the *intent^[Intent is the underlying purpose or goal behind a task or component. Unlike a rigid task specification, intent acknowledges an inherent fuzziness—it represents direction and motivation. A task specification is merely one concrete attempt to clarify intent; each refinement of the specification moves us closer to accurately capturing the true intent.]* of every component **independently** of its implementation. Get that right and you can swap, combine, or optimise implementations at will—without huges headaches.
+
+
+Nobody will disagree that, as coders^[including software engineers, data analysts, hackers, system administrators, and anyone else who gets things done with code], we now have a powerful new tool at our disposal: AI (and I am not refering to coding with AI but rather about putting AI component in our code). However, such power does not come for free, and if code is not crafted with care, things can quickly get ugly.
+
+These days, in coding, I see four main paradigms for building a program that solve a task:
+
+1.  Traditional software: Feature engineering and deterministic code.
+2.  Specialized machine learning: End-to-end algorithms, including deep neural networks (e.g., SAM).
+3.  LLM-driven approaches: Workflows using large language models, possibly with tools.
+4.  **Compound approach**: Any combination or iteration of the above.
+
+>__Invoice‑to‑CSV Converter__
+> 
+> Intent: turn a PDF invoice into one CSV row per line‑item.
+> 
+> I/O Spec: PDF → CSV with columns [date, item, qty, price].
+> 
+> Success Metric: ≥ 98 % line‑item extraction accuracy on 50 sample invoices.
+> 
+> Implementation Options:
+>
+> * regex + heuristics (traditional)
+> * fine‑tuned vision model (specialised ML)
+> * GPT‑4o with function‑calling (LLM) 
+> * hybrid pipeline (compound)
+
+The fourth path is overwhelmingly powerful. Its lone cost is cognitive and architectural complexity. However, this complexity and the builder psychology in facing that complexity can be enough to wipe out all of the promised benefits of the compound approach if one is not careful in how one builds. Using any of the three and, potentially, their combination means that you must be skilled at all of them. It also means that you will have to learn and worry about design patterns and the tradeoffs of each, and if you mix all three (or even any of the 3 with itself) all in one long linear flat logical flow, you may lose the edge that the combination promised because you will quickly be slowed down by the complexity. Therefore you must build with care. Build with intent (task specification) at the forefront, and you will be handsomely rewarded.
+
+## What does it mean to build with intent at the forefront?
+
+Another way to say "build with intent" is: "specify each task's components and their success criteria, independently from their chosen implementation". Doing that will enable you to quickly evaluate a task-completing-artifact and compose then together modularly. Thus letting you build programs as logical sequence of clearly defined tasks, where the specifics of implementation are unimportant (all you care about is that they follow the specs and pass the success criteria). This is not a very novel or revolutionary idea; it is the idea behind modular programming, functional programming, microservices, and declarative paradigms, the one crucial difference is that, due to the stochastic nature of AI components, the success criteria is essential and no longer as simple as writing a simple test or executing the program bug free.
+
+Previously, each modular component was deterministic, mostly transparent, understandable, and—crucially—testable. Introducing machine learning and large language models (LLMs) into your system means accepting and incorporating stochasticity. To embrace machine learning and LLMs is to embrace and introduce stochasticity into your system. This means that the traditional 'does it work?' question is changed to 'how well does it work' and each component has its own performance spectrum. It is thus crucial that a success criteria, evaluated through a set of example task inputs and outputs, and metrics be defined along with task input and output specification. Once you do that, you are truly ready to be careless about the internals of the task completing system. All you need to know is that, when given inputs of a certain type and profile, outputs of required types and characteristics come out at a performance level that you can evaluate and check for 'passing' your performance threshold requirements. This decoupling is extremely liberating and powerful as we can swap, modify, optimize the component independently and with confidence.
+
+## How do you define a component intent?
+
+A user has a task, goal, or intent. They can specify it very clearly using a combination of the following:
+
+* Examples (demonstrating what to do or not to do)
+* Inputs/Outputs specifications
+* Metrics/Evaluations/Rubrics/Judges/Scores*  
+* Stories/Instructions/Hints/Personas (analogies: "give me a recipe like Gordon Ramsay would")
+    
+In theory, any single element might suffice for an intelligent entity to complete the task.
+
+### Translating from English text into French Canadian
+Consider the task of translating English text into French Canadian:
+
+#### Examples
+
+The following should be enough for a talented human to find the pattern and comply:
+```{python}
+example_of_success = {
+    'english': [
+        "I'm going to the convenience store.",
+        "It's really cold out today.",
+        "Can you help me move this weekend?",
+        "We were stuck in traffic for two hours.",
+        "She's my girlfriend.",
+        "That car is so cool!",
+        "I'll call you tonight.",
+        "He's always bragging.",
+        "We grabbed a coffee at Tim's.",
+        "Close the window, it's chilly.",
+        "I have an appointment at 3.",
+        "They're celebrating their birthday.",
+        "I parked in the back.",
+        "The metro is packed.",
+        "We watched a movie last night.",
+        "I need to do my groceries.",
+        "Don't forget your boots.",
+        "It's snowing again.",
+        "I'll take the bus.",
+        "We're out of milk."
+    ],
+    'french': [
+        "Je m'en vais au dépanneur.",
+        "Il fait frette en maudit aujourd'hui.",
+        "Tu peux m'aider à déménager ce weekend?",
+        "On était pognés dans le trafic pendant deux heures.",
+        "C'est ma blonde.",
+        "C'est ben l'fun ce char-là!",
+        "Je vais t'appeler ce soir.",
+        "Il se vente tout l'temps.",
+        "On a pris un café au Tim.",
+        "Ferme la fenêtre, y fait frette.",
+        "J'ai un rendez-vous à trois heures.",
+        "Ils fêtent leur fête.",
+        "J'ai stationné dans l'fond.",
+        "Le métro est plein à craquer.",
+        "On a écouté un film hier soir.",
+        "J'dois faire mon épicerie.",
+        "Oublie pas tes bottes.",
+        "Il neige encore.",
+        "J'va prendre l'bus.",
+        "On est à court de lait."
+    ]
+}
+```
+However, for other intelligent systems, additional clarifications like instructions, judges, or input/output schemas might be necessary.
+
+#### Instruction
+Similarly to examples, these instructions could be sufficient:
+
+> Translate the following English sentences into colloquial Quebec French. Preserve the informal, spoken register—use contractions, regional vocabulary (e.g., "dépanneur", "frette", "blonde"), and typical Quebec French syntax. Do not translate proper nouns like "Tim's" or anglicisms that are common in Quebec French (e.g., "weekend"). Keep the tone casual and conversational.
+
+#### Judge or metric
+Or if you have a metric or a performance LLM judge you can build an example set using them by searching for high scoring examples.
+A metric using code could hypothetically be built, like that:
+```{python}
+# | eval: false
+is_quebec_form = []
+for word in translated_text:
+    if word in quebec_colloquial_word_set:
+        is_quebec_form.append(1)
+    else:
+        is_quebec_form.append(0)
+mean(is_quebec_form)
+```
+
+Or, perhaps, more easily for this task a judge LLM could be tuned and used:
+
+> You are an expert Quebec French linguist. For each English sentence and its proposed French translation, evaluate:
+> 
+> 1.  **Accuracy**: Does the French convey the same meaning as the English?
+>     
+> 2.  **Register**: Is the tone appropriately informal/colloquial (not formal textbook French)?
+>     
+> 3.  **Regional Vocabulary**: Does it use authentic Quebec French terms (e.g., "dépanneur", "frette", "blonde")?
+>     
+> 4.  **Contractions**: Are natural Quebec French contractions used (e.g., "j'va", "t'", "y'a")?
+>     
+> 5.  **Proper Nouns**: Are names like "Tim's" left untranslated?
+>     
+> 6.  **Anglicisms**: Are common Quebec anglicisms preserved when appropriate (e.g., "weekend")? Score each translation from 1-5 on these criteria, with 5 being perfect. Provide brief feedback on any issues.
+>     
+
+#### Task input/output
+
+Often, if you are told what you will be given to complete a certain task and what you must return, it is enough for you to understand the intent of the person giving you the task.
+
+Input/Output specification could look something like that:
+
+> *   **Input**: A plain-text string in English.
+>     
+> *   **Output**: Plain-text colloquial Quebec French sentence, using regional vocabulary, contractions, and anglicisms common in spoken Quebec French.
+
+
+
+::: {.callout-note} 
+Note that, in building systems with AI components there are, confusingly, at least two input and output types. That is:
+
+1. the inputs and outputs of the task-completing-system    
+2. the inputs and outputs of the LLM, often times, inside the task completing system^[sometimes for LLM performance reason we may want to give it a role/persona, some fewshots examples, maybe a list of tools that would not generally need to be specified to a human or any other system completing the task, or maybe a generating strategy like think step-by-step, all of those are LLM inputs but not task inputs. Some extra LLM outputs would include thinking traces, tool calling traces, etc.]
+
+:::
+    
+#### Artifacts
+Artifacts^[meaning a thing that successfully completes the task] can also specify or at least contribute to specifying a task intent. This one is somewhat special compared to the other specification mechanisms we just went through as there are 2 types of artifacts and they are both indirect specification mechanisms, meaning from the artifact we can deduce specifications. There are opaque and there are transparent artifacts. An opaque artifact (black box deep neural net) acts similarly to examples but might lead to misuse. A transparent, understandable artifact contributes significantly to task clarity, enabling extraction of instructions, examples, input/output pairs, and potentially training judges (open source program or mathematical formula). While an understandable artifact can greatly help in specifying the task it does not, however, resolve the task permanently, as future needs may require efficiency improvements or different dependencies.
+
+## How do you do Intent-Oriented Programming?
+I am not sure anybody yet completely knows how to do that but here is my current thinking on this.
+
+### Task Specification Object
+
+First, you need to have a place where you define task specifications, there should be one source of truth for each task. This could be in a separate file, or a separate section in a file or a separate module, etc. Let's call that a Task Specification Object.
+A task specification object would contain all the above-mentioned elements, and they would have versioning (à la git) and attributions. Were the instructions deduced? If so, from what and by what?
+
+One should be careful with the task specification object, as there is a fine line between specifying a task and optimizing a system that aims to complete the task successfully. A specification should be general; it should aim to be coherent, and brevity is better than verbosity. Anything that would not help the majority of intelligent entities interpret the task and successfully complete it should be a concern for the optimizer.
+
+### Compiler
+
+Then, we will need a place where you turn a task spec into something that, at the very least, attempts to complete the task. The action necessary to go from task spec to a program that tentatively completes the task could be referred to as *compiling*. In the sense that you are compiling a task spec into a program, the system performing that action could be called a *compiler*. Generally, that compiler would need to be told what particular AI component to target (analogous to hardware components^[as with hardware AI components, especially neural networks or external APIs, are notable for: Limited flexibility regarding accepted inputs, Limited flexibility in output structure or format. Complex constraints often accepted due to their significant value and leverage. High ressource requirement and bottlenecking, necessitating careful management.]). In most cases, the target is a model paired with a provider endpoint, where the model could be weights on your computer and the provider could be your own inference code; but often, it would be a commercial provider (e.g., Groq, Cerebras, Bedrock, OpenAI, Anthropic, OpenRouter, Ollama, vLLM, etc.) along with a model ID (generally a string).
+
+Within the compiler task specifications and optimization flags will combined using adapters into a specific prompt and format to interface with the AI component.
+
+#### Optimization flags
+
+Optimization is a process where you take a working system, meaning it can in theory go from inputs to outputs, but it does not currently do so in a satisfactory way. It is not optimization to define and construct the task-completing system. Upon compiling, optimization flags can be provided. For instance, few-shot demos could be added into the prompt, or an AI persona could be defined. The same goes for a specific type of generation such as 'think step by step,' and the style of adapter, using JSON or XML, or even a compilation flag for triggering the fine-tuning of model weights using appropriate hyperparameters and training set, etc. Those are compilation tags that are too specific to a certain compilation and model to be in the specification, but they are nevertheless extremely important and powerful to drive an AI component's performance.
+
+#### Adapters
+
+Adapters handle practical issues that arise when interfacing general system logic with specialized AI components. Their role is to abstract away friction caused by specific constraints or idiosyncrasies of powerful but less flexible AI component interfaces.
+
+As just discussed in the optimization section, sometimes for LLM performance reasons we may want to give it a role or persona, some few-shot examples, maybe a list of tools in addition to elements from the Task Specification Object. It is the task of a formatting adapter to bring all those together for the LLM input interface. Similarly, AI outputs must be parsed into the output required by the task alongside some extra LLM outputs which may be beneficial for performance or monitoring reasons. For instance, an LLM could produce thinking traces, tool calling traces, etc.
+
+In short, adapters primarily manage two areas:
+
+1. Input Formatting: Converting inputs into the precise formats AI models expect (tokenization, padding, embedding formats, API call structures).
+2. Output Parsing: Interpreting and translating model outputs back into clearly specified, structured forms suitable for downstream processing or evaluation.
+    
+Adapters simplify the logical composition and enable developers and AI practitioners to concentrate on specifying tasks clearly rather than managing cumbersome AI-specific plumbing.
+
+#### The compilers' advantage
+
+Ultimatly given a task specification, optimization flags and AI component target, a program can be compiled automatically thanks to the compiler picking previously defined adapters (formatters or parsers) and the resulting program can be evaluated using a combination of judge, metric, and example set. That is how I would build programs that use AI for completing their tasks. This has the advantage of opening the door to optimization, and easily and confidently changing AI component target.
+
+### AI program composition
+
+Orthogonally to the compilation of AI programs from task specification, you can compose those AI programs together in very powerful, maintainable and very importantly ever improving systems. As a new AI component comes out you can easily change the compilation target, evaluate and if satisfactory change to the improved AI component.
+
+## Conclusion
+
+To build systems that age well, treat every task as a contract: state what must happen, not how. Encode that contract in a single, versioned Task-Spec Object—examples, metrics, I/O schemas, and nothing more. Hand it to a compiler that knows how to translate the contract into calls to whatever AI component (LLM, model, or rule engine) happens to be fastest, cheapest or most accurate today. Let adapters absorb the messy realities of tokens, JSON quirks, rate limits. Measure against the specifications; this keeps the door open for painless swaps when better models appear.
