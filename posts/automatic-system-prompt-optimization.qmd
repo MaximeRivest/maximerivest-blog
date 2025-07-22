@@ -1,8 +1,8 @@
 ---
-title: "Automatic System Prompt Optimization"
+title: "Torturing DSPy into doing Automatic System Prompt Optimization"
 date: 2025-07-21
 author: Maxime Rivest
-description: "In this tutorial, I will teach you how to automatically optimize your System Prompt."
+description: "In this tutorial, I will show you how to make DSPy optimize a System Prompt Automatically."
 draft: false
 format:
   html:
@@ -25,6 +25,8 @@ execute:
   #cache: true
   #freeze: true
 ---
+
+If you
 
 DSPy has quite a reputation for its automatic prompt optimization capability. Despite that, DSPy is relatively hard to use to optimize a system prompt. DSPy is the implementation of a new Paradigm (one where you do not write prompt you rather focus on your program ), so it does not focus on optimizing a prompt but it rather focus on optimizing a program. Although, I very strongly recommend that you learn DSPy's signature, AI programming and the Intent-Oriented Pragramming paradigm DSPy, sometimes you just want a better system prompt. 
 
@@ -53,7 +55,7 @@ I like to use uv to install my libraries.
 #| output: false
 #| code-fold: false
 #| code-summary: ""
-!uv pip install dspy
+!uv pip install dspy>=2.6.27
 
 ```
 
@@ -109,7 +111,8 @@ kimi = dspy.LM("groq/moonshotai/kimi-k2-instruct")
 dspy.configure(lm = kimi)
 ```
 
-If you are new, to dspy. Kimi can now be call just like that:
+::: {.callout-tip collapse="true"}
+## Calling llms in DSPy
 
 ```{python}
 kimi("Hello")
@@ -130,7 +133,11 @@ my_program = dspy.Predict(signature)
 my_program(prompt = "Hello :)")
 ```
 
-It is out of scope to explain all about predict and signatures here as my goal is to simply get you to do automatic system prompt optimization. So let's now focus on that. For optimization we need a training set. DSPy expects the training set to be a list of Example dspy object so we will create our training set like that:
+It is out of scope to explain all about predict and signatures here as my goal is to simply get you to do automatic system prompt optimization. So let's now focus on that.
+
+:::
+
+For optimization we need a training set. DSPy expects the training set to be a list of `Example` dspy object so we will create our training set like that:
 
 ```{python}
 examples = [
@@ -155,12 +162,25 @@ examples = [
     dspy.Example(prompt="I'll take the bus.", generation="J'va prendre l'bus."),
     dspy.Example(prompt="We're out of milk.", generation="On est à court de lait."),
 ]
+```
+
+You need to tell DSPY what are the input fields. So let loop through all DSPy Example (those we just created) and use the `.with_inputs` method to tell DSPy that `'prompt'` is our input field. Again, DSPy is very general and powerfull but we will use it in a little bit of a strange way here so some things won't be quite natural. In this specific case, `with_inputs` is relevant in dspy because we could use any legal python variable name for our input and we could have used more then one input.
+
+```{python}
 trainset = [x.with_inputs('prompt') for x in examples]
 ```
 
+Now that we have our training set we
 
-Here the task
+```{python}
+# Use MyPredict instead of dspy.Predict
+class signature(dspy.Signature):
+    prompt = dspy.InputField()
+    generation = dspy.OutputField()
 
+system_prompt = " "
+initial_system = MyPredict(signature.with_instructions(system_prompt))
+```
 
 ```{python}
 def format_demos(demos):
@@ -204,13 +224,12 @@ class MyPredict(dspy.Predict):
         with dspy.settings.context(adapter=adapter):
             return super().forward(**kwargs)
 
-# Use MyPredict instead of dspy.Predict
-class signature(dspy.Signature):
-    prompt = dspy.InputField()
-    generation = dspy.OutputField()
 
-system_prompt = " "
-initial_system = MyPredict(signature.with_instructions(system_prompt))
+```
+
+
+```{python}
+initial_system.parameters("instructions", "You are a pirate")
 ```
 
 ```{python}

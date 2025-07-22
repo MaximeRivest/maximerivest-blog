@@ -5,10 +5,10 @@
       "metadata": {},
       "source": [
         "---\n",
-        "title: \"Automatic System Prompt Optimization\"\n",
+        "title: \"Torturing DSPy into doing Automatic System Prompt Optimization\"\n",
         "date: 2025-07-21\n",
         "author: Maxime Rivest\n",
-        "description: \"In this tutorial, I will teach you how to automatically optimize your System Prompt.\"\n",
+        "description: \"In this tutorial, I will show you how to make DSPy optimize a System Prompt Automatically.\"\n",
         "draft: false\n",
         "format:\n",
         "  html:\n",
@@ -31,6 +31,8 @@
         "  #cache: true\n",
         "  #freeze: true\n",
         "---\n",
+        "\n",
+        "\n",
         "\n",
         "\n",
         "DSPy has quite a reputation for its automatic prompt optimization capability. Despite that, DSPy is relatively hard to use to optimize a system prompt. DSPy is the implementation of a new Paradigm (one where you do not write prompt you rather focus on your program ), so it does not focus on optimizing a prompt but it rather focus on optimizing a program. Although, I very strongly recommend that you learn DSPy's signature, AI programming and the Intent-Oriented Pragramming paradigm DSPy, sometimes you just want a better system prompt. \n",
@@ -56,7 +58,7 @@
         "## python library requirements\n",
         "I like to use uv to install my libraries.\n"
       ],
-      "id": "e4faebdc"
+      "id": "43f6c603"
     },
     {
       "cell_type": "code",
@@ -65,9 +67,9 @@
         "#| output: false\n",
         "#| code-fold: false\n",
         "#| code-summary: \"\"\n",
-        "!uv pip install dspy"
+        "!uv pip install dspy>=2.6.27"
       ],
-      "id": "5fdc3bff",
+      "id": "11059f66",
       "execution_count": null,
       "outputs": []
     },
@@ -120,7 +122,7 @@
         "\n",
         "Usually the first thing to do whenever you work with dspy is to first configure you llm connection.\n"
       ],
-      "id": "23f800d1"
+      "id": "188c041a"
     },
     {
       "cell_type": "code",
@@ -131,7 +133,7 @@
         "kimi = dspy.LM(\"groq/moonshotai/kimi-k2-instruct\")\n",
         "dspy.configure(lm = kimi)"
       ],
-      "id": "d33d21b2",
+      "id": "a9d99c7b",
       "execution_count": null,
       "outputs": []
     },
@@ -139,9 +141,10 @@
       "cell_type": "markdown",
       "metadata": {},
       "source": [
-        "If you are new, to dspy. Kimi can now be call just like that:\n"
+        "::: {.callout-tip collapse=\"true\"}\n",
+        "## Calling llms in DSPy\n"
       ],
-      "id": "7c03a254"
+      "id": "c11997d2"
     },
     {
       "cell_type": "code",
@@ -149,7 +152,7 @@
       "source": [
         "kimi(\"Hello\")"
       ],
-      "id": "2cfd5cfb",
+      "id": "250b28e6",
       "execution_count": null,
       "outputs": []
     },
@@ -159,7 +162,7 @@
       "source": [
         "Although, convenient. This is never really used, when you are using DSPy according to it's paradigm, in DSPy you would be using and calling a program instead. More like that:\n"
       ],
-      "id": "8b2bbbb9"
+      "id": "dec485ac"
     },
     {
       "cell_type": "code",
@@ -176,7 +179,7 @@
         "\n",
         "my_program(prompt = \"Hello :)\")"
       ],
-      "id": "e12d045b",
+      "id": "b15426cb",
       "execution_count": null,
       "outputs": []
     },
@@ -184,9 +187,13 @@
       "cell_type": "markdown",
       "metadata": {},
       "source": [
-        "It is out of scope to explain all about predict and signatures here as my goal is to simply get you to do automatic system prompt optimization. So let's now focus on that. For optimization we need a training set. DSPy expects the training set to be a list of Example dspy object so we will create our training set like that:\n"
+        "It is out of scope to explain all about predict and signatures here as my goal is to simply get you to do automatic system prompt optimization. So let's now focus on that.\n",
+        "\n",
+        ":::\n",
+        "\n",
+        "For optimization we need a training set. DSPy expects the training set to be a list of `Example` dspy object so we will create our training set like that:\n"
       ],
-      "id": "e73ca928"
+      "id": "5cafffb8"
     },
     {
       "cell_type": "code",
@@ -213,10 +220,9 @@
         "    dspy.Example(prompt=\"It's snowing again.\", generation=\"Il neige encore.\"),\n",
         "    dspy.Example(prompt=\"I'll take the bus.\", generation=\"J'va prendre l'bus.\"),\n",
         "    dspy.Example(prompt=\"We're out of milk.\", generation=\"On est à court de lait.\"),\n",
-        "]\n",
-        "trainset = [x.with_inputs('prompt') for x in examples]"
+        "]"
       ],
-      "id": "2ae4dea7",
+      "id": "142a0714",
       "execution_count": null,
       "outputs": []
     },
@@ -224,9 +230,43 @@
       "cell_type": "markdown",
       "metadata": {},
       "source": [
-        "Here the task\n"
+        "You need to tell DSPY what are the input fields. So let loop through all DSPy Example (those we just created) and use the `.with_inputs` method to tell DSPy that `'prompt'` is our input field. Again, DSPy is very general and powerfull but we will use it in a little bit of a strange way here so some things won't be quite natural. In this specific case, `with_inputs` is relevant in dspy because we could use any legal python variable name for our input and we could have used more then one input.\n"
       ],
-      "id": "de7e75ba"
+      "id": "dd133a6d"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "trainset = [x.with_inputs('prompt') for x in examples]"
+      ],
+      "id": "b7fa38e6",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Now that we have our training set we\n"
+      ],
+      "id": "25274b98"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "# Use MyPredict instead of dspy.Predict\n",
+        "class signature(dspy.Signature):\n",
+        "    prompt = dspy.InputField()\n",
+        "    generation = dspy.OutputField()\n",
+        "\n",
+        "system_prompt = \" \"\n",
+        "initial_system = MyPredict(signature.with_instructions(system_prompt))"
+      ],
+      "id": "60dcebe8",
+      "execution_count": null,
+      "outputs": []
     },
     {
       "cell_type": "code",
@@ -248,16 +288,8 @@
         "            f\"</example_{i}>\",\n",
         "        ]\n",
         "    parts.append(\"</examples>\")\n",
-        "    return \"\\n\".join(parts)"
-      ],
-      "id": "719fd996",
-      "execution_count": null,
-      "outputs": []
-    },
-    {
-      "cell_type": "code",
-      "metadata": {},
-      "source": [
+        "    return \"\\n\".join(parts)\n",
+        "\n",
         "# Define the SimplestAdapter as before\n",
         "class SimplestAdapter(dspy.Adapter):\n",
         "    def __call__(self, lm, lm_kwargs, signature, demos, inputs):\n",
@@ -279,20 +311,29 @@
         "    def forward(self, **kwargs):\n",
         "        adapter = SimplestAdapter()\n",
         "        with dspy.settings.context(adapter=adapter):\n",
-        "            return super().forward(**kwargs)\n",
-        "\n",
-        "# Use MyPredict instead of dspy.Predict\n",
-        "class signature(dspy.Signature):\n",
-        "    prompt = dspy.InputField()\n",
-        "    generation = dspy.OutputField()\n",
-        "\n",
-        "system_prompt = \" \"\n",
-        "my_program = MyPredict(signature.with_instructions(system_prompt))\n",
-        "\n",
-        "# Test\n",
-        "my_program(prompt=\"Hi how are you?\")"
+        "            return super().forward(**kwargs)\n"
       ],
-      "id": "ae36fd8b",
+      "id": "27f532e5",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "initial_system.parameters(\"instructions\", \"You are a pirate\")"
+      ],
+      "id": "5d31a9ef",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "initial_system(prompt=\"Hi how are you?\")"
+      ],
+      "id": "57eea1e2",
       "execution_count": null,
       "outputs": []
     },
@@ -322,7 +363,7 @@
         "        # Anything weird is just a miss\n",
         "        return 0.0"
       ],
-      "id": "713b8544",
+      "id": "1f993f70",
       "execution_count": null,
       "outputs": []
     },
@@ -333,7 +374,7 @@
         "optimizer = dspy.MIPROv2(translation_judge, max_bootstrapped_demos = 0, max_labeled_demos = 0)\n",
         "my_program_optimized = optimizer.compile(my_program, trainset=trainset)"
       ],
-      "id": "7cadd95e",
+      "id": "fba5f5e3",
       "execution_count": null,
       "outputs": []
     },
@@ -343,7 +384,7 @@
       "source": [
         "my_program_optimized(prompt = \"Hi how are you?\")"
       ],
-      "id": "f2e607f6",
+      "id": "7bac8c2b",
       "execution_count": null,
       "outputs": []
     },
@@ -353,7 +394,7 @@
       "source": [
         "my_program_optimized.inspect_history()"
       ],
-      "id": "adda5f2c",
+      "id": "b28e0930",
       "execution_count": null,
       "outputs": []
     },
@@ -364,7 +405,7 @@
         "optimizer = dspy.MIPROv2(translation_judge)\n",
         "my_program_optimized = optimizer.compile(my_program, trainset=trainset)"
       ],
-      "id": "49e612a9",
+      "id": "90425aa8",
       "execution_count": null,
       "outputs": []
     },
@@ -374,7 +415,7 @@
       "source": [
         "my_program_optimized(prompt = \"Hi how are you?\")"
       ],
-      "id": "178c9422",
+      "id": "4ab7fb73",
       "execution_count": null,
       "outputs": []
     },
@@ -384,7 +425,7 @@
       "source": [
         "my_program_optimized.inspect_history()"
       ],
-      "id": "0b1900cd",
+      "id": "f861aa6d",
       "execution_count": null,
       "outputs": []
     },
@@ -395,7 +436,7 @@
         "optimizer = dspy.SIMBA(metric = translation_judge, bsize = 8)\n",
         "my_program_optimized = optimizer.compile(my_program, trainset=trainset)"
       ],
-      "id": "140c8352",
+      "id": "a5047c14",
       "execution_count": null,
       "outputs": []
     },
@@ -405,7 +446,7 @@
       "source": [
         "my_program_optimized(prompt = \"Hi how are you?\")"
       ],
-      "id": "5c489628",
+      "id": "ff7c89c6",
       "execution_count": null,
       "outputs": []
     },
@@ -415,7 +456,7 @@
       "source": [
         "my_program_optimized.inspect_history()"
       ],
-      "id": "6acf54d5",
+      "id": "2e8a976c",
       "execution_count": null,
       "outputs": []
     },
@@ -426,7 +467,7 @@
         "evaluator = dspy.Evaluate(devset = trainset, metric=translation_judge)\n",
         "evaluator(my_program_optimized)"
       ],
-      "id": "5ee42b52",
+      "id": "3843be67",
       "execution_count": null,
       "outputs": []
     },
@@ -437,7 +478,7 @@
         "evaluator = dspy.Evaluate(devset = trainset, metric=translation_judge)\n",
         "evaluator(my_program)"
       ],
-      "id": "afbecbc6",
+      "id": "68bc5820",
       "execution_count": null,
       "outputs": []
     },
@@ -448,7 +489,7 @@
         "optimizer = dspy.MIPROv2(translation_judge, max_bootstrapped_demos = 2, max_labeled_demos = 2)\n",
         "my_program_optimized_with_demo = optimizer.compile(my_program, trainset=trainset)"
       ],
-      "id": "1348c567",
+      "id": "f47d08ef",
       "execution_count": null,
       "outputs": []
     },
@@ -458,7 +499,7 @@
       "source": [
         "my_program_optimized_with_demo(prompt = \"Hi how are you?\")"
       ],
-      "id": "f8584648",
+      "id": "fd92d26f",
       "execution_count": null,
       "outputs": []
     },
@@ -468,7 +509,7 @@
       "source": [
         "my_program_optimized_with_demo.inspect_history()"
       ],
-      "id": "476ecb4e",
+      "id": "0fc1df5f",
       "execution_count": null,
       "outputs": []
     },
@@ -479,7 +520,7 @@
         "optimizer = dspy.BootstrapFewShotWithOptuna(translation_judge, max_bootstrapped_demos = 10, max_labeled_demos = 10, max = 3)\n",
         "my_program_optimized_with_demo = optimizer.compile(my_program, trainset=trainset, max_demos=3)"
       ],
-      "id": "764b4b9f",
+      "id": "08220198",
       "execution_count": null,
       "outputs": []
     },
@@ -489,7 +530,7 @@
       "source": [
         "my_program_optimized_with_demo(prompt = \"Hi how are you today?\")"
       ],
-      "id": "4e9e0d65",
+      "id": "85402289",
       "execution_count": null,
       "outputs": []
     },
@@ -499,7 +540,7 @@
       "source": [
         "my_program_optimized_with_demo.inspect_history()"
       ],
-      "id": "c59d58b4",
+      "id": "59eefb50",
       "execution_count": null,
       "outputs": []
     },
@@ -554,7 +595,7 @@
         "        # If the LLM fails to output a valid score, return 0.0\n",
         "        return 0.0"
       ],
-      "id": "a21456cb",
+      "id": "146f3275",
       "execution_count": null,
       "outputs": []
     },
@@ -565,7 +606,7 @@
         "optimizer = dspy.BootstrapFewShotWithOptuna(translation_judge, max_bootstrapped_demos = 10, max_labeled_demos = 10, max_rounds = 3)\n",
         "my_program_optimized_with_demo2 = optimizer.compile(my_program, trainset=trainset, max_demos=3)"
       ],
-      "id": "8edd6032",
+      "id": "f1ef21a5",
       "execution_count": null,
       "outputs": []
     },
@@ -575,7 +616,7 @@
       "source": [
         "my_program_optimized_with_demo2(prompt = \"Hi how are you today?\")"
       ],
-      "id": "a2281822",
+      "id": "a26dc9e3",
       "execution_count": null,
       "outputs": []
     },
@@ -585,7 +626,7 @@
       "source": [
         "my_program_optimized_with_demo2.inspect_history()"
       ],
-      "id": "4d1d6339",
+      "id": "e772da03",
       "execution_count": null,
       "outputs": []
     }

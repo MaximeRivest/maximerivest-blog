@@ -251,7 +251,7 @@ The fastest path to robust AI systems is to nail the <em>intent<a href="#fn1" cl
 <section id="examples" class="level4">
 <h4 class="anchored" data-anchor-id="examples">Examples</h4>
 <p>The following should be enough for a talented human to find the pattern and comply:</p>
-<div id="c772abd5" class="cell" data-execution_count="1">
+<div id="5a17670d" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>example_of_success <span class="op">=</span> {</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">'english'</span>: [</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">"I'm going to the convenience store."</span>,</span>
@@ -311,7 +311,7 @@ The fastest path to robust AI systems is to nail the <em>intent<a href="#fn1" cl
 <section id="judge-or-metric" class="level4">
 <h4 class="anchored" data-anchor-id="judge-or-metric">Judge or metric</h4>
 <p>Or if you have a metric or a performance LLM judge you can build an example set using them by searching for high scoring examples. A metric using code could hypothetically be built, like that:</p>
-<div id="32f541e0" class="cell" data-execution_count="2">
+<div id="78821abe" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>is_quebec_form <span class="op">=</span> []</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> word <span class="kw">in</span> translated_text:</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> word <span class="kw">in</span> quebec_colloquial_word_set:</span>
