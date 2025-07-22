@@ -2,6 +2,7 @@
   {
     "listing": "/posts.html",
     "items": [
+      "/posts/automatic-system-prompt-optimization.html",
       "/posts/on-building-ai-programs.html",
       "/posts/dspy_ai_program_gem.html",
       "/posts/optimizer.html",

@@ -1,0 +1,406 @@
+---
+title: "Automatic System Prompt Optimization"
+date: 2025-07-21
+author: Maxime Rivest
+description: "In this tutorial, I will teach you how to automatically optimize your System Prompt."
+draft: false
+format:
+  html:
+    toc: true
+    toc-location: right
+    code-tools: true
+    reference-location: margin
+include-in-header:
+  text: |
+    <style>
+    .cell-output-stdout {
+      overflow-y: scroll;
+      max-height: 300px;
+    }
+    </style>
+title-block-banner: false
+title-block-style: none
+execute:
+  echo: true  
+  #cache: true
+  #freeze: true
+---
+
+DSPy has quite a reputation for its automatic prompt optimization capability. Despite that, DSPy is relatively hard to use to optimize a system prompt. DSPy is the implementation of a new Paradigm (one where you do not write prompt you rather focus on your program ), so it does not focus on optimizing a prompt but it rather focus on optimizing a program. Although, I very strongly recommend that you learn DSPy's signature, AI programming and the Intent-Oriented Pragramming paradigm DSPy, sometimes you just want a better system prompt. 
+
+In this tutorial, I will show you how to optimize as system prompt given a trainset set. The system prompt will be rewritten automatically by an LLM in a loop for several steps.
+
+## The task
+
+All throughout this tutorial our task will be to make an english to french translator. We will do several optimization and will evolve that task as we progress through that tutorial, but it will always be variants of that.
+
+## Optimizing a non existent system prompt
+
+As a first task, we will start with an empty system prompt and we will have dspy's optimizer deduce the system prompt based on the training set
+
+::: {.callout-tip collapse="true"}
+## Setting up
+
+For this tutorial, you will only need to install dspy and setup a LLM connections. I will be using several LLMs to demonstrate how easy it is to switch between them and show the student/teacher concept. You can however set only one up if you want. If you use a locally hosted model, (you can!) simply skip the setting up of the API key. .
+
+For this tutorial, I have will use Kimi-K2 hosted by Groq [Click here to get a groq api key](https://console.groq.com/keys) and Llama models from OpenRouter [Click here to get a OpenRouter key](https://openrouter.ai/settings/keys).
+
+::: {.callout-note icon=false appearance="simple" collapse="true"}
+## python library requirements
+I like to use uv to install my libraries.
+
+```{python}
+#| output: false
+#| code-fold: false
+#| code-summary: ""
+!uv pip install dspy
+
+```
+
+:::
+
+::: {.callout-note icon=false appearance="simple" collapse="true"}
+## api key setup
+I generally setup my key permanently but you can also do this to set it up just for here and now.
+
+```{{python}}
+import os
+os.environ["GROQ_API_KEY"] = "[REDACTED]"
+os.environ["OPENROUTER_API_KEY"] = "[REDACTED]"
+```
+
+::: {.callout-note icon=false appearance="simple" collapse="true"}
+## Make GROQ_API_KEY permanent
+
+Replace GROQ_API_KEY with OPENROUTER_API_KEY to set openrouter key permanently on your system.
+
+###### Linux / macOS
+Append to your shell start-up file (pick the one you actually use):
+
+```bash
+echo "export GROQ_API_KEY='gsk_[REDACTED]'" >> ~/.bashrc
+# or ~/.zshrc, ~/.profile, etc.
+source ~/.bashrc   # reload once
+```
+
+###### Windows – CMD
+```cmd
+setx GROQ_API_KEY "gsk_[REDACTED]"
+```
+Close and reopen the terminal.
+
+###### Windows – PowerShell
+```powershell
+[Environment]::SetEnvironmentVariable("GROQ_API_KEY", "gsk_[REDACTED]", "User")
+```
+Refresh with `refreshenv` or open a new window.
+:::
+
+:::
+
+:::
+
+Usually the first thing to do whenever you work with dspy is to first configure you llm connection.
+
+```{python}
+import dspy
+
+kimi = dspy.LM("groq/moonshotai/kimi-k2-instruct")
+dspy.configure(lm = kimi)
+```
+
+If you are new, to dspy. Kimi can now be call just like that:
+
+```{python}
+kimi("Hello")
+```
+
+Although, convenient. This is never really used, when you are using DSPy according to it's paradigm, in DSPy you would be using and calling a program instead. More like that:
+
+```{python}
+class signature(dspy.Signature):
+    """
+    You are a Pirate
+    """
+    prompt = dspy.InputField()
+    generation = dspy.OutputField()
+
+my_program = dspy.Predict(signature) 
+
+my_program(prompt = "Hello :)")
+```
+
+It is out of scope to explain all about predict and signatures here as my goal is to simply get you to do automatic system prompt optimization. So let's now focus on that. For optimization we need a training set. DSPy expects the training set to be a list of Example dspy object so we will create our training set like that:
+
+```{python}
+examples = [
+    dspy.Example(prompt="I'm going to the convenience store.", generation="Je m'en vais au dépanneur."),
+    dspy.Example(prompt="It's really cold out today.", generation="Il fait frette en maudit aujourd'hui."),
+    dspy.Example(prompt="Can you help me move this weekend?", generation="Tu peux m'aider à déménager ce weekend?"),
+    dspy.Example(prompt="We were stuck in traffic for two hours.", generation="On était pognés dans le trafic pendant deux heures."),
+    dspy.Example(prompt="She's my girlfriend.", generation="C'est ma blonde."),
+    dspy.Example(prompt="That car is so cool!", generation="C'est ben l'fun ce char-là!"),
+    dspy.Example(prompt="I'll call you tonight.", generation="Je vais t'appeler ce soir."),
+    dspy.Example(prompt="He's always bragging.", generation="Il se vente tout l'temps."),
+    dspy.Example(prompt="We grabbed a coffee at Tim's.", generation="On a pris un café au Tim."),
+    dspy.Example(prompt="Close the window, it's chilly.", generation="Ferme la fenêtre, y fait frette."),
+    dspy.Example(prompt="I have an appointment at 3.", generation="J'ai un rendez-vous à trois heures."),
+    dspy.Example(prompt="They're celebrating their birthday.", generation="Ils fêtent leur fête."),
+    dspy.Example(prompt="I parked in the back.", generation="J'ai stationné dans l'fond."),
+    dspy.Example(prompt="The metro is packed.", generation="Le métro est plein à craquer."),
+    dspy.Example(prompt="We watched a movie last night.", generation="On a écouté un film hier soir."),
+    dspy.Example(prompt="I need to do my groceries.", generation="J'dois faire mon épicerie."),
+    dspy.Example(prompt="Don't forget your boots.", generation="Oublie pas tes bottes."),
+    dspy.Example(prompt="It's snowing again.", generation="Il neige encore."),
+    dspy.Example(prompt="I'll take the bus.", generation="J'va prendre l'bus."),
+    dspy.Example(prompt="We're out of milk.", generation="On est à court de lait."),
+]
+trainset = [x.with_inputs('prompt') for x in examples]
+```
+
+
+Here the task
+
+
+```{python}
+def format_demos(demos):
+    """
+    Wrap every demo once – no duplicated header lines.
+    """
+    parts = ["Here are examples of your expected behavior.",
+             "<examples>"]
+    for i, demo in enumerate(demos, 1):
+        parts += [
+            f"<example_{i}>",
+            "User:",
+            demo["prompt"],
+            "Assistant:",
+            demo["generation"],
+            f"</example_{i}>",
+        ]
+    parts.append("</examples>")
+    return "\n".join(parts)
+
+# Define the SimplestAdapter as before
+class SimplestAdapter(dspy.Adapter):
+    def __call__(self, lm, lm_kwargs, signature, demos, inputs):
+        print(inputs)
+        system_content = signature.instructions
+        if demos:
+            system_content += "\n" + format_demos(demos)
+        messages = [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": inputs["prompt"]},
+        ]
+        outputs = lm(messages=messages, **lm_kwargs)
+        return [{"generation": outputs[0]}]
+
+# Do NOT call dspy.configure(adapter=SimplestAdapter())
+
+# Subclass Predict to use the custom adapter only for this instance
+class MyPredict(dspy.Predict):
+    def forward(self, **kwargs):
+        adapter = SimplestAdapter()
+        with dspy.settings.context(adapter=adapter):
+            return super().forward(**kwargs)
+
+# Use MyPredict instead of dspy.Predict
+class signature(dspy.Signature):
+    prompt = dspy.InputField()
+    generation = dspy.OutputField()
+
+system_prompt = " "
+initial_system = MyPredict(signature.with_instructions(system_prompt))
+```
+
+```{python}
+
+initial_system(prompt="Hi how are you?")
+```
+
+```{python}
+import re
+
+def is_french(text):
+    # Naive French detector: check for common French words/accents
+    french_markers = [
+        r"\b(le|la|les|un|une|des|du|de|et|à|est|sont|avec|pour|sur|par|mais|ou|où|que|qui|quand|comment|nous|vous|ils|elles|ça|ce|cette|ces)\b",
+        r"[éèêàùçîôâœëïü]",
+    ]
+    return any(re.search(marker, text.lower()) for marker in french_markers)
+
+def translation_judge(example, prediction, trace=None):
+    """
+    Return 1.0 if the output looks French, else 0.0.
+    Doing the cast explicitly guarantees we never hand DSPy a None.
+    """
+    output = prediction.get("generation", "") or ""
+    try:
+        return float(is_french(output))
+    except Exception:
+        # Anything weird is just a miss
+        return 0.0
+```
+
+```{python}
+optimizer = dspy.MIPROv2(translation_judge, max_bootstrapped_demos = 0, max_labeled_demos = 0)
+my_program_optimized = optimizer.compile(my_program, trainset=trainset)
+```
+
+
+
+```{python}
+my_program_optimized(prompt = "Hi how are you?")
+```
+
+
+```{python}
+my_program_optimized.inspect_history()
+```
+
+
+```{python}
+optimizer = dspy.MIPROv2(translation_judge)
+my_program_optimized = optimizer.compile(my_program, trainset=trainset)
+```
+
+
+
+```{python}
+my_program_optimized(prompt = "Hi how are you?")
+```
+
+
+```{python}
+my_program_optimized.inspect_history()
+```
+
+
+```{python}
+optimizer = dspy.SIMBA(metric = translation_judge, bsize = 8)
+my_program_optimized = optimizer.compile(my_program, trainset=trainset)
+```
+
+
+
+```{python}
+my_program_optimized(prompt = "Hi how are you?")
+```
+
+
+```{python}
+my_program_optimized.inspect_history()
+```
+
+```{python}
+
+evaluator = dspy.Evaluate(devset = trainset, metric=translation_judge)
+evaluator(my_program_optimized)
+```
+
+
+```{python}
+
+evaluator = dspy.Evaluate(devset = trainset, metric=translation_judge)
+evaluator(my_program)
+```
+
+
+```{python}
+optimizer = dspy.MIPROv2(translation_judge, max_bootstrapped_demos = 2, max_labeled_demos = 2)
+my_program_optimized_with_demo = optimizer.compile(my_program, trainset=trainset)
+```
+
+
+
+```{python}
+my_program_optimized_with_demo(prompt = "Hi how are you?")
+```
+
+
+```{python}
+my_program_optimized_with_demo.inspect_history()
+```
+
+
+```{python}
+optimizer = dspy.BootstrapFewShotWithOptuna(translation_judge, max_bootstrapped_demos = 10, max_labeled_demos = 10, max = 3)
+my_program_optimized_with_demo = optimizer.compile(my_program, trainset=trainset, max_demos=3)
+```
+
+
+
+```{python}
+my_program_optimized_with_demo(prompt = "Hi how are you today?")
+```
+
+
+```{python}
+my_program_optimized_with_demo.inspect_history()
+```
+
+
+```{python}
+class QuebecTranslationJudge(dspy.Signature):
+    """You are an expert Quebec French linguist. For each English sentence and its proposed French translation, evaluate the translation on a scale of 1 to 5 based on the following criteria, with 5 being a perfect, natural-sounding translation.
+
+1.  **Accuracy**: Does the French convey the same meaning as the English?
+2.  **Register**: Is the tone appropriately informal/colloquial (not formal textbook French)?
+3.  **Regional Vocabulary**: Does it use authentic Quebec French terms (e.g., "dépanneur", "frette", "char")?
+4.  **Contractions**: Are natural Quebec French contractions used (e.g., "j'va", "t'sais", "y fait")?
+5.  **Proper Nouns & Anglicisms**: Are names (e.g., "Tim's") and common anglicisms (e.g., "weekend") handled appropriately for Quebec French?
+
+Provide brief feedback on any issues and output only the final numerical score.
+
+IMPORTANT IF MEANING IS CHANGED SET TO 0.
+"""
+
+    english_sentence = dspy.InputField(desc="The original sentence in English.")
+    french_translation = dspy.InputField(desc="The proposed translation in Quebec French.")
+    feedback = dspy.OutputField(desc="Brief feedback on the translation's quality.")
+    score = dspy.OutputField(desc="A single integer from 1 to 5.")
+
+# If you have a capable model configured globally, just do this:
+llm_judge = dspy.Predict(QuebecTranslationJudge)
+
+def translation_judge(example, prediction, trace=None):
+    """
+    An LLM-based metric that judges translation quality.
+    It robustly parses the score and normalizes it to a 0.0-1.0 scale.
+    """
+    english_sentence = example.prompt
+    # Ensure the prediction's output is not empty
+    french_translation = prediction.get("generation", "")
+    if not french_translation:
+        return 0.0
+
+    try:
+        # Call the LLM judge to get a score
+        result = llm_judge(
+            english_sentence=english_sentence,
+            french_translation=french_translation
+        )
+        # Parse the score and normalize it to a 0.0-1.0 range
+        # (e.g., a score of 5 becomes 1.0, 1 becomes 0.2)
+        score = float(result.score)
+        return score / 5.0
+    except (ValueError, AttributeError, TypeError):
+        # If the LLM fails to output a valid score, return 0.0
+        return 0.0
+
+```
+
+
+```{python}
+optimizer = dspy.BootstrapFewShotWithOptuna(translation_judge, max_bootstrapped_demos = 10, max_labeled_demos = 10, max_rounds = 3)
+my_program_optimized_with_demo2 = optimizer.compile(my_program, trainset=trainset, max_demos=3)
+```
+
+```{python}
+my_program_optimized_with_demo2(prompt = "Hi how are you today?")
+```
+
+
+```{python}
+my_program_optimized_with_demo2.inspect_history()
+```

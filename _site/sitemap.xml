@@ -1,27 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://maximerivest.com/posts/optimizer.html</loc>
-    <lastmod>2025-07-17T22:56:16.021Z</lastmod>
+    <loc>https://maximerivest.com/posts/automatic-system-prompt-optimization.html</loc>
+    <lastmod>2025-07-22T12:30:12.223Z</lastmod>
   </url>
   <url>
-    <loc>https://maximerivest.com/posts/dspy-one-hour-guide.html</loc>
-    <lastmod>2025-07-09T23:52:27.427Z</lastmod>
-  </url>
-  <url>
-    <loc>https://maximerivest.com/posts.html</loc>
-    <lastmod>2025-07-17T22:39:29.296Z</lastmod>
-  </url>
-  <url>
-    <loc>https://maximerivest.com/index.html</loc>
-    <lastmod>2025-07-17T22:43:11.179Z</lastmod>
+    <loc>https://maximerivest.com/posts/on-building-ai-programs.html</loc>
+    <lastmod>2025-07-22T01:02:47.770Z</lastmod>
   </url>
   <url>
     <loc>https://maximerivest.com/posts/dspy_ai_program_gem.html</loc>
     <lastmod>2025-07-18T04:09:20.534Z</lastmod>
   </url>
   <url>
-    <loc>https://maximerivest.com/posts/on-building-ai-programs.html</loc>
-    <lastmod>2025-07-20T16:59:52.455Z</lastmod>
+    <loc>https://maximerivest.com/index.html</loc>
+    <lastmod>2025-07-17T22:43:11.179Z</lastmod>
+  </url>
+  <url>
+    <loc>https://maximerivest.com/posts.html</loc>
+    <lastmod>2025-07-17T22:39:29.296Z</lastmod>
+  </url>
+  <url>
+    <loc>https://maximerivest.com/posts/dspy-one-hour-guide.html</loc>
+    <lastmod>2025-07-09T23:52:27.427Z</lastmod>
+  </url>
+  <url>
+    <loc>https://maximerivest.com/posts/optimizer.html</loc>
+    <lastmod>2025-07-17T22:56:16.021Z</lastmod>
   </url>
 </urlset>
