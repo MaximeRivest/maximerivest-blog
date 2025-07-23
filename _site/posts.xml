@@ -2314,7 +2314,7 @@ The fastest path to robust AI systems is to nail the <em>intent<sup>1</sup></em>
 <section id="examples" class="level4">
 <h4 class="anchored" data-anchor-id="examples">Examples</h4>
 <p>The following should be enough for a talented human to find the pattern and comply:</p>
-<div id="ae43a0ce" class="cell" data-execution_count="1">
+<div id="2cc7407d" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1">example_of_success <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> {</span>
@@ -2460,7 +2460,7 @@ font-style: inherit;">"On est à court de lait."</span></span>
 <section id="judge-or-metric" class="level4">
 <h4 class="anchored" data-anchor-id="judge-or-metric">Judge or metric</h4>
 <p>Or if you have a metric or a performance LLM judge you can build an example set using them by searching for high scoring examples. A metric using code could hypothetically be built, like that:</p>
-<div id="ca39e995" class="cell" data-execution_count="2">
+<div id="6a6606c2" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1">is_quebec_form <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> []</span>
