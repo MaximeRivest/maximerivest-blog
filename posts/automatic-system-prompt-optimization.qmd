@@ -1,5 +1,5 @@
 ---
-title: "Torturing DSPy into doing Automatic System Prompt Optimization"
+title: "Hacking DSPy into doing Automatic System Prompt Optimization"
 date: 2025-07-21
 author: Maxime Rivest
 description: "In this tutorial, I will show you how to make DSPy optimize a System Prompt Automatically."
@@ -25,20 +25,6 @@ execute:
   #cache: true
   #freeze: true
 ---
-
-If you
-
-DSPy has quite a reputation for its automatic prompt optimization capability. Despite that, DSPy is relatively hard to use to optimize a system prompt. DSPy is the implementation of a new Paradigm (one where you do not write prompt you rather focus on your program ), so it does not focus on optimizing a prompt but it rather focus on optimizing a program. Although, I very strongly recommend that you learn DSPy's signature, AI programming and the Intent-Oriented Pragramming paradigm DSPy, sometimes you just want a better system prompt. 
-
-In this tutorial, I will show you how to optimize as system prompt given a trainset set. The system prompt will be rewritten automatically by an LLM in a loop for several steps.
-
-## The task
-
-All throughout this tutorial our task will be to make an english to french translator. We will do several optimization and will evolve that task as we progress through that tutorial, but it will always be variants of that.
-
-## Optimizing a non existent system prompt
-
-As a first task, we will start with an empty system prompt and we will have dspy's optimizer deduce the system prompt based on the training set
 
 ::: {.callout-tip collapse="true"}
 ## Setting up
@@ -101,6 +87,305 @@ Refresh with `refreshenv` or open a new window.
 :::
 
 :::
+
+## Making an automatic System Prompt tool
+
+In this tutorial, I’ll show you how I’ve modified and customized DSPy to make it handle system prompt optimization. Usually DSPy is doing program optimization. DSPy is very much batteries included, giving you tons of tools for everything. It’s general, and it gives you a framework for how to do things, which is powerful and useful. But that framework is about AI programming, not about system prompt optimization. That is why we will need to do some customization to DSPy. Don't worry, DSPy was built in a way that lets us do it without too much work.
+
+The nice thing about having to customize DSPy is that by the end you'll walk away with two things. First, a way to automatically optimize system prompts. Second, you'll have opened the hood: you'll understand better how DSPy works and this will help you use DSPy more proficiently when you actually want to do AI programs.
+
+So by the end of this tutorial we will have built this simple yet powerful automatic system prompt optimization utility and understood why we had to do what we did.
+
+```{{python}}
+optimzed_system_prompt = optimize(
+    training_inputs = ["User prompt example 1", "...", "User prompt exampl n"],
+    training_outputs = ["Desirable Assistant's example 1", "...", "Desirable Assistant's example 1"],
+    llm_judge = "Return a 1 if it's good and a 0 if it's bad."
+)
+```
+
+Our `optimize` function will also be able to optionally take a starting system prompt, a max few-shots, and teacher and student model identifiers. Here is a mock-up of that:
+
+```{{python}}
+optimzed_system_prompt = optimize(
+    training_inputs = ["User prompt example 1", "...", "User prompt exampl n"],
+    training_outputs = ["Desirable Assistant's example 1", "...", "Desirable Assistant's example 1"],
+    llm_judge = "Return a 1 if it's good and a 0 if it's bad.",
+    system_prompt = "You are a model that perform well...",
+    max_few_shots = 2,
+    teacher_model = "a-smart-model",
+    student_model = "a-cheap-model"
+)
+```
+
+Now that we have our vision, let's get going!
+
+## The task
+
+All throughout this tutorial our task will be to make an English to Quebec-French translator.
+
+The first DSPy optimizer that we want to use is `dspy.MIPROv2`. This optimizer can write (or improve) a program's instructions. Let's analyze the code below to learn what parts we must prepare to reach that goal of running MIPROv2 on task.
+
+First we pass `translation_judge` to the optimizer initialisation. This should be a function that must return a score between 0 (bad) to 1 (good). In DSPy these are called metrics. Almost every DSPy optimizer requires a metric. After we have 2 `max_..._demos` which are set to 0, this is because as a first run we would like to only optimise the text of the system prompt without adding few-shot examples. MIPROv2 can search for few-shot examples that would improve a program's performance.
+
+```{{python}}
+optimizer = dspy.MIPROv2(translation_judge, max_bootstrapped_demos = 0, max_labeled_demos = 0)
+my_program_optimized = optimizer.compile(my_program, trainset=trainset)
+```
+
+Second line of code, inside the `compile` method, we must give a DSPy `program`. This is not a string; it cannot be a system prompt. We will thus need to wrap up our system prompt + user/assistant simple LLM call into a lightweight program. And, finally, we have the trainset. In DSPy, this must be a list of `dspy.Example` objects. This is the object that all of DSPy's internals are using, so there is no way around it; we must format our input/output training set as `dspy.Example`.
+
+In summary, we need:
+1. a metric
+2. a program
+3. a training set
+    
+and we must format those appropriately.
+
+Let's first tackle the training set as it is quite straightforward
+
+## Training set
+
+The `Example()` object can take any arguments. You can think of those as column names in a dataframe or "keys" in JSON. It is usually pretty important to consider these names thoughtfully and normally DSPy will present them to the LLM as part of the prompts. In our case, that is a behavior from DSPy that we will change, so it does not matter what we call them. I decided to go with something very general. The `prompt` will be the user message and the `generation` will be the assistant message.
+
+```{python}
+import dspy
+
+examples = [
+    dspy.Example(prompt="I'm going to the convenience store.", generation="Je m'en vais au dépanneur."),
+    dspy.Example(prompt="It's really cold out today.", generation="Il fait frette en maudit aujourd'hui."),
+    dspy.Example(prompt="Can you help me move this weekend?", generation="Tu peux m'aider à déménager ce weekend?"),
+    dspy.Example(prompt="We were stuck in traffic for two hours.", generation="On était pognés dans le trafic pendant deux heures."),
+    dspy.Example(prompt="She's my girlfriend.", generation="C'est ma blonde."),
+    dspy.Example(prompt="That car is so cool!", generation="C'est ben l'fun ce char-là!"),
+    dspy.Example(prompt="I'll call you tonight.", generation="Je vais t'appeler ce soir."),
+    dspy.Example(prompt="He's always bragging.", generation="Il se vente tout l'temps."),
+    dspy.Example(prompt="We grabbed a coffee at Tim's.", generation="On a pris un café au Tim."),
+    dspy.Example(prompt="Close the window, it's chilly.", generation="Ferme la fenêtre, y fait frette."),
+    dspy.Example(prompt="I have an appointment at 3.", generation="J'ai un rendez-vous à trois heures."),
+    dspy.Example(prompt="They're celebrating their birthday.", generation="Ils fêtent leur fête."),
+    dspy.Example(prompt="I parked in the back.", generation="J'ai stationné dans l'fond."),
+    dspy.Example(prompt="The metro is packed.", generation="Le métro est plein à craquer."),
+    dspy.Example(prompt="We watched a movie last night.", generation="On a écouté un film hier soir."),
+    dspy.Example(prompt="I need to do my groceries.", generation="J'dois faire mon épicerie."),
+    dspy.Example(prompt="Don't forget your boots.", generation="Oublie pas tes bottes."),
+    dspy.Example(prompt="It's snowing again.", generation="Il neige encore."),
+    dspy.Example(prompt="I'll take the bus.", generation="J'va prendre l'bus."),
+    dspy.Example(prompt="We're out of milk.", generation="On est à court de lait."),
+]
+```
+
+Before we are done with our training set we must do 1 more little thing:
+
+```{python}
+trainset = [x.with_inputs('prompt') for x in examples]
+```
+
+This, again, is something we have to do because of DSPy's general powerful nature. Briefly, it is used by DSPy's code internally to know what fields of the Example object are input fields for the LLM. It helps internal development to separate inputs from outputs. In our case, we just need to know that we have to do it, and so we do.
+
+Let's move on to the Metric now!
+
+## Metric
+
+Our first metric will be somewhat dumb and a little bit bad. That is because it is hard to have code that measures the quality of a translation. Despite that, we will get pretty good results, you will see.
+
+In essence, all this code does is search for some very common French words that are not also common English words. If any of the words are found, the function returns a 1; otherwise it returns a 0.
+
+```{python}
+import re
+
+def is_french(text):
+    # Naive French detector: check for common French words/accents
+    french_markers = [
+        r"\b(le|la|les|un|une|des|du|de|et|à|est|sont|avec|pour|sur|par|mais|ou|où|que|qui|quand|comment|nous|vous|ils|elles|ça|ce|cette|ces)\b",
+        r"[éèêàùçîôâœëïü]",
+    ]
+    return any(re.search(marker, text.lower()) for marker in french_markers)
+
+def translation_judge(example, prediction, trace=None):
+    """
+    Return 1.0 if the output looks French, else 0.0.
+    Doing the cast explicitly guarantees we never hand DSPy a None.
+    """
+    output = prediction.get("generation", "") or ""
+    try:
+        return float(is_french(output))
+    except Exception:
+        # Anything weird is just a miss
+        return 0.0
+```
+
+
+Notice how `translation_judge` takes 3 arguments: `example`, `prediction`, and `trace`. 
+
+* `example` will essentially be an instance of the `Example()` object as we defined above. 
+* `prediction` will be the parsed LLM output. Usually DSPy can do a lot here, but we will modify and simplify that part too.
+* `trace` can be ignored except when we want models to generate good examples themselves. This is called bootstrapping, and in that case, if `trace` is not `None`, we must return a boolean for whether the LLM-generated example is good (1) or not (0). This could be used, for instance, to make our list of translation pairs longer.
+
+Moving on the the program now!
+
+## Program
+
+The simplest program you can build in DSPy is one with only one input, one output, and empty instructions using `Predict`. A core concept of DSPy is around that signature, but since we do not want to do program optimization I'll not go into it (see [this post](https://maximerivest.com/posts/dspy-one-hour-guide.html) for a simple introduction to DSPy).
+
+```{python}
+class signature(dspy.Signature):
+    """ 
+    
+    """
+    prompt = dspy.InputField()
+    generation = dspy.OutputField()
+
+initial_program = dspy.Predict(signature)
+```
+
+The most interesting part for you to note is that `initial_program` is now callable, and if we call it, we will get an LLM response, provided we set up an LLM like this:
+
+
+```{python}
+kimi = dspy.LM("groq/moonshotai/kimi-k2-instruct")
+dspy.configure(lm = kimi)
+initial_program(prompt = "Hello, how are you?")
+```
+
+But we have a few problems.
+
+```{python}
+initial_program.inspect_history()
+```
+
+The above command prints the previous interaction we had with the LLM. In that interaction, the system prompt was:
+
+```{text}
+Your input fields are:
+1. `prompt` (str):
+Your output fields are:
+1. `generation` (str):
+All interactions will be structured in the following way, with the appropriate values filled in.
+
+[[ ## prompt ## ]]
+{prompt}
+
+[[ ## generation ## ]]
+{generation}
+
+[[ ## completed ## ]]
+In adhering to this structure, your objective is:
+```
+
+And the user message was:
+
+```{text}
+[[ ## prompt ## ]]
+Hello, how are you?
+
+Respond with the corresponding output fields, starting with the field `[[ ## generation ## ]]`, and then ending with the marker for `[[ ## completed ## ]]`.
+```
+
+And the assistant was:
+
+```{text}
+[[ ## generation ## ]]
+I'm doing well, thank you for asking! How can I help you today?
+
+[[ ## completed ## ]]
+```
+
+A lot of stuff was added, and if we run an optimizer as it is, we will be optimizing the LLM's performance in that prompt template. This is a little too different from the vanilla we would have expected, which is:
+`sp = ""`,
+`user = "Hello, how are you?"`,
+and the assistant response could have been something like
+`assistant = "I'm doing well, thank you for asking! How can I help you today?"`.
+The culprit for the additions is DSPy's adapter. The adapter is amazing at turning a DSPy signature into an AI program, but right now, it's in the way.
+
+Let's replace DSPy's adapter with our own simplified version.
+
+## Making a Simple Custom Adapter
+
+Adapters are DSPy's interface to the LLMs. They are called with a few pieces of information, and DSPy expects a parsed LLM generation to be returned. The following is the simplest we can make an adapter. We are taking in the LM that DSPy's internals want us to use, keyword arguments if any, a signature, demos, and inputs.
+
+The signature can contain only 3 things: instructions, inputs, and outputs. In our case, we have "canned" the signature, so we also know that the input is named `prompt` and the output is named `generation`, simplifying our requirements for our adapter substantially from what DSPy usually has to worry about.
+
+
+```{python}
+# Define the SimplestAdapter as before
+class SimplestAdapter(dspy.Adapter):
+    def __call__(self, lm, lm_kwargs, signature, demos, inputs):
+        print(inputs)
+        system_content = signature.instructions
+        if demos:
+            system_content
+        messages = [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": inputs["prompt"]},
+        ]
+        outputs = lm(messages=messages, **lm_kwargs)
+        return [{"generation": outputs[0]}]
+
+# Do NOT call dspy.configure(adapter=SimplestAdapter())
+# Subclass Predict to use the custom adapter only for this instance
+class MyPredict(dspy.Predict):
+    def forward(self, **kwargs):
+        adapter = SimplestAdapter()
+        with dspy.settings.context(adapter=adapter):
+            return super().forward(**kwargs)
+```
+
+We also have to subclass `dspy.Predict` so that we are able to make a program that uses our adapter. Usually in DSPy, the adapter is set globally or within a scoped context, but in both cases, the adapter is applied recursively. This has the effect of making some DSPy programs inside the optimizer use our simple adapter, causing them all to break. And breaking everything is generally not good...
+
+
+## Automatically Generating a System Prompt
+
+We are now ready to run the optimizer!!!
+
+```{python}
+#| output: false
+optimizer = dspy.MIPROv2(translation_judge, max_bootstrapped_demos = 0, max_labeled_demos = 0)
+my_program_optimized = optimizer.compile(my_program, trainset=trainset, requires_permission_to_run = False)
+```
+
+Let's test the program right away:
+
+```{python}
+my_program_optimized(prompt = "Hello, how are you?")
+```
+
+
+Good! It's a translation and not a response to our salutation. Let's inspect the messages.
+
+```{python}
+my_program_optimized.inspect_history()
+```
+
+And this confirms that our adapter works! this is a completely 'vanilla' set of messages.
+
+## What can we optimize in a System Prompt?
+
+DSPy’s optimizers work along three levers:
+
+1. **Few-shot examples**  
+   Find or synthesize the best 0-to-N demonstrations to show to show to the LLM. This is a very common optimization technic, DSPy usually add those as user-assistant message pairs and so we will have to do some modifications to get that all into the system prompt's string.
+
+2. **Instruction text**  
+   In DSPy there is a component called `Instructions`, that is a string that is generally added to a system prompt template and that string can be optimized and rewritten by llms. Normally, DSPy does not rewrite the whole system prompt as it keeps some sections of the system prompt to tell the llm about formatting so that DSPy can easily parse the llms output. We will rewrite a custom simplified version of that so the system prompt contains only our system prompt plus, optionally, to few-shot examples, just mentionned.
+
+3. **Model weights** (when you’re running an open-weights model)  
+   When you are running open weights models you can do lora or full model weight fine tuning. We won't get into that here, but if you have the right GPU setup, you would only need to change 1 line of code.
+
+Most people only need the first two. DSPy was designed to keep you *inside* its program-centric world, but we’ll trick it into treating the system prompt as the *entire* program.
+
+
+DSPy has quite a reputation for its automatic prompt optimization capability. Despite that, DSPy is relatively hard to use to optimize a system prompt. DSPy is the implementation of a new Paradigm (one where you do not write prompt you rather focus on your program ), so it does not focus on optimizing a prompt but it rather focus on optimizing a program. Although, I very strongly recommend that you learn DSPy's signature, AI programming and the Intent-Oriented Pragramming paradigm DSPy, sometimes you just want a better system prompt. 
+
+In this tutorial, I will show you how to optimize as system prompt given a trainset set. The system prompt will be rewritten automatically by an LLM in a loop for several steps.
+
+
+
+## Optimizing a non existent system prompt
+
+As a first task, we will start with an empty system prompt and we will have dspy's optimizer deduce the system prompt based on the training set
+
+
 
 Usually the first thing to do whenever you work with dspy is to first configure you llm connection.
 
