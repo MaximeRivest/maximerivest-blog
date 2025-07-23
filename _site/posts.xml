@@ -47,7 +47,7 @@ python library requirements
 <div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>I like to use uv to install my libraries.</p>
-<div id="23f95646" class="cell" data-execution_count="1">
+<div id="0bad959c" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">!</span>uv pip install dspy<span class="op" style="color: #5E5E5E;
@@ -163,61 +163,85 @@ font-style: inherit;">)</span></span></code></pre></div>
 <p>In this tutorial, I’ll show you how I’ve modified and customized DSPy to make it handle system prompt optimization. Usually DSPy is doing program optimization. DSPy is very much batteries included, giving you tons of tools for everything. It’s general, and it gives you a framework for how to do things, which is powerful and useful. But that framework is about AI programming, not about system prompt optimization. That is why we will need to do some customization to DSPy. Don’t worry, DSPy was built in a way that lets us do it without too much work.</p>
 <p>The nice thing about having to customize DSPy is that by the end you’ll walk away with two things. First, a way to automatically optimize system prompts. Second, you’ll have opened the hood: you’ll understand better how DSPy works and this will help you use DSPy more proficiently when you actually want to do AI programs.</p>
 <p>So by the end of this tutorial we will have built this simple yet powerful automatic system prompt optimization utility and understood why we had to do what we did.</p>
-<div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><span class="in" style="color: #5E5E5E;
+<div id="94faeac3" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1">optimzed_system_prompt <span class="op" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">```{python}</span></span>
-<span id="cb6-2"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">=</span> optimize(</span>
+<span id="cb6-2">    training_inputs <span class="op" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">optimzed_system_prompt = optimize(</span></span>
-<span id="cb6-3"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">=</span> [<span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">    training_inputs = ["User prompt example 1", "...", "User prompt exampl n"],</span></span>
-<span id="cb6-4"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">"User prompt example 1"</span>, <span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">    training_outputs = ["Desirable Assistant's example 1", "...", "Desirable Assistant's example 1"],</span></span>
-<span id="cb6-5"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">"..."</span>, <span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">    llm_judge = "Return a 1 if it's good and a 0 if it's bad."</span></span>
-<span id="cb6-6"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">"User prompt exampl n"</span>],</span>
+<span id="cb6-3">    training_outputs <span class="op" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">)</span></span>
-<span id="cb6-7"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">=</span> [<span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">```</span></span></code></pre></div>
+font-style: inherit;">"Desirable Assistant's example 1"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"..."</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Desirable Assistant's example 1"</span>],</span>
+<span id="cb6-4">    llm_judge <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Return a 1 if it's good and a 0 if it's bad."</span></span>
+<span id="cb6-5">)</span></code></pre></div>
+</div>
 <p>Our <code>optimize</code> function will also be able to optionally take a starting system prompt, a max few-shots, and teacher and student model identifiers. Here is a mock-up of that:</p>
-<div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1"><span class="in" style="color: #5E5E5E;
+<div id="d81dbdb0" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1">optimzed_system_prompt <span class="op" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">```{python}</span></span>
-<span id="cb7-2"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">=</span> optimize(</span>
+<span id="cb7-2">    training_inputs <span class="op" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">optimzed_system_prompt = optimize(</span></span>
-<span id="cb7-3"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">=</span> [<span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">    training_inputs = ["User prompt example 1", "...", "User prompt exampl n"],</span></span>
-<span id="cb7-4"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">"User prompt example 1"</span>, <span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">    training_outputs = ["Desirable Assistant's example 1", "...", "Desirable Assistant's example 1"],</span></span>
-<span id="cb7-5"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">"..."</span>, <span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">    llm_judge = "Return a 1 if it's good and a 0 if it's bad.",</span></span>
-<span id="cb7-6"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">"User prompt exampl n"</span>],</span>
+<span id="cb7-3">    training_outputs <span class="op" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">    system_prompt = "You are a model that perform well...",</span></span>
-<span id="cb7-7"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">=</span> [<span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">    max_few_shots = 2,</span></span>
-<span id="cb7-8"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">"Desirable Assistant's example 1"</span>, <span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">    teacher_model = "a-smart-model",</span></span>
-<span id="cb7-9"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">"..."</span>, <span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">    student_model = "a-cheap-model"</span></span>
-<span id="cb7-10"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">"Desirable Assistant's example 1"</span>],</span>
+<span id="cb7-4">    llm_judge <span class="op" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">)</span></span>
-<span id="cb7-11"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">```</span></span></code></pre></div>
+font-style: inherit;">"Return a 1 if it's good and a 0 if it's bad."</span>,</span>
+<span id="cb7-5">    system_prompt <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"You are a model that perform well..."</span>,</span>
+<span id="cb7-6">    max_few_shots <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>,</span>
+<span id="cb7-7">    teacher_model <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"a-smart-model"</span>,</span>
+<span id="cb7-8">    student_model <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"a-cheap-model"</span></span>
+<span id="cb7-9">)</span></code></pre></div>
+</div>
 <p>Now that we have our vision, let’s get going!</p>
 </section>
 <section id="the-task" class="level2">
@@ -225,18 +249,26 @@ font-style: inherit;">```</span></span></code></pre></div>
 <p>All throughout this tutorial our task will be to make an English to Quebec-French translator.</p>
 <p>The first DSPy optimizer that we want to use is <code>dspy.MIPROv2</code>. This optimizer can write (or improve) a program’s instructions. Let’s analyze the code below to learn what parts we must prepare to reach that goal of running MIPROv2 on task.</p>
 <p>First we pass <code>translation_judge</code> to the optimizer initialisation. This should be a function that must return a score between 0 (bad) to 1 (good). In DSPy these are called metrics. Almost every DSPy optimizer requires a metric. After we have 2 <code>max_..._demos</code> which are set to 0, this is because as a first run we would like to only optimise the text of the system prompt without adding few-shot examples. MIPROv2 can search for few-shot examples that would improve a program’s performance.</p>
-<div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb8-1"><span class="in" style="color: #5E5E5E;
+<div id="195eec83" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1">optimizer <span class="op" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">```{python}</span></span>
-<span id="cb8-2"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">=</span> dspy.MIPROv2(translation_judge, max_bootstrapped_demos <span class="op" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">optimizer = dspy.MIPROv2(translation_judge, max_bootstrapped_demos = 0, max_labeled_demos = 0)</span></span>
-<span id="cb8-3"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
 background-color: null;
-font-style: inherit;">my_program_optimized = optimizer.compile(my_program, trainset=trainset)</span></span>
-<span id="cb8-4"><span class="in" style="color: #5E5E5E;
+font-style: inherit;">0</span>, max_labeled_demos <span class="op" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">```</span></span></code></pre></div>
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)</span>
+<span id="cb8-2">my_program_optimized <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> optimizer.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">compile</span>(my_program, trainset<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>trainset)</span></code></pre></div>
+</div>
 <p>Second line of code, inside the <code>compile</code> method, we must give a DSPy <code>program</code>. This is not a string; it cannot be a system prompt. We will thus need to wrap up our system prompt + user/assistant simple LLM call into a lightweight program. And, finally, we have the trainset. In DSPy, this must be a list of <code>dspy.Example</code> objects. This is the object that all of DSPy’s internals are using, so there is no way around it; we must format our input/output training set as <code>dspy.Example</code>.</p>
 <p>In summary, we need: 1. a metric 2. a program 3. a training set</p>
 <p>and we must format those appropriately.</p>
@@ -245,7 +277,7 @@ font-style: inherit;">```</span></span></code></pre></div>
 <section id="training-set" class="level2">
 <h2 class="anchored" data-anchor-id="training-set">Training set</h2>
 <p>The <code>Example()</code> object can take any arguments. You can think of those as column names in a dataframe or “keys” in JSON. It is usually pretty important to consider these names thoughtfully and normally DSPy will present them to the LLM as part of the prompts. In our case, that is a behavior from DSPy that we will change, so it does not matter what we call them. I decided to go with something very general. The <code>prompt</code> will be the user message and the <code>generation</code> will be the assistant message.</p>
-<div id="9fb6d6c4" class="cell" data-execution_count="2">
+<div id="9a1105ec" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><span class="im" style="color: #00769E;
 background-color: null;
 font-style: inherit;">import</span> dspy</span>
@@ -436,7 +468,7 @@ font-style: inherit;">"On est à court de lait."</span>),</span>
 <span id="cb9-24">]</span></code></pre></div>
 </div>
 <p>Before we are done with our training set we must do 1 more little thing:</p>
-<div id="3122f84e" class="cell" data-execution_count="3">
+<div id="129bc9fc" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1">trainset <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> [x.with_inputs(<span class="st" style="color: #20794D;
@@ -456,7 +488,7 @@ font-style: inherit;">in</span> examples]</span></code></pre></div>
 <h2 class="anchored" data-anchor-id="metric">Metric</h2>
 <p>Our first metric will be somewhat dumb and a little bit bad. That is because it is hard to have code that measures the quality of a translation. Despite that, we will get pretty good results, you will see.</p>
 <p>In essence, all this code does is search for some very common French words that are not also common English words. If any of the words are found, the function returns a 1; otherwise it returns a 0.</p>
-<div id="d7ae95bb" class="cell" data-execution_count="4">
+<div id="f32af04b" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><span class="im" style="color: #00769E;
 background-color: null;
 font-style: inherit;">import</span> re</span>
@@ -560,7 +592,7 @@ font-style: inherit;">0.0</span></span></code></pre></div>
 <section id="program" class="level2">
 <h2 class="anchored" data-anchor-id="program">Program</h2>
 <p>The simplest program you can build in DSPy is one with only one input, one output, and empty instructions using <code>Predict</code>. A core concept of DSPy is around that signature, but since we do not want to do program optimization I’ll not go into it (see <a href="https://maximerivest.com/posts/dspy-one-hour-guide.html">this post</a> for a simple introduction to DSPy).</p>
-<div id="e93c6399" class="cell" data-execution_count="5">
+<div id="6cb18539" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><span class="kw" style="color: #003B4F;
 background-color: null;
 font-weight: bold;
@@ -586,7 +618,7 @@ background-color: null;
 font-style: inherit;">=</span> dspy.Predict(signature)</span></code></pre></div>
 </div>
 <p>The most interesting part for you to note is that <code>initial_program</code> is now callable, and if we call it, we will get an LLM response, provided we set up an LLM like this:</p>
-<div id="113584f2" class="cell" data-execution_count="6">
+<div id="992e6ad6" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1">kimi <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> dspy.LM(<span class="st" style="color: #20794D;
@@ -607,14 +639,14 @@ font-style: inherit;">"Hello, how are you?"</span>)</span></code></pre></div>
 </div>
 </div>
 <p>But we have a few problems.</p>
-<div id="c47bdf5c" class="cell" data-execution_count="7">
+<div id="758a07fa" class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1">initial_program.inspect_history()</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 
 
 
-[2025-07-23T09:24:43.454241]
+[2025-07-23T09:37:55.419674]
 
 System message:
 
@@ -687,7 +719,7 @@ I'm doing well, thank you for asking! How can I help you today?
 <h2 class="anchored" data-anchor-id="making-a-simple-custom-adapter">Making a Simple Custom Adapter</h2>
 <p>Adapters are DSPy’s interface to the LLMs. They are called with a few pieces of information, and DSPy expects a parsed LLM generation to be returned. The following is the simplest we can make an adapter. We are taking in the LM that DSPy’s internals want us to use, keyword arguments if any, a signature, demos, and inputs.</p>
 <p>The signature can contain only 3 things: instructions, inputs, and outputs. In our case, we have “canned” the signature, so we also know that the input is named <code>prompt</code> and the output is named <code>generation</code>, simplifying our requirements for our adapter substantially from what DSPy usually has to worry about.</p>
-<div id="31408127" class="cell" data-execution_count="8">
+<div id="3aaf18bb" class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># Define the SimplestAdapter as before</span></span>
@@ -787,7 +819,7 @@ background-color: null;
 font-style: inherit;">**</span>kwargs)</span></code></pre></div>
 </div>
 <p>We also have to subclass <code>dspy.Predict</code> so that we are able to make a program that uses our adapter. Usually in DSPy, the adapter is set globally or within a scoped context, but in both cases, the adapter is applied recursively. This has the effect of making some DSPy programs inside the optimizer use our simple adapter, causing them all to break. And breaking everything is generally not good…</p>
-<div id="2129649e" class="cell" data-execution_count="9">
+<div id="1f15f5b1" class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb21" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1">my_program <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> MyPredict(signature)</span></code></pre></div>
@@ -798,7 +830,7 @@ font-style: inherit;">=</span> MyPredict(signature)</span></code></pre></div>
 <p>We are now ready to run the optimizer!!!</p>
 <section id="letting-miprov2-write-the-system-prompt" class="level3">
 <h3 class="anchored" data-anchor-id="letting-miprov2-write-the-system-prompt">Letting MIPROv2 write the System Prompt</h3>
-<div id="d5292255" class="cell" data-execution_count="10">
+<div id="70a5b0b2" class="cell" data-execution_count="13">
 <div class="sourceCode cell-code" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1">optimizer <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> dspy.MIPROv2(translation_judge, max_bootstrapped_demos <span class="op" style="color: #5E5E5E;
@@ -823,7 +855,7 @@ background-color: null;
 font-style: inherit;">False</span>)</span></code></pre></div>
 </div>
 <p>Let’s test the program right away:</p>
-<div id="f302ad70" class="cell" data-execution_count="11">
+<div id="6b7a5f09" class="cell" data-execution_count="14">
 <div class="sourceCode cell-code" id="cb23" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1">my_program_optimized(prompt <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="st" style="color: #20794D;
@@ -839,14 +871,14 @@ font-style: inherit;">"Hello, how are you?"</span>)</span></code></pre></div>
 </div>
 </div>
 <p>Good! It’s a translation and not a response to our salutation. Let’s inspect the messages.</p>
-<div id="ff58d317" class="cell" data-execution_count="12">
+<div id="e9416c3e" class="cell" data-execution_count="15">
 <div class="sourceCode cell-code" id="cb26" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1">my_program_optimized.inspect_history()</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 
 
 
-[2025-07-23T09:24:44.063939]
+[2025-07-23T09:37:56.428724]
 
 System message:
 
@@ -868,14 +900,14 @@ Salut, ça va-tu ben?
 </code></pre>
 </div>
 </div>
-<p>And this confirms that our adapter works! this is a completely ‘vanilla’ set of messages.</p>
+<p>And this confirms that our adapter works! This is a completely ‘vanilla’ set of messages.</p>
 </section>
 <section id="using-llm-in-the-metric" class="level3">
 <h3 class="anchored" data-anchor-id="using-llm-in-the-metric">Using LLM in the Metric</h3>
-<p>Here we redefine our <code>translation_judge</code>, so that instead of using Python code to calculate a score between 0 and 1 we ask an LLM to do that.</p>
-<p>In this case, we are using DSPy in it’s most natural way! So first we define a signature by subclassing <code>dspy.Signature</code>.</p>
-<p>The doc string there is instruction that the adapter will put in a system prompt. The InputField are those we will pass to the program and the OutField are those that the program will return, in the case of <code>score: int = dspy.OutputField(desc="A single integer from 1 to 5.")</code> dspy will ensure and parse the integer out of the llm generated string for us. If an int is not provided, DSPy will even retry for us, and try different adapters.</p>
-<div id="dfd2a8c4" class="cell" data-execution_count="13">
+<p>Here we redefine our <code>translation_judge</code>, so that instead of using Python code to calculate a score between 0 and 1, we ask an LLM to do that.</p>
+<p>In this case, we are using DSPy in its most natural way! So first we define a signature by subclassing <code>dspy.Signature</code>.</p>
+<p>The docstring there is the instruction that the adapter will put in a system prompt. The InputFields are those we will pass to the program, and the OutputFields are those that the program will return. In the case of <code>score: int = dspy.OutputField(desc="A single integer from 1 to 5.")</code>, DSPy will ensure and parse the integer out of the LLM-generated string for us. If an integer is not provided, DSPy will even retry for us, and try different adapters.</p>
+<div id="442fdcf7" class="cell" data-execution_count="16">
 <div class="sourceCode cell-code" id="cb28" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><span class="kw" style="color: #003B4F;
 background-color: null;
 font-weight: bold;
@@ -1052,8 +1084,8 @@ font-style: inherit;">return</span> <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.0</span></span></code></pre></div>
 </div>
-<p>Now that we have overwritten <code>translation_judge</code> let’s run the optimization again</p>
-<div id="11168f32" class="cell" data-execution_count="14">
+<p>Now that we have overwritten <code>translation_judge</code>, let’s run the optimization again.</p>
+<div id="71260033" class="cell" data-execution_count="17">
 <div class="sourceCode cell-code" id="cb29" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1">optimizer <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> dspy.MIPROv2(translation_judge, max_bootstrapped_demos <span class="op" style="color: #5E5E5E;
@@ -1078,7 +1110,7 @@ background-color: null;
 font-style: inherit;">False</span>)</span></code></pre></div>
 </div>
 <p>Let’s test the program right away:</p>
-<div id="356b2e4e" class="cell" data-execution_count="15">
+<div id="9f70faf4" class="cell" data-execution_count="18">
 <div class="sourceCode cell-code" id="cb30" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1">my_program_optimized(prompt <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="st" style="color: #20794D;
@@ -1094,14 +1126,14 @@ font-style: inherit;">"Hello, how are you?"</span>)</span></code></pre></div>
 </div>
 </div>
 <p>Good! It’s again a translation and not a response to our salutation. Let’s inspect the messages.</p>
-<div id="48ce4382" class="cell" data-execution_count="16">
+<div id="d6c8ae67" class="cell" data-execution_count="19">
 <div class="sourceCode cell-code" id="cb33" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1">my_program_optimized.inspect_history()</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 
 
 
-[2025-07-23T09:24:44.710386]
+[2025-07-23T09:37:57.484071]
 
 System message:
 
@@ -1123,13 +1155,13 @@ Salut, ça va-tu?
 </code></pre>
 </div>
 </div>
-<p>And this confirms that our adapter works! this is a completely ‘vanilla’ set of messages.</p>
+<p>And this confirms that our adapter works! This is a completely ‘vanilla’ set of messages.</p>
 </section>
-<section id="optimizing-with-few-shots-examples-too" class="level3">
-<h3 class="anchored" data-anchor-id="optimizing-with-few-shots-examples-too">Optimizing with Few-Shots Examples too</h3>
-<p>Let’s, now, make it possible for MIPROv2 to also add few-shots example into the system prompt.</p>
-<p>For this we need to improve our simple adapter to have a way to format the demos. So we first define <code>format_demos</code>, this is a normal Python function that will expect a list of dspy Examples and turn that into a simple string with a light XML structure.</p>
-<div id="d6076ea1" class="cell" data-execution_count="17">
+<section id="optimizing-with-few-shot-examples-too" class="level3">
+<h3 class="anchored" data-anchor-id="optimizing-with-few-shot-examples-too">Optimizing with Few-Shot Examples too</h3>
+<p>Let’s now make it possible for MIPROv2 to also add few-shot examples into the system prompt.</p>
+<p>For this, we need to improve our simple adapter to have a way to format the demos. So we first define <code>format_demos</code>. This is a normal Python function that will expect a list of DSPy Examples and turn that into a simple string with a light XML structure.</p>
+<div id="ea20caf4" class="cell" data-execution_count="20">
 <div class="sourceCode cell-code" id="cb35" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><span class="kw" style="color: #003B4F;
 background-color: null;
 font-weight: bold;
@@ -1211,7 +1243,7 @@ background-color: null;
 font-style: inherit;">"</span>.join(parts)</span></code></pre></div>
 </div>
 <p>Let’s try it:</p>
-<div id="d6e63799" class="cell" data-execution_count="18">
+<div id="5253d296" class="cell" data-execution_count="21">
 <div class="sourceCode cell-code" id="cb36" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1">examples <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> [</span>
@@ -1256,8 +1288,8 @@ Il neige encore.
 &lt;/examples&gt;</code></pre>
 </div>
 </div>
-<p>And we need to update our <code>SimplestAdapter</code> with that line: <code>system_content += "\n" + format_demos(demos)</code>.</p>
-<div id="23a6eca0" class="cell" data-execution_count="19">
+<p>And we need to update our <code>SimplestAdapter</code> with this line: <code>system_content += "\n" + format_demos(demos)</code>.</p>
+<div id="b9820049" class="cell" data-execution_count="22">
 <div class="sourceCode cell-code" id="cb38" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># Define the SimplestAdapter as before</span></span>
@@ -1330,8 +1362,8 @@ font-style: inherit;">"generation"</span>: outputs[<span class="dv" style="color
 background-color: null;
 font-style: inherit;">0</span>]}]</span></code></pre></div>
 </div>
-<p>Let’s run the optimization again but with <code>max_labeled_demos = 3</code> this time.</p>
-<div id="b58ee003" class="cell" data-execution_count="20">
+<p>Let’s run the optimization again, but with <code>max_labeled_demos = 3</code> this time.</p>
+<div id="4ce839ca" class="cell" data-execution_count="23">
 <div class="sourceCode cell-code" id="cb39" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1">optimizer <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> dspy.MIPROv2(translation_judge, max_bootstrapped_demos <span class="op" style="color: #5E5E5E;
@@ -1356,7 +1388,7 @@ background-color: null;
 font-style: inherit;">False</span>)</span></code></pre></div>
 </div>
 <p>Let’s test the program right away:</p>
-<div id="4c31a62e" class="cell" data-execution_count="21">
+<div id="3ed125a3" class="cell" data-execution_count="24">
 <div class="sourceCode cell-code" id="cb40" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1">my_program_optimized(prompt <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="st" style="color: #20794D;
@@ -1372,14 +1404,14 @@ font-style: inherit;">"Hello, how are you?"</span>)</span></code></pre></div>
 </div>
 </div>
 <p>Good! It’s again a translation and not a response to our salutation. Let’s inspect the messages.</p>
-<div id="b785be4a" class="cell" data-execution_count="22">
+<div id="4d9f6a81" class="cell" data-execution_count="25">
 <div class="sourceCode cell-code" id="cb43" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1">my_program_optimized.inspect_history()</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 
 
 
-[2025-07-23T09:24:46.576727]
+[2025-07-23T09:37:59.087720]
 
 System message:
 
@@ -1422,12 +1454,12 @@ Salut, ça va?
 </code></pre>
 </div>
 </div>
-<p>Now our System Prompt also contains a few examples.</p>
+<p>Now our system prompt also contains a few examples.</p>
 </section>
 <section id="changing-optimizer" class="level3">
 <h3 class="anchored" data-anchor-id="changing-optimizer">Changing Optimizer</h3>
-<p>We can easily change Optimizer, look this code now uses <code>SIMBA</code> instead of <code>MIPROv2</code></p>
-<div id="58d2ff67" class="cell" data-execution_count="23">
+<p>We can easily change the optimizer. Look at this code that now uses <code>SIMBA</code> instead of <code>MIPROv2</code>.</p>
+<div id="ae44894b" class="cell" data-execution_count="26">
 <div class="sourceCode cell-code" id="cb45" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1">optimizer <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> dspy.SIMBA(metric <span class="op" style="color: #5E5E5E;
@@ -1446,7 +1478,7 @@ background-color: null;
 font-style: inherit;">=</span>trainset)</span></code></pre></div>
 </div>
 <p>Let’s check the results:</p>
-<div id="164fb9b5" class="cell" data-execution_count="24">
+<div id="6c066488" class="cell" data-execution_count="27">
 <div class="sourceCode cell-code" id="cb46" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1">my_program_optimized(prompt <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="st" style="color: #20794D;
@@ -1459,7 +1491,7 @@ font-style: inherit;">"Hello, how are you?"</span>)</span>
 
 
 
-[2025-07-23T09:25:02.299351]
+[2025-07-23T09:38:14.219315]
 
 System message:
 
@@ -1500,9 +1532,9 @@ Salut, ça va ?
 </section>
 <section id="teacher-student-optimization" class="level3">
 <h3 class="anchored" data-anchor-id="teacher-student-optimization">Teacher-Student optimization</h3>
-<p>Let’s now optimize a for a smaller model while still using <code>Kimi</code> to generate the system prompt.</p>
-<p>We must now create another LM connection, let’s stay with groq for speed and to keep things simple.</p>
-<div id="65009cc7" class="cell" data-execution_count="25">
+<p>Let’s now optimize for a smaller model while still using <code>Kimi</code> to generate the system prompt.</p>
+<p>We must now create another LM connection. Let’s stay with Groq for speed and to keep things simple.</p>
+<div id="820a99e8" class="cell" data-execution_count="28">
 <div class="sourceCode cell-code" id="cb48" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1">llama8b <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> dspy.LM(<span class="st" style="color: #20794D;
@@ -1512,8 +1544,8 @@ font-style: inherit;">"groq/llama-3.1-8b-instant"</span>)</span>
 background-color: null;
 font-style: inherit;">=</span> llama8b)</span></code></pre></div>
 </div>
-<p>Here, I have to add teacher argument to compile: <code>.compile(... teacher = kimi ...)</code>.</p>
-<div id="c06e790b" class="cell" data-execution_count="26">
+<p>Here, I have to add the teacher argument to compile: <code>.compile(..., teacher=kimi, ...)</code>.</p>
+<div id="8b30fe5e" class="cell" data-execution_count="29">
 <div class="sourceCode cell-code" id="cb49" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1">optimizer <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> dspy.MIPROv2(translation_judge, max_bootstrapped_demos <span class="op" style="color: #5E5E5E;
@@ -1540,7 +1572,7 @@ background-color: null;
 font-style: inherit;">False</span>)</span></code></pre></div>
 </div>
 <p>Let’s confirm that <code>my_program_optimized</code> is set to use Llama.</p>
-<div id="2c5a14e3" class="cell" data-execution_count="27">
+<div id="d1102761" class="cell" data-execution_count="30">
 <div class="sourceCode cell-code" id="cb50" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1">my_program_optimized.lm.model</span></code></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="27">
 <pre><code>'groq/llama-3.1-8b-instant'</code></pre>
@@ -1548,7 +1580,7 @@ font-style: inherit;">False</span>)</span></code></pre></div>
 </div>
 <p>Indeed it is!</p>
 <p>Let’s try it:</p>
-<div id="02bd0f48" class="cell" data-execution_count="28">
+<div id="ddb2b241" class="cell" data-execution_count="31">
 <div class="sourceCode cell-code" id="cb52" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1">my_program_optimized(prompt <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="st" style="color: #20794D;
@@ -1561,7 +1593,7 @@ font-style: inherit;">"Hello, how are you?"</span>)</span>
 
 
 
-[2025-07-23T09:25:03.478036]
+[2025-07-23T09:38:15.394238]
 
 System message:
 
@@ -1583,13 +1615,13 @@ Salut, comment ça va?
 </code></pre>
 </div>
 </div>
-<p>Cool so now we have Llama 3.1 8b as our translator :)</p>
+<p>Cool, so now we have Llama 3.1 8b as our translator :)</p>
 </section>
 <section id="bringing-it-all-together" class="level3">
-<h3 class="anchored" data-anchor-id="bringing-it-all-together">Bringing it all together</h3>
-<p>Let’s now make the <code>optimize()</code> function we envisionned at the beginning.</p>
-<p>Here, I asked o3-pro to bring it all together for us, you’ll recognize its comment style.</p>
-<div id="5c791dd7" class="cell" data-execution_count="29">
+<h3 class="anchored" data-anchor-id="bringing-it-all-together">Bringing It All Together</h3>
+<p>Let’s now make the <code>optimize()</code> function we envisioned at the beginning.</p>
+<p>Here, I asked o3-pro to bring it all together for us. You’ll recognize its comment style.</p>
+<div id="51e8007f" class="cell" data-execution_count="32">
 <div class="sourceCode cell-code" id="cb54" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><span class="kw" style="color: #003B4F;
 background-color: null;
 font-weight: bold;
@@ -2112,7 +2144,7 @@ font-weight: bold;
 font-style: inherit;">return</span> final_prompt</span></code></pre></div>
 </div>
 <p>Let’s use it:</p>
-<div id="ce84b955" class="cell" data-execution_count="30">
+<div id="9b70a1f2" class="cell" data-execution_count="33">
 <div class="sourceCode cell-code" id="cb55" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb55-1">optimized_system_prompt <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> optimize(</span>
@@ -2144,7 +2176,7 @@ font-style: inherit;">"Return 1 if the French looks natural and 0 otherwise."</s
 <span id="cb55-11">)</span></code></pre></div>
 </div>
 <p>Let’s see what system prompt we got:</p>
-<div id="0e315186" class="cell" data-execution_count="31">
+<div id="154d23b6" class="cell" data-execution_count="34">
 <div class="sourceCode cell-code" id="cb56" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb56-1"><span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">print</span>(optimized_system_prompt)</span></code></pre></div>
@@ -2154,7 +2186,7 @@ Given a short English sentence or phrase (the `prompt`), produce its Canadian-Fr
 </div>
 </div>
 <p>Not bad! Let’s test with all the parameters:</p>
-<div id="5b78f17a" class="cell" data-execution_count="32">
+<div id="aef0eb20" class="cell" data-execution_count="35">
 <div class="sourceCode cell-code" id="cb58" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1">optimized_system_prompt <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> optimize(</span>
@@ -2206,7 +2238,7 @@ font-style: inherit;">"groq/llama-3.1-8b-instant"</span></span>
 <span id="cb58-15">)</span></code></pre></div>
 </div>
 <p>And let’s see what we got:</p>
-<div id="6423d988" class="cell" data-execution_count="33">
+<div id="0845cb02" class="cell" data-execution_count="36">
 <div class="sourceCode cell-code" id="cb59" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1"><span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">print</span>(optimized_system_prompt)</span></code></pre></div>

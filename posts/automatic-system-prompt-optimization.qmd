@@ -23,7 +23,7 @@ title-block-style: none
 execute:
   echo: true  
   cache: true
-  #freeze: true
+  freeze: true
 ---
 
 ::: {.callout-tip collapse="true"}
@@ -96,7 +96,8 @@ The nice thing about having to customize DSPy is that by the end you'll walk awa
 
 So by the end of this tutorial we will have built this simple yet powerful automatic system prompt optimization utility and understood why we had to do what we did.
 
-```{{python}}
+```{python}
+#| eval: false
 optimzed_system_prompt = optimize(
     training_inputs = ["User prompt example 1", "...", "User prompt exampl n"],
     training_outputs = ["Desirable Assistant's example 1", "...", "Desirable Assistant's example 1"],
@@ -106,7 +107,8 @@ optimzed_system_prompt = optimize(
 
 Our `optimize` function will also be able to optionally take a starting system prompt, a max few-shots, and teacher and student model identifiers. Here is a mock-up of that:
 
-```{{python}}
+```{python}
+#| eval: false
 optimzed_system_prompt = optimize(
     training_inputs = ["User prompt example 1", "...", "User prompt exampl n"],
     training_outputs = ["Desirable Assistant's example 1", "...", "Desirable Assistant's example 1"],
@@ -128,7 +130,8 @@ The first DSPy optimizer that we want to use is `dspy.MIPROv2`. This optimizer c
 
 First we pass `translation_judge` to the optimizer initialisation. This should be a function that must return a score between 0 (bad) to 1 (good). In DSPy these are called metrics. Almost every DSPy optimizer requires a metric. After we have 2 `max_..._demos` which are set to 0, this is because as a first run we would like to only optimise the text of the system prompt without adding few-shot examples. MIPROv2 can search for few-shot examples that would improve a program's performance.
 
-```{{python}}
+```{python}
+#| eval: false
 optimizer = dspy.MIPROv2(translation_judge, max_bootstrapped_demos = 0, max_labeled_demos = 0)
 my_program_optimized = optimizer.compile(my_program, trainset=trainset)
 ```
@@ -362,15 +365,15 @@ Good! It's a translation and not a response to our salutation. Let's inspect the
 my_program_optimized.inspect_history()
 ```
 
-And this confirms that our adapter works! this is a completely 'vanilla' set of messages.
+And this confirms that our adapter works! This is a completely 'vanilla' set of messages.
 
 ### Using LLM in the Metric
 
-Here we redefine our `translation_judge`, so that instead of using Python code to calculate a score between 0 and 1 we ask an LLM to do that.
+Here we redefine our `translation_judge`, so that instead of using Python code to calculate a score between 0 and 1, we ask an LLM to do that.
 
-In this case, we are using DSPy in it's most natural way! So first we define a signature by subclassing `dspy.Signature`.
+In this case, we are using DSPy in its most natural way! So first we define a signature by subclassing `dspy.Signature`.
 
-The doc string there is instruction that the adapter will put in a system prompt. The InputField are those we will pass to the program and the OutField are those that the program will return, in the case of `score: int = dspy.OutputField(desc="A single integer from 1 to 5.")` dspy will ensure and parse the integer out of the llm generated string for us. If an int is not provided, DSPy will even retry for us, and try different adapters.
+The docstring there is the instruction that the adapter will put in a system prompt. The InputFields are those we will pass to the program, and the OutputFields are those that the program will return. In the case of `score: int = dspy.OutputField(desc="A single integer from 1 to 5.")`, DSPy will ensure and parse the integer out of the LLM-generated string for us. If an integer is not provided, DSPy will even retry for us, and try different adapters.
 
 ```{python}
 class QuebecTranslationJudge(dspy.Signature):
@@ -421,7 +424,7 @@ def translation_judge(example, prediction, trace=None):
         return 0.0
 ```
 
-Now that we have overwritten `translation_judge` let's run the optimization again
+Now that we have overwritten `translation_judge`, let's run the optimization again.
 
 ```{python}
 #| output: false
@@ -442,13 +445,13 @@ Good! It's again a translation and not a response to our salutation. Let's inspe
 my_program_optimized.inspect_history()
 ```
 
-And this confirms that our adapter works! this is a completely 'vanilla' set of messages.
+And this confirms that our adapter works! This is a completely 'vanilla' set of messages.
 
-### Optimizing with Few-Shots Examples too
+### Optimizing with Few-Shot Examples too
 
-Let's, now, make it possible for MIPROv2 to also add few-shots example into the system prompt.
+Let's now make it possible for MIPROv2 to also add few-shot examples into the system prompt.
 
-For this we need to improve our simple adapter to have a way to format the demos. So we first define `format_demos`, this is a normal Python function that will expect a list of dspy Examples and turn that into a simple string with a light XML structure.
+For this, we need to improve our simple adapter to have a way to format the demos. So we first define `format_demos`. This is a normal Python function that will expect a list of DSPy Examples and turn that into a simple string with a light XML structure.
 
 ```{python}
 def format_demos(demos):
@@ -481,7 +484,8 @@ examples = [
 print(format_demos(examples))
 ```
 
-And we need to update our `SimplestAdapter` with that line: `system_content += "\n" + format_demos(demos)`.
+And we need to update our `SimplestAdapter` with this line:
+`system_content += "\n" + format_demos(demos)`.
 
 ```{python}
 # Define the SimplestAdapter as before
@@ -499,7 +503,7 @@ class SimplestAdapter(dspy.Adapter):
         return [{"generation": outputs[0]}]
 ```
 
-Let's run the optimization again but with `max_labeled_demos = 3` this time.
+Let's run the optimization again, but with `max_labeled_demos = 3` this time.
 
 ```{python}
 #| output: false
@@ -513,18 +517,17 @@ Let's test the program right away:
 my_program_optimized(prompt = "Hello, how are you?")
 ```
 
-
 Good! It's again a translation and not a response to our salutation. Let's inspect the messages.
 
 ```{python}
 my_program_optimized.inspect_history()
 ```
 
-Now our System Prompt also contains a few examples.
+Now our system prompt also contains a few examples.
 
 ### Changing Optimizer
 
-We can easily change Optimizer, look this code now uses `SIMBA` instead of `MIPROv2`
+We can easily change the optimizer. Look at this code that now uses `SIMBA` instead of `MIPROv2`.
 
 ```{python}
 #| output: false
@@ -543,16 +546,16 @@ In the case of SIMBA, we can see that it gradually added instructions to the sys
 
 ### Teacher-Student optimization
 
-Let's now optimize a for a smaller model while still using `Kimi` to generate the system prompt.
+Let's now optimize for a smaller model while still using `Kimi` to generate the system prompt.
 
-We must now create another LM connection, let's stay with groq for speed and to keep things simple. 
+We must now create another LM connection. Let's stay with Groq for speed and to keep things simple.
 
 ```{python}
 llama8b = dspy.LM("groq/llama-3.1-8b-instant")
 my_program.set_lm(lm = llama8b)
 ```
 
-Here, I have to add teacher argument to compile: `.compile(... teacher = kimi ...)`.
+Here, I have to add the teacher argument to compile: `.compile(..., teacher=kimi, ...)`.
 
 ```{python}
 #| output: false
@@ -568,20 +571,20 @@ my_program_optimized.lm.model
 
 Indeed it is!
 
-Let's try it: 
+Let's try it:
 
 ```{python}
 my_program_optimized(prompt = "Hello, how are you?")
 my_program_optimized.inspect_history()
 ```
 
-Cool so now we have Llama 3.1 8b as our translator :)
+Cool, so now we have Llama 3.1 8b as our translator :)
 
-### Bringing it all together
+### Bringing It All Together
 
-Let's now make the `optimize()` function we envisionned at the beginning.
+Let's now make the `optimize()` function we envisioned at the beginning.
 
-Here, I asked o3-pro to bring it all together for us, you'll recognize its comment style.
+Here, I asked o3-pro to bring it all together for us. You'll recognize its comment style.
 
 ```{python}
 def optimize(
