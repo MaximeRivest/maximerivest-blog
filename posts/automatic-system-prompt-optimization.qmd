@@ -22,7 +22,7 @@ title-block-banner: false
 title-block-style: none
 execute:
   echo: true  
-  #cache: true
+  cache: true
   #freeze: true
 ---
 
@@ -333,10 +333,15 @@ class MyPredict(dspy.Predict):
 
 We also have to subclass `dspy.Predict` so that we are able to make a program that uses our adapter. Usually in DSPy, the adapter is set globally or within a scoped context, but in both cases, the adapter is applied recursively. This has the effect of making some DSPy programs inside the optimizer use our simple adapter, causing them all to break. And breaking everything is generally not good...
 
+```{python}
+my_program = MyPredict(signature)
+```
 
 ## Automatically Generating a System Prompt
 
 We are now ready to run the optimizer!!!
+
+### Letting MIPROv2 write the System Prompt
 
 ```{python}
 #| output: false
@@ -359,290 +364,13 @@ my_program_optimized.inspect_history()
 
 And this confirms that our adapter works! this is a completely 'vanilla' set of messages.
 
-## What can we optimize in a System Prompt?
+### Using LLM in the Metric
 
-DSPy’s optimizers work along three levers:
+Here we redefine our `translation_judge`, so that instead of using Python code to calculate a score between 0 and 1 we ask an LLM to do that.
 
-1. **Few-shot examples**  
-   Find or synthesize the best 0-to-N demonstrations to show to show to the LLM. This is a very common optimization technic, DSPy usually add those as user-assistant message pairs and so we will have to do some modifications to get that all into the system prompt's string.
+In this case, we are using DSPy in it's most natural way! So first we define a signature by subclassing `dspy.Signature`.
 
-2. **Instruction text**  
-   In DSPy there is a component called `Instructions`, that is a string that is generally added to a system prompt template and that string can be optimized and rewritten by llms. Normally, DSPy does not rewrite the whole system prompt as it keeps some sections of the system prompt to tell the llm about formatting so that DSPy can easily parse the llms output. We will rewrite a custom simplified version of that so the system prompt contains only our system prompt plus, optionally, to few-shot examples, just mentionned.
-
-3. **Model weights** (when you’re running an open-weights model)  
-   When you are running open weights models you can do lora or full model weight fine tuning. We won't get into that here, but if you have the right GPU setup, you would only need to change 1 line of code.
-
-Most people only need the first two. DSPy was designed to keep you *inside* its program-centric world, but we’ll trick it into treating the system prompt as the *entire* program.
-
-
-DSPy has quite a reputation for its automatic prompt optimization capability. Despite that, DSPy is relatively hard to use to optimize a system prompt. DSPy is the implementation of a new Paradigm (one where you do not write prompt you rather focus on your program ), so it does not focus on optimizing a prompt but it rather focus on optimizing a program. Although, I very strongly recommend that you learn DSPy's signature, AI programming and the Intent-Oriented Pragramming paradigm DSPy, sometimes you just want a better system prompt. 
-
-In this tutorial, I will show you how to optimize as system prompt given a trainset set. The system prompt will be rewritten automatically by an LLM in a loop for several steps.
-
-
-
-## Optimizing a non existent system prompt
-
-As a first task, we will start with an empty system prompt and we will have dspy's optimizer deduce the system prompt based on the training set
-
-
-
-Usually the first thing to do whenever you work with dspy is to first configure you llm connection.
-
-```{python}
-import dspy
-
-kimi = dspy.LM("groq/moonshotai/kimi-k2-instruct")
-dspy.configure(lm = kimi)
-```
-
-::: {.callout-tip collapse="true"}
-## Calling llms in DSPy
-
-```{python}
-kimi("Hello")
-```
-
-Although, convenient. This is never really used, when you are using DSPy according to it's paradigm, in DSPy you would be using and calling a program instead. More like that:
-
-```{python}
-class signature(dspy.Signature):
-    """
-    You are a Pirate
-    """
-    prompt = dspy.InputField()
-    generation = dspy.OutputField()
-
-my_program = dspy.Predict(signature) 
-
-my_program(prompt = "Hello :)")
-```
-
-It is out of scope to explain all about predict and signatures here as my goal is to simply get you to do automatic system prompt optimization. So let's now focus on that.
-
-:::
-
-For optimization we need a training set. DSPy expects the training set to be a list of `Example` dspy object so we will create our training set like that:
-
-```{python}
-examples = [
-    dspy.Example(prompt="I'm going to the convenience store.", generation="Je m'en vais au dépanneur."),
-    dspy.Example(prompt="It's really cold out today.", generation="Il fait frette en maudit aujourd'hui."),
-    dspy.Example(prompt="Can you help me move this weekend?", generation="Tu peux m'aider à déménager ce weekend?"),
-    dspy.Example(prompt="We were stuck in traffic for two hours.", generation="On était pognés dans le trafic pendant deux heures."),
-    dspy.Example(prompt="She's my girlfriend.", generation="C'est ma blonde."),
-    dspy.Example(prompt="That car is so cool!", generation="C'est ben l'fun ce char-là!"),
-    dspy.Example(prompt="I'll call you tonight.", generation="Je vais t'appeler ce soir."),
-    dspy.Example(prompt="He's always bragging.", generation="Il se vente tout l'temps."),
-    dspy.Example(prompt="We grabbed a coffee at Tim's.", generation="On a pris un café au Tim."),
-    dspy.Example(prompt="Close the window, it's chilly.", generation="Ferme la fenêtre, y fait frette."),
-    dspy.Example(prompt="I have an appointment at 3.", generation="J'ai un rendez-vous à trois heures."),
-    dspy.Example(prompt="They're celebrating their birthday.", generation="Ils fêtent leur fête."),
-    dspy.Example(prompt="I parked in the back.", generation="J'ai stationné dans l'fond."),
-    dspy.Example(prompt="The metro is packed.", generation="Le métro est plein à craquer."),
-    dspy.Example(prompt="We watched a movie last night.", generation="On a écouté un film hier soir."),
-    dspy.Example(prompt="I need to do my groceries.", generation="J'dois faire mon épicerie."),
-    dspy.Example(prompt="Don't forget your boots.", generation="Oublie pas tes bottes."),
-    dspy.Example(prompt="It's snowing again.", generation="Il neige encore."),
-    dspy.Example(prompt="I'll take the bus.", generation="J'va prendre l'bus."),
-    dspy.Example(prompt="We're out of milk.", generation="On est à court de lait."),
-]
-```
-
-You need to tell DSPY what are the input fields. So let loop through all DSPy Example (those we just created) and use the `.with_inputs` method to tell DSPy that `'prompt'` is our input field. Again, DSPy is very general and powerfull but we will use it in a little bit of a strange way here so some things won't be quite natural. In this specific case, `with_inputs` is relevant in dspy because we could use any legal python variable name for our input and we could have used more then one input.
-
-```{python}
-trainset = [x.with_inputs('prompt') for x in examples]
-```
-
-Now that we have our training set we
-
-```{python}
-# Use MyPredict instead of dspy.Predict
-class signature(dspy.Signature):
-    prompt = dspy.InputField()
-    generation = dspy.OutputField()
-
-system_prompt = " "
-initial_system = MyPredict(signature.with_instructions(system_prompt))
-```
-
-```{python}
-def format_demos(demos):
-    """
-    Wrap every demo once – no duplicated header lines.
-    """
-    parts = ["Here are examples of your expected behavior.",
-             "<examples>"]
-    for i, demo in enumerate(demos, 1):
-        parts += [
-            f"<example_{i}>",
-            "User:",
-            demo["prompt"],
-            "Assistant:",
-            demo["generation"],
-            f"</example_{i}>",
-        ]
-    parts.append("</examples>")
-    return "\n".join(parts)
-
-# Define the SimplestAdapter as before
-class SimplestAdapter(dspy.Adapter):
-    def __call__(self, lm, lm_kwargs, signature, demos, inputs):
-        print(inputs)
-        system_content = signature.instructions
-        if demos:
-            system_content += "\n" + format_demos(demos)
-        messages = [
-            {"role": "system", "content": system_content},
-            {"role": "user", "content": inputs["prompt"]},
-        ]
-        outputs = lm(messages=messages, **lm_kwargs)
-        return [{"generation": outputs[0]}]
-
-# Do NOT call dspy.configure(adapter=SimplestAdapter())
-
-# Subclass Predict to use the custom adapter only for this instance
-class MyPredict(dspy.Predict):
-    def forward(self, **kwargs):
-        adapter = SimplestAdapter()
-        with dspy.settings.context(adapter=adapter):
-            return super().forward(**kwargs)
-
-
-```
-
-
-```{python}
-initial_system.parameters("instructions", "You are a pirate")
-```
-
-```{python}
-
-initial_system(prompt="Hi how are you?")
-```
-
-```{python}
-import re
-
-def is_french(text):
-    # Naive French detector: check for common French words/accents
-    french_markers = [
-        r"\b(le|la|les|un|une|des|du|de|et|à|est|sont|avec|pour|sur|par|mais|ou|où|que|qui|quand|comment|nous|vous|ils|elles|ça|ce|cette|ces)\b",
-        r"[éèêàùçîôâœëïü]",
-    ]
-    return any(re.search(marker, text.lower()) for marker in french_markers)
-
-def translation_judge(example, prediction, trace=None):
-    """
-    Return 1.0 if the output looks French, else 0.0.
-    Doing the cast explicitly guarantees we never hand DSPy a None.
-    """
-    output = prediction.get("generation", "") or ""
-    try:
-        return float(is_french(output))
-    except Exception:
-        # Anything weird is just a miss
-        return 0.0
-```
-
-```{python}
-optimizer = dspy.MIPROv2(translation_judge, max_bootstrapped_demos = 0, max_labeled_demos = 0)
-my_program_optimized = optimizer.compile(my_program, trainset=trainset)
-```
-
-
-
-```{python}
-my_program_optimized(prompt = "Hi how are you?")
-```
-
-
-```{python}
-my_program_optimized.inspect_history()
-```
-
-
-```{python}
-optimizer = dspy.MIPROv2(translation_judge)
-my_program_optimized = optimizer.compile(my_program, trainset=trainset)
-```
-
-
-
-```{python}
-my_program_optimized(prompt = "Hi how are you?")
-```
-
-
-```{python}
-my_program_optimized.inspect_history()
-```
-
-
-```{python}
-optimizer = dspy.SIMBA(metric = translation_judge, bsize = 8)
-my_program_optimized = optimizer.compile(my_program, trainset=trainset)
-```
-
-
-
-```{python}
-my_program_optimized(prompt = "Hi how are you?")
-```
-
-
-```{python}
-my_program_optimized.inspect_history()
-```
-
-```{python}
-
-evaluator = dspy.Evaluate(devset = trainset, metric=translation_judge)
-evaluator(my_program_optimized)
-```
-
-
-```{python}
-
-evaluator = dspy.Evaluate(devset = trainset, metric=translation_judge)
-evaluator(my_program)
-```
-
-
-```{python}
-optimizer = dspy.MIPROv2(translation_judge, max_bootstrapped_demos = 2, max_labeled_demos = 2)
-my_program_optimized_with_demo = optimizer.compile(my_program, trainset=trainset)
-```
-
-
-
-```{python}
-my_program_optimized_with_demo(prompt = "Hi how are you?")
-```
-
-
-```{python}
-my_program_optimized_with_demo.inspect_history()
-```
-
-
-```{python}
-optimizer = dspy.BootstrapFewShotWithOptuna(translation_judge, max_bootstrapped_demos = 10, max_labeled_demos = 10, max = 3)
-my_program_optimized_with_demo = optimizer.compile(my_program, trainset=trainset, max_demos=3)
-```
-
-
-
-```{python}
-my_program_optimized_with_demo(prompt = "Hi how are you today?")
-```
-
-
-```{python}
-my_program_optimized_with_demo.inspect_history()
-```
-
+The doc string there is instruction that the adapter will put in a system prompt. The InputField are those we will pass to the program and the OutField are those that the program will return, in the case of `score: int = dspy.OutputField(desc="A single integer from 1 to 5.")` dspy will ensure and parse the integer out of the llm generated string for us. If an int is not provided, DSPy will even retry for us, and try different adapters.
 
 ```{python}
 class QuebecTranslationJudge(dspy.Signature):
@@ -662,7 +390,7 @@ IMPORTANT IF MEANING IS CHANGED SET TO 0.
     english_sentence = dspy.InputField(desc="The original sentence in English.")
     french_translation = dspy.InputField(desc="The proposed translation in Quebec French.")
     feedback = dspy.OutputField(desc="Brief feedback on the translation's quality.")
-    score = dspy.OutputField(desc="A single integer from 1 to 5.")
+    score: int = dspy.OutputField(desc="A single integer from 1 to 5.")
 
 # If you have a capable model configured globally, just do this:
 llm_judge = dspy.Predict(QuebecTranslationJudge)
@@ -691,20 +419,150 @@ def translation_judge(example, prediction, trace=None):
     except (ValueError, AttributeError, TypeError):
         # If the LLM fails to output a valid score, return 0.0
         return 0.0
-
 ```
 
+Now that we have overwritten `translation_judge` let's run the optimization again
 
 ```{python}
-optimizer = dspy.BootstrapFewShotWithOptuna(translation_judge, max_bootstrapped_demos = 10, max_labeled_demos = 10, max_rounds = 3)
-my_program_optimized_with_demo2 = optimizer.compile(my_program, trainset=trainset, max_demos=3)
+#| output: false
+optimizer = dspy.MIPROv2(translation_judge, max_bootstrapped_demos = 0, max_labeled_demos = 0)
+my_program_optimized = optimizer.compile(my_program, trainset=trainset, requires_permission_to_run = False)
+```
+
+Let's test the program right away:
+
+```{python}
+my_program_optimized(prompt = "Hello, how are you?")
+```
+
+
+Good! It's again a translation and not a response to our salutation. Let's inspect the messages.
+
+```{python}
+my_program_optimized.inspect_history()
+```
+
+And this confirms that our adapter works! this is a completely 'vanilla' set of messages.
+
+### Optimizing with Few-Shots Examples too
+
+Let's, now, make it possible for MIPROv2 to also add few-shots example into the system prompt.
+
+For this we need to improve our simple adapter to have a way to format the demos. So we first define `format_demos`, this is a normal Python function that will expect a list of dspy Examples and turn that into a simple string with a light XML structure.
+
+```{python}
+def format_demos(demos):
+    """
+    Wrap every demo once – no duplicated header lines.
+    """
+    parts = ["Here are examples of your expected behavior.",
+             "<examples>"]
+    for i, demo in enumerate(demos, 1):
+        parts += [
+            f"<example_{i}>",
+            "User:",
+            demo["prompt"],
+            "Assistant:",
+            demo["generation"],
+            f"</example_{i}>",
+        ]
+    parts.append("</examples>")
+    return "\n".join(parts)
+```
+
+Let's try it:
+
+```{python}
+examples = [
+    dspy.Example(prompt="She's my girlfriend.", generation="C'est ma blonde."),
+    dspy.Example(prompt="It's snowing again.", generation="Il neige encore."),
+]
+
+print(format_demos(examples))
+```
+
+And we need to update our `SimplestAdapter` with that line: `system_content += "\n" + format_demos(demos)`.
+
+```{python}
+# Define the SimplestAdapter as before
+class SimplestAdapter(dspy.Adapter):
+    def __call__(self, lm, lm_kwargs, signature, demos, inputs):
+        print(inputs)
+        system_content = signature.instructions
+        if demos:
+            system_content += "\n" + format_demos(demos)
+        messages = [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": inputs["prompt"]},
+        ]
+        outputs = lm(messages=messages, **lm_kwargs)
+        return [{"generation": outputs[0]}]
+```
+
+Let's run the optimization again but with `max_labeled_demos = 3` this time.
+
+```{python}
+#| output: false
+optimizer = dspy.MIPROv2(translation_judge, max_bootstrapped_demos = 3, max_labeled_demos = 3)
+my_program_optimized = optimizer.compile(my_program, trainset=trainset, requires_permission_to_run = False)
+```
+
+Let's test the program right away:
+
+```{python}
+my_program_optimized(prompt = "Hello, how are you?")
+```
+
+
+Good! It's again a translation and not a response to our salutation. Let's inspect the messages.
+
+```{python}
+my_program_optimized.inspect_history()
+```
+
+Now our System Prompt also contains a few examples.
+
+### Changing Optimizer
+
+We can easily change Optimizer, look this code now uses `SIMBA` instead of `MIPROv2`
+
+```{python}
+#| output: false
+optimizer = dspy.SIMBA(metric = translation_judge, bsize = 8)
+my_program_optimized = optimizer.compile(my_program, trainset=trainset)
+```
+
+Let's check the results:
+
+```{python}
+my_program_optimized(prompt = "Hello, how are you?")
+my_program_optimized.inspect_history()
+```
+
+In the case of SIMBA, we can see that it gradually added instructions to the system prompt.
+
+### Teacher-Student optimization
+
+Let's now optimize a for a smaller model while still using `Kimi` to generate the system prompt.
+
+We must now create another LM connection, let's stay with groq for speed and to keep things simple. 
+
+```{python}
+llama8b = dspy.LM("groq/llama-3.1-8b-instant")
+my_program.set_lm(lm = llama8b)
+```
+
+Here, I have to add teacher argument to compile: `.compile(... teacher = kimi ...)`.
+
+```{python}
+#| output: false
+optimizer = dspy.MIPROv2(translation_judge, max_bootstrapped_demos = 0, max_labeled_demos = 0)
+my_program_optimized = optimizer.compile(my_program, trainset=trainset, teacher = kimi, requires_permission_to_run = False)
 ```
 
 ```{python}
-my_program_optimized_with_demo2(prompt = "Hi how are you today?")
+#| output-overflow: scroll
+my_program_optimized(prompt = "Hello, how are you?")
+my_program_optimized.inspect_history()
 ```
 
-
-```{python}
-my_program_optimized_with_demo2.inspect_history()
-```
