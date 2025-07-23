@@ -6,4 +6,5 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "dspy>=2.6.27",
+    "networkx>=3.5",
 ]
