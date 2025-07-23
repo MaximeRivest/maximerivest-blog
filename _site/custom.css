@@ -24,7 +24,7 @@ pre {
 /* 3. Style the <code> element using container query units (cqw) */
 @supports (font-size: 1cqw) {
     pre {
-        overflow-x: hidden; /* Hide the scrollbar if container queries are supported, as we scale instead */
+        overflow-x: auto; /* Keep scrollbar visible even with container queries */
     }
 
     pre > code {
