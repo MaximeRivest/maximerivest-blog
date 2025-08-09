@@ -31,6 +31,10 @@ resources:
   - posts/**/*.png
   - posts/images
 
+execute:
+  error: false
+  warning: false
+  
 format:
   html:
     theme:

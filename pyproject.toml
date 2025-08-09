@@ -7,4 +7,5 @@ requires-python = ">=3.12"
 dependencies = [
     "dspy>=2.6.27",
     "networkx>=3.5",
+    "pixeltable>=0.4.6",
 ]

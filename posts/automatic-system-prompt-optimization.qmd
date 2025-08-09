@@ -10,14 +10,6 @@ format:
     toc-location: right
     code-tools: true
     reference-location: margin
-include-in-header:
-  text: |
-    <style>
-    .cell-output-stdout {
-      overflow-y: scroll;
-      max-height: 300px;
-    }
-    </style>
 title-block-banner: false
 title-block-style: none
 execute:
