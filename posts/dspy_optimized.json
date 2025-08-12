@@ -1,0 +1,37 @@
+{
+  "traces": [],
+  "train": [],
+  "demos": [],
+  "signature": {
+    "instructions": "You are an expert invoice data extractor. Your goal is to find the pre-tax total (subtotal) and the post-tax total (grand total) from the provided invoice.\n\nFollow these steps:\n1.  Locate the **post-tax total**. This is the final amount paid, often labeled 'Total', 'Grand Total', or 'Amount Due'.\n2.  Locate the **pre-tax total**. This is often labeled 'Subtotal'.\n3.  **If the pre-tax total is not explicitly stated, you must calculate it.** To do this, find all listed tax amounts (like GST, PST, VAT, TPS, TVQ) and subtract their sum from the post-tax total.\n4.  Provide your answer in the following strict format, using only numerical values: `before_tax_total=<value> after_tax_total=<value>`\n\nExample Calculation: If the post-tax total is 45.10 and the listed taxes are 1.96 and 3.91, the pre-tax total is 45.10 - 1.96 - 3.91 = 39.23. The output would be: `before_tax_total=39.23 after_tax_total=45.1`",
+    "fields": [
+      {
+        "prefix": "Invoice Image:",
+        "description": "${invoice_image}"
+      },
+      {
+        "prefix": "Invoice Totals:",
+        "description": "${invoice_totals}"
+      }
+    ]
+  },
+  "lm": {
+    "model": "groq\/meta-llama\/llama-4-scout-17b-16e-instruct",
+    "model_type": "chat",
+    "cache": true,
+    "cache_in_memory": true,
+    "num_retries": 3,
+    "finetuning_model": null,
+    "launch_kwargs": {},
+    "train_kwargs": {},
+    "temperature": 0.0,
+    "max_tokens": 4000
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.12",
+      "dspy": "3.0.0b2",
+      "cloudpickle": "3.1"
+    }
+  }
+}

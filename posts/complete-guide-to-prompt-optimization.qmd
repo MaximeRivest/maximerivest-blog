@@ -1,5 +1,5 @@
 ---
-title: "Complete Guide to Automatic Prompt Optimization in Python"
+title: "Complete Guide to Automatic Prompt Optimization in Python [wip]"
 date: 2025-07-27
 author: Maxime Rivest
 description: "Course to prompt optimization, we first code our own simple Prompt Optimizer, we then learn how to do it with DSPy and we finish by customizing DSPy to do Agentic Prompt Optimization to be used in LangChain."
@@ -513,19 +513,18 @@ And now the main optimization function. This function will take the current prom
 ```{python}
 import litellm
 
-def propose_new_prompt(current_prompt, table):
+def propose_new_prompt(current_prompt, table, failures_df):
     """Proposes a new prompt using an LLM optimizer."""
 
     # 1. Identify Errors
     # We use Pixeltable's filter mechanism (where) to find rows where the metric failed.
-    failures_df = t.where(t.is_same == 0.0)
 
     if failures_df.count() == 0:
         print("No failures found. Optimization complete.")
         return None
 
     # 2. Format Failures
-    failures_str = t.select(format_failures(t.ground_truth, t.extraction)).collect()[0]['format_failures']
+    failures_str = failures_df.select(format_failures(table.ground_truth, table.extraction)).collect()[0]['format_failures']
 
     images = []
     for img in failures_df.collect()["invoice_image"]:
@@ -578,7 +577,7 @@ t.select(pxt.functions.mean(t.is_same)).collect()
 A score of around 18% (depending on the exact LLM runs) is quite poor. Let's see if the optimizer can help.
 
 ```{python}
-optimization_response = propose_new_prompt(initial_prompt, t)
+optimization_response = propose_new_prompt(initial_prompt, t, t.where(t.is_same == 0.0))
 optimization_response
 ```
 
@@ -671,89 +670,257 @@ t.add_computed_column(is_same_v1 = metric_udf(t.ground_truth, t.extraction_v1))
 t.select(pxt.functions.mean(t.is_same_v1)).collect()
 ```
 
-```{python}
-t.show()
-```
 
-Wow! We went from ~0.36 to ~0.82! That's a massive improvement by leveraging the core strategy of MIPROv2—using grounded examples of failure to propose better instructions.
+Wow! We went from 2/10 to 3/10. Progress!
 
 ### Running the Optimizer (Iteration 2)
 
 Can we do even better? Let's run another iteration. To do this, we first need to update our Pixeltable with the results of the V1 prompt so the optimizer can analyze the *remaining* failures.
 
-::: {.callout-note collapse="true" title="Updating Pixeltable for the Next Iteration"}
-We will update the `extraction` column based on the V1 results. Note that in a real production system, you might want to version your prompts and results (e.g., using new columns like `extraction_v1`) rather than overwriting them.
-
-```{python}
-updates = []
-for r in results_v1:
-    updates.append({
-        'invoice_path': r['invoice_path'],
-        'extraction': r['extraction'],
-        # 'is_same' is a computed column, it will update automatically when 'extraction' changes.
-    })
-
-# We use batch_update to update the underlying data based on the primary key (invoice_path)
-t.batch_update(updates)
-# Let's verify the table state reflects the V1 score 
-# print(t.select(pxt.functions.pandas.mean(t.is_same)).collect())
-```
-:::
-
 Now we run the optimizer again, starting from the V1 prompt.
 
 ```{python}
-#| output: true
-#| echo: true
-# We pass the V1 prompt and the table 't' (which now contains V1 results)
-optimization_response_v2 = propose_new_prompt(proposed_prompt_v1, t)
-# print(optimization_response_v2)
+optimization_response_v2 = propose_new_prompt(proposed_prompt_v1, t, t.where(t.is_same_v1 == 0.0))
+print(optimization_response_v2)
 ```
 
 Let's extract the V2 prompt.
 
 ```{python}
-#| output: true
-#| echo: true
 proposed_prompt_match_v2 = re.search(r"<proposed_prompt>(.*?)</proposed_prompt>", optimization_response_v2, re.DOTALL)
-
-if proposed_prompt_match_v2:
-    proposed_prompt_v2 = proposed_prompt_match_v2.group(1).strip()
-    print(proposed_prompt_v2)
-else:
-    print("Could not extract proposed prompt.")
-    proposed_prompt_v2 = proposed_prompt_v1
+proposed_prompt_v2 = proposed_prompt_match_v2.group(1).strip()
+print(proposed_prompt_v2)
 ```
 
 The V2 prompt further refined the instructions, specifically addressing the remaining errors identified by the optimizer LLM. It might add emphasis on handling specific tax names, rounding issues, or emphasizing precision in calculation.
 
-Let's evaluate the V2 prompt.
+Let's apply and evaluate the V2 prompt.
 
 ```{python}
-#| output: true
-#| echo: true
-results_v2 = evaluate_prompt(proposed_prompt_v2, dataset)
+@pxt.udf
+def extract_totals_v2_udf(img: Image.Image) -> Dict[str, float]:
+    return extract_totals_with_prompt(img, proposed_prompt_v2)
 
-# Calculate overall score
-score_v2 = sum(r['score'] for r in results_v2) / len(results_v2)
-print(f"Optimized Score (V1): {score_v1:.2f}")
-print(f"Optimized Score (V2): {score_v2:.2f}")
+t.add_computed_column(extraction_v2 = extract_totals_v2_udf(t.invoice_image))
+t.add_computed_column(is_same_v2 = metric_udf(t.ground_truth, t.extraction_v2))
 ```
 
-We reached a score of 1.0! The optimizer successfully analyzed the failures of the V1 prompt and generated a V2 prompt that perfectly extracts the data from all 11 invoices in our dataset.
+```{python}
+t.select(pxt.functions.mean(t.is_same_v2)).collect()
+```
+
+We still have 3/10, but not the exact same set of invoices a right now
+
+```{python}
+t.select(t.is_same, t.is_same_v1, t.is_same_v2).show()
+```
+
+All together Llama 4 Scout was able to get it righ 5 out of 10 times, so there is probably a prompt out there the could achieve at least those results. We will stop here for the manual optimization. And move on to dspy as it is easier to iterate on and we will try to furter improve llama's performance.
+
 
 ### Recap of Manual Optimization
 
-We successfully built a simple, yet effective, prompt optimizer by directly implementing a simplified version of the instruction generation strategy found in DSPy's MIPROv2. The key takeaways are:
+We successfully built a simple, prompt optimizer by directly implementing a simplified version of the instruction generation strategy found in DSPy. The key takeaways are:
 
-1.  **Grounded Generation**: The most critical aspect of modern prompt optimization is grounding the generation in data. By analyzing specific failures (`task_demos`) and the goal (`program_description`), the system can effectively self-improve.
-2.  **The Power of Meta-Prompts**: Using an LLM to optimize the prompt of another LLM is highly effective. Reusing the conceptual structure of DSPy's internal proposal mechanism (the `GroundedProposer`) worked very well.
-3.  **Iterative Improvement**: Optimization is rarely a one-shot process. The iterative loop of Generate -> Evaluate -> Analyze Failures -> Regenerate is fundamental.
+1.  **Grounded Generation**: We are grounding the prompt optimization generation in data. By analyzing specific failures and the goal, the system can self-improve.
+2.  **The Power of Meta-Prompts**: Using an LLM to optimize the prompt of another LLM is effective.
+3.  **Iterative Improvement**: Optimization is rarely a one-shot process. The iterative loop of Generate -> Evaluate -> Analyze Failures -> Regenerate will make us climb the hill.
 
-While this manual implementation achieved perfect results on our small dataset, it has limitations:
+While this manual implementation 'worked', it has limitations:
 
 *   **It's Manual and Boilerplate Heavy**: We wrote a lot of code for formatting, API calls, parsing, and managing the data pipeline loop.
-*   **It's Simplified**: We only optimized the instructions based on failures. The full MIPROv2 also optimizes few-shot examples, automatically summarizes the dataset and program code, uses history, and leverages randomized tips to inform future proposals.
-*   **Simple Search Strategy**: We used a simple greedy approach. MIPROv2 uses sophisticated Bayesian optimization to search the space of possible prompts much more efficiently.
+*   **It's Simplified**: We only optimized the instructions based on failures. The full MIPROv2 also optimizes few-shot examples, automatically summarizes the dataset and program code, uses history, and leverages randomized tips to inform future proposals (and more!).
+*   **Simple Search Strategy**: We used a simple for loop. MIPROv2 and many other DSPy optimizers uses Bayesian optimization to search the space of possible prompts much more efficiently.
 
 In the next section, we will see how DSPy streamlines this entire process, making optimization faster, more robust, and requiring significantly less code.
+
+# DSPy's Prompt Optimization
+
+Finally we are in dspy, the code will be much simpler! First, let's create a connection. DSPy uses litellm behind the scene so the model string that worked above are the same here. But there is much less boilerplate. For instance, we can create a connection to llama and call it just like that:
+
+```{python}
+import dspy
+
+lm = dspy.LM("groq/meta-llama/llama-4-scout-17b-16e-instruct")
+lm("hello")
+```
+
+As we discussed above, to optimize a task we need the optimizers to know what our intent is. We mentionned 4 ways to specify intent: 1) by example, with a goldset, 2) by a rubric or judge, 3) by instructions and/or 4) by stating the input/output. Here we will provide example (1), instructions (3), and state the required inputs and outputs (4).
+
+As a reminder out instruction were:
+
+> Extract the after-tax total and the before-tax total from the invoice.
+
+So in dspy, to provide the input, ouptut requirements and the instructions we write a signature. To write a signature we do that:
+
+```{python}
+from pydantic import BaseModel
+from typing import Optional
+
+class InvoiceTotals(BaseModel):
+    before_tax_total: Optional[float] = None
+    after_tax_total:  Optional[float] = None
+
+class OurIntent(dspy.Signature): #OurIntent can be any name we want
+    """
+    Extract the after-tax total and the before-tax total from the invoice.
+    """
+    invoice_image: dspy.Image = dspy.InputField() 
+    invoice_totals: InvoiceTotals = dspy.OutputField()
+```
+
+That's it, see how we reuse the pydantic model `InvoiceTotals` we created above. Now let's try it out.
+
+First we must turn our signature into what dspy call a 'program' and set the language model to use:
+
+```{python}
+dprogram = dspy.Predict(OurIntent)
+dprogram.set_lm(lm)
+```
+
+Now we can call our program:
+
+```{python}
+dprogram(invoice_image = dspy.Image.from_file(file_path = "images/invoices/IMG_2160.jpg"))
+```
+
+That program contains information about the instructions, input/outputs, etc. It uses templates called adapters to turn those into a prompt. At this point in our process dspy has not optimized anything for us it have simply helped us focus only on the part that matters. It was much simpler to get to an llm call then it was before. Let's now add the base dspy prompt into our pixel table.
+
+
+```{python}
+@pxt.udf
+def dspy_baseline(img: Image.Image) -> Dict[str, float]:
+    return dprogram(invoice_image = dspy.Image.from_PIL(img)).invoice_totals.model_dump()
+
+t.add_computed_column(extraction_dspybase = dspy_baseline(t.invoice_image))
+```
+
+```{python}
+t.add_computed_column(is_same_dspybase = metric_udf(t.ground_truth, t.extraction_dspybase))
+```
+
+
+```{python}
+t.select(pxt.functions.mean(t.is_same_dspybase)).collect()
+```
+
+Here, with simple dspy we are also starting at 2/10. So not worse because of the dspy template but not better either.
+
+```{python}
+t.select(t.is_same, t.is_same_v1, t.is_same_v2, t.is_same_dspybase).show()
+```
+
+Let's optimize it now
+
+## DSPy Instruction Optimization
+
+As mentionned previously, dspy can optimize many components of the AI system, now we will focus on optimizing only the instruction, similarly to what we have just done 'manually'.
+
+The optimizer will need, a trainset, a metric, and a program. We aleary how the program, now we need to reshape our 10 example in dspy object. DSPy wants a list of `dspy.Example` objects. Similarly we will need to adapt the metric to be using the `dspy.Example` object.
+
+### Adjusting for DSPy
+
+Let's reuse the list of dictionnay that use used at the beginning of the tutorial and reshape it for dspy.
+
+The training set:
+
+```{python}
+goldset = [
+    {'invoice_path': 'images/invoices/IMG_2160.jpg', 'ground_truth': {'before_tax_total': 39.23, 'after_tax_total': 45.1}},
+    {'invoice_path': 'images/invoices/IMG_2161.jpg', 'ground_truth': {'before_tax_total': 82.74, 'after_tax_total': 95.13}},
+    {'invoice_path': 'images/invoices/IMG_2162.jpg', 'ground_truth': {'before_tax_total': 54.63, 'after_tax_total': 62.81}},
+    {'invoice_path': 'images/invoices/IMG_2163.jpg', 'ground_truth': {'before_tax_total': 40.38, 'after_tax_total': 46.43}},
+    {'invoice_path': 'images/invoices/IMG_2164.jpg', 'ground_truth': {'before_tax_total': 17.39, 'after_tax_total': 20.00}},
+    {'invoice_path': 'images/invoices/IMG_2165.jpg', 'ground_truth': {'before_tax_total': 42.8, 'after_tax_total': 49.21}},
+    {'invoice_path': 'images/invoices/IMG_2166.jpg', 'ground_truth': {'before_tax_total': 559.93, 'after_tax_total': 561.64}},
+    {'invoice_path': 'images/invoices/IMG_2167.jpg', 'ground_truth': {'before_tax_total': 77.18, 'after_tax_total': 88.74}},
+    {'invoice_path': 'images/invoices/IMG_2168.jpg', 'ground_truth': {'before_tax_total': 53.06, 'after_tax_total': 61.00}},
+    {'invoice_path': 'images/invoices/IMG_2169.jpg', 'ground_truth': {'before_tax_total': None, 'after_tax_total': 12.64}}
+]
+trainset = [dspy.Example(
+    invoice_image = dspy.Image.from_file(i["invoice_path"]),
+    invoice_totals = InvoiceTotals(
+        before_tax_total = i["ground_truth"]["before_tax_total"],
+        after_tax_total = i["ground_truth"]["after_tax_total"]
+        )
+    ).with_inputs("invoice_image") for i in goldset
+]
+```
+
+now for the metric, this is what we have beend working with so far:
+
+```{{python}}
+def metric(ground_truth, pred):
+    is_btax_same = ground_truth.before_tax_total == pred.before_tax_total
+    is_atax_same = ground_truth.after_tax_total == pred.after_tax_total
+    return float(is_btax_same and is_atax_same)
+```
+
+and this is what dspy expects: 
+
+```{python}
+def metric_dspy(example, pred, trace=None):
+    is_btax_same = example.invoice_totals.before_tax_total == pred.invoice_totals.before_tax_total
+    is_atax_same = example.invoice_totals.after_tax_total == pred.invoice_totals.after_tax_total
+    return float(is_btax_same and is_atax_same)
+```
+
+### Optimizing
+
+#### Instructions
+
+```{python}
+teacherp = dprogram.deepcopy()
+teacherp.set_lm(lm = dspy.LM("openrouter/google/gemini-2.5-pro"))
+optimizer = dspy.MIPROv2(
+    metric_dspy, 
+    max_bootstrapped_demos = 0, 
+    max_labeled_demos = 0, 
+    prompt_model=dspy.LM("openrouter/google/gemini-2.5-pro"), 
+    auto = "medium")
+dprogram_optimized = optimizer.compile(dprogram, trainset=trainset, requires_permission_to_run = False, teacher = teacherp)
+```
+
+
+```{python}
+dprogram_optimized.inspect_history()
+```
+
+
+```{python}
+dprogram_optimized(invoice_image = dspy.Image.from_file(file_path = "images/invoices/IMG_2160.jpg"))
+```
+
+
+
+```{python}
+@pxt.udf
+def dspy_optimized(img: Image.Image) -> Dict[str, float]:
+    return dprogram_optimized(invoice_image = dspy.Image.from_PIL(img)).invoice_totals.model_dump()
+
+t.add_computed_column(extraction_dspyopt = dspy_optimized(t.invoice_image))
+```
+
+```{python}
+t.add_computed_column(is_same_dspyopt = metric_udf(t.ground_truth, t.extraction_dspyopt))
+```
+
+
+```{python}
+t.select(pxt.functions.mean(t.is_same_dspyopt)).collect()
+```
+
+Here, with simple dspy we are also starting at 2/10. So not worse because of the dspy template but not better either.
+
+```{python}
+t.select(t.is_same, t.is_same_v1, t.is_same_v2, t.is_same_dspybase, t.is_same_dspyopt).show()
+```
+
+```{python}
+dprogram_optimized.save("dspy_optimized.json")
+```
+
+
+6/10! We are improving!
+
+#### Let's now add few-shots examples.

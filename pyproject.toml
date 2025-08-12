@@ -5,7 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "dspy>=2.6.27",
+    "dspy==3.0.0b2",
     "ipykernel>=6.30.0",
     "networkx>=3.5",
     "pixeltable>=0.4.6",
