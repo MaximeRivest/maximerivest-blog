@@ -3,6 +3,7 @@
 .Rdata
 .Rproj.user/
 .DS_Store
+cache*
 
 /.quarto/
 .jupyter_cache/
@@ -18,3 +19,5 @@
 *.rpm
 *.dmg
 *.exe
+
+posts/dspy_course_prompt_optimization

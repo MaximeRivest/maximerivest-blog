@@ -3,15 +3,15 @@
   "train": [],
   "demos": [],
   "signature": {
-    "instructions": "You are an expert invoice data extractor. Your goal is to find the pre-tax total (subtotal) and the post-tax total (grand total) from the provided invoice.\n\nFollow these steps:\n1.  Locate the **post-tax total**. This is the final amount paid, often labeled 'Total', 'Grand Total', or 'Amount Due'.\n2.  Locate the **pre-tax total**. This is often labeled 'Subtotal'.\n3.  **If the pre-tax total is not explicitly stated, you must calculate it.** To do this, find all listed tax amounts (like GST, PST, VAT, TPS, TVQ) and subtract their sum from the post-tax total.\n4.  Provide your answer in the following strict format, using only numerical values: `before_tax_total=<value> after_tax_total=<value>`\n\nExample Calculation: If the post-tax total is 45.10 and the listed taxes are 1.96 and 3.91, the pre-tax total is 45.10 - 1.96 - 3.91 = 39.23. The output would be: `before_tax_total=39.23 after_tax_total=45.1`",
+    "instructions": "Your task is to analyze the provided receipt image to determine the total amount before tax (`before_tax_total`) and the final total amount after tax (`after_tax_total`).\n\nTo accomplish this, you must follow a specific calculation process:\n1.  **Identify the After-Tax Total:** First, locate the final, conclusive total amount on the receipt. This is the amount the customer paid and is often labeled 'TOTAL', 'ACHAT', or 'CREDIT'. This value is your `after_tax_total`.\n2.  **Identify All Tax Amounts:** Next, carefully scan the receipt to find all individual tax amounts. Look for labels such as 'TPS', 'TVQ', 'GST', 'PST', or 'TAX'. Sum all of these individual tax values together.\n3.  **Calculate the Before-Tax Total:** The `before_tax_total` is not directly listed but must be calculated. Subtract the total sum of all taxes you found in step 2 from the `after_tax_total` identified in step 1.\n4.  **Provide the Output:** Present your final answer in the specified format: `before_tax_total=<calculated_value> after_tax_total=<extracted_value>`.",
     "fields": [
       {
-        "prefix": "Invoice Image:",
-        "description": "${invoice_image}"
+        "prefix": "Receipt Image:",
+        "description": "${receipt_image}"
       },
       {
-        "prefix": "Invoice Totals:",
-        "description": "${invoice_totals}"
+        "prefix": "Receipt Totals:",
+        "description": "${receipt_totals}"
       }
     ]
   },
@@ -30,7 +30,7 @@
   "metadata": {
     "dependency_versions": {
       "python": "3.12",
-      "dspy": "3.0.0b2",
+      "dspy": "3.0.0",
       "cloudpickle": "3.1"
     }
   }
