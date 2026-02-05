@@ -1,0 +1,183 @@
+---
+title: "The Signature Duality: Separating Intent from Mechanism in DSPy"
+date: 2026-02-05
+author: Maxime Rivest
+description: "A proposal for distinguishing task fields from generation fields in DSPy signatures, enabling cleaner optimization, composition, and tooling."
+draft: true
+format:
+  html:
+    toc: true
+    toc-location: right
+title-block-banner: false
+title-block-style: none
+---
+
+# The Signature Duality: Separating Intent from Mechanism in DSPy
+
+**Gist — February 2026**
+
+---
+
+## Abstract
+
+DSPy's signature abstraction is the foundation that makes "programming, not prompting" possible. We identify a latent tension in this abstraction: a single signature currently encodes both what the user wants (the task contract) and how the model is guided to get there (the generation strategy). This conflation is invisible in simple programs but becomes a source of friction in three contexts: optimization, compound system composition, and platform-level program tracking. We propose a minimal, backward-compatible distinction — **task fields** and **generation fields** — that resolves these frictions and unlocks a cleaner optimizer contract, more legible system graphs, and a principled foundation for the "signature hacking" patterns that practitioners already rely on.
+
+---
+
+## 1. The Observation
+
+Consider a user who defines:
+
+```python
+class ClassifySentiment(dspy.Signature):
+    """Classify the sentiment of customer feedback."""
+    feedback: str = dspy.InputField()
+    sentiment: Literal["positive", "negative", "neutral"] = dspy.OutputField()
+```
+
+This is a task contract. It says: given feedback, produce sentiment. It defines what "correct" means. It is the identity of the program.
+
+Now the user wraps it in `dspy.ChainOfThought(ClassifySentiment)`. At generation time, the compiled prompt includes a `rationale` field that the model fills before producing `sentiment`. The effective generation signature is:
+
+```
+feedback: str → rationale: str, sentiment: Literal[...]
+```
+
+**Are these the same signature?** Intuitively, yes — the user's intent has not changed. Formally, no — the fields differ. DSPy navigates this today through convention: `ChainOfThought` and `ReAct` are modules that internally augment the signature. The augmentation is implicit and module-scoped.
+
+This works. But as DSPy programs grow into compound systems, and as optimization and platform tooling mature, the implicitness creates three concrete problems.
+
+---
+
+## 2. Where It Hurts
+
+### 2.1 Optimization scope ambiguity
+
+An optimizer's job is to improve a program's performance without changing what the program *does*. But today, an optimizer has no formal way to know which fields constitute the "what" and which are fair game for manipulation.
+
+When `MIPROv2` restructures a prompt, adds few-shot examples, or changes the reasoning scaffold — did it change the program's identity? The answer should be no: it changed the *generation strategy* while preserving the *task contract*. But if program identity is derived from the full signature, the optimizer appears to produce a "different program" every time.
+
+**The desired invariant:** optimizers can freely mutate the generation signature but must preserve the task signature. Today this invariant exists as a social contract between DSPy developers. It should be a formal one.
+
+### 2.2 Compound system dataflow noise
+
+In a compound AI system, modules are wired together: the output of module A feeds the input of module B. The meaningful graph is the **task-level dataflow** — what information flows between modules as part of the user's intended computation.
+
+But if signatures include generation fields (rationale, scratchpad, tool traces), the dataflow graph becomes noisy. A `rationale` field produced by module A is never consumed by module B — it is internal to A's reasoning process. Yet at the signature level, it appears as an output, complicating graph analysis, parallelization planning, and interface contract validation.
+
+### 2.3 The "signature hacking" pattern has no home
+
+Practitioners have discovered that adding carefully chosen intermediate fields to a signature can dramatically improve model performance. This is a powerful technique — it is guided test-time compute expressed at the signature level rather than the module level.
+
+Today, these fields are indistinguishable from task outputs. This creates confusion: a downstream consumer of the signature might attempt to use a field that was only ever meant as a reasoning scaffold. It also means optimizers cannot identify these fields as candidates for restructuring or removal.
+
+---
+
+## 3. The Proposal
+
+Introduce a distinction between two categories of output fields in a DSPy signature.
+
+**Task fields** (`dspy.OutputField`): The user's intended outputs. These define what the program *does*. They constitute the program's identity and the contract with downstream consumers. Changing a task field means changing the program.
+
+**Generation fields** (proposed: `dspy.GenerationField` or similar): Model-facing guidance fields. These exist in the compiled prompt and are filled by the model during generation, but they are not part of the task contract. They are the mechanism, not the intent.
+
+```python
+class ClassifySentiment(dspy.Signature):
+    """Classify the sentiment of customer feedback."""
+    feedback: str = dspy.InputField()
+    rationale: str = dspy.GenerationField(desc="Step-by-step reasoning about the tone")
+    sentiment: Literal["positive", "negative", "neutral"] = dspy.OutputField()
+```
+
+The properties of generation fields:
+
+1. **Present at generation time.** They appear in the compiled prompt and are filled by the model. They influence the model's reasoning path.
+2. **Absent from the task contract.** Downstream modules that consume this signature's outputs see only task fields. The program's identity is hashed from task fields only.
+3. **Mutable by optimizers.** Optimizers can add, remove, reorder, rename, or restructure generation fields. This is their primary lever for improving performance without altering intent.
+4. **Observable but not contractual.** Traces and logs capture generation field values (essential for debugging and interpretability), but no other module depends on them.
+
+### Backward compatibility
+
+The change is additive. Existing signatures with only `InputField` and `OutputField` continue to work identically — they are purely task-level signatures where the generation signature happens to equal the task signature. `ChainOfThought` and `ReAct` would internally add generation fields, as they already do, but now with a formal type.
+
+Users who already do "signature hacking" would migrate their intermediate fields from `OutputField` to `GenerationField`. No semantic change to their programs; just a declaration of intent that unlocks better optimization and tooling.
+
+---
+
+## 4. Implications
+
+### For DSPy's core abstractions
+
+The signature remains the central abstraction. It gains a richer internal structure but does not change its role. The task signature is what users write and reason about. The generation signature is what the compiler and optimizer produce.
+
+This mirrors a pattern familiar from traditional software: the distinction between a function's public interface and its implementation details. What is new is that in LLM programming, the "implementation details" (how you guide the model's generation) are themselves expressed in the same declarative language as the interface.
+
+### For modules
+
+Modules like `ChainOfThought`, `ReAct`, and `ProgramOfThought` become formally understood as **generation signature transformers** — they take a task signature and produce an augmented generation signature. The task contract passes through unchanged.
+
+This also opens the door to a richer set of such transformers. If generation fields are first-class, the community can experiment with new reasoning scaffolds (structured debate, verification chains, multi-draft selection) without ambiguity about what is task-level and what is mechanism-level.
+
+### For optimizers
+
+The optimizer contract becomes precise:
+
+- **Must preserve:** task fields (names, types, semantics).
+- **May mutate:** generation fields, prompt templates, few-shot examples, adapter configuration, model selection.
+- **If it changes task fields:** it is no longer an optimizer — it is an interpreter or a program rewriter. This is a valid operation but a different one, and it should be tracked differently.
+
+This distinction is especially important for automated optimization pipelines where humans are not reviewing every change. The invariant "task contract is preserved" becomes checkable.
+
+### For compound systems and platforms
+
+Program identity can be cleanly defined as the hash of (task signature + docstring). Two checkpoints with different generation strategies but the same task signature are versions of the same program.
+
+The system-level dataflow graph is defined entirely by task fields: module A's task output `sentiment: str` feeds module B's task input `sentiment: str`. Generation fields are invisible at this level, reducing noise and making the graph a true representation of the user's intended computation.
+
+### For the task↔generation relationship
+
+A task signature can have multiple valid generation signatures. This is a one-to-many relationship:
+
+```
+ClassifySentiment (task)
+├── ClassifySentiment_CoT (generation: + rationale)
+├── ClassifySentiment_ReAct (generation: + actions, observations)
+└── ClassifySentiment_Debate (generation: + position_a, position_b, resolution)
+```
+
+All four produce the same output (`sentiment`). They differ only in how they guide the model to get there. An optimizer navigates this space. A platform tracks which generation strategy each checkpoint uses.
+
+---
+
+## 5. Relation to Existing DSPy Concepts
+
+This proposal does not introduce a new paradigm. It names and formalizes something DSPy already does:
+
+- `dspy.ChainOfThought` already adds a `rationale` field that is not part of the user's intended output. The proposal calls this a generation field.
+- `dspy.ReAct` already adds `actions` and `observations` fields as reasoning scaffolds. Same principle.
+- Optimizers already treat the prompt template and few-shot examples as mutable. The proposal extends this to generation fields explicitly.
+- `dspy.Adapter` already mediates between the signature and the model. The adapter would become the natural place where generation fields are injected and extracted.
+
+The contribution is making the implicit explicit — giving the distinction a name, a type, and a contract — so that tooling, optimization, and composition can rely on it programmatically rather than by convention.
+
+---
+
+## 6. Open Questions
+
+**Naming.** `GenerationField` is descriptive but long. Alternatives: `IntermediateField`, `GuidanceField`, `ReasoningField`, `InternalField`, `ScaffoldField`. The name should signal "this is for the model's benefit, not the consumer's." We do not propose a specific name here; this is best decided by the DSPy community.
+
+**Should generation fields be visible in the module's return value?** We lean toward yes-but-secondary: the `dspy.Prediction` object could carry them in a separate namespace (e.g., `prediction.generation.rationale`) so they are accessible for logging and debugging but do not pollute the primary output interface.
+
+**Can a field be task-level in one context and generation-level in another?** Consider a `summary` field that is an intermediate reasoning step in one module but the final output of another. We believe the answer is no within a single signature — the field's role is declared at signature definition time. If the same concept serves different roles in different modules, they are different signatures.
+
+**How does this interact with typed predictors and structured output?** Task fields define the JSON schema / structured output contract that validation checks against. Generation fields may or may not be included in the structured output format depending on the adapter. This needs design work, particularly for adapters that enforce strict JSON output.
+
+---
+
+## 7. Summary
+
+DSPy's signature is already the right abstraction. This proposal makes it sharper by acknowledging that a signature serves two audiences — the human (who cares about the task contract) and the model (who benefits from generation guidance) — and that these audiences have different needs, different stability expectations, and different optimization boundaries.
+
+The formal distinction between task fields and generation fields is a small change to the abstraction with outsized consequences for optimization, composition, observability, and the emerging ecosystem of tools built on top of DSPy.
+
+We believe this is a natural next step in DSPy's evolution from "programming, not prompting" toward "engineering, not alchemy."
